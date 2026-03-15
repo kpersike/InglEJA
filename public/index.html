@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InglEJA - Entrar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <h1>Bem-vindo ao IngleEJA</h1>
+
+        <section id="login-area">
+            <h2>Entrar</h2>
+            <div class="form-group">
+                <label for="email">Seu E-mail:</label>
+                <input type="email" name="" id="email" placeholder="exemplo@email.com">
+            </div>
+            <div class="form-group">
+                <label for="senha">Sua senha:</label>
+                <input type="password" id="senha" placeholder="Digite sua senha">
+            </div>
+            <button onclick="fazerLogin()" class="btn-primary">Entrar no Curso</button>
+            <p>Ainda não tem conta? <a href="#" onclick="alternarTela()">Clique aqui para criar uma</a></p>
+        </section>
+
+        <section id="cadastro-area" style="display:none;">
+            <h2>Criar nova conta</h2>
+            <div class="form-group">
+                <label for="cad-nome">Seu nome:</label>
+                <input type="text" id="cad-nome" placeholder="Como quer ser chamado?">
+            </div>
+            <div class="form-group">
+                <label for="cad-email">Seu E-mail:</label>
+                <input type="email" id="cad-email" placeholder="Seu melhor e-mail">
+            </div>
+            <div class="form-group">
+                <label for="cad-senha">Crie uma Senha:</label>
+                <input type="password" id="cad-senha" placeholder="Escolha uma senha fácil">
+            </div>
+            <button onclick="fazerCadastro()" class="btn-sucess">Finalizar Cadastro</button>
+            <p><a href="#" onclick="alternarTela()">Voltar para o Login</a></p>
+        </section>
+
+        <div id="mensagem-feedback"></div>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>
