@@ -1,0 +1,18 @@
+services:
+
+  postgres:
+    image: postgres:latest
+    platform: linux/amd64
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: database.schema
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database.schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

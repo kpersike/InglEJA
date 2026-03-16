@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict TjdCi35WfufWDGAnucKRHo7S98ihm5RoSlKKJH6bSeEuL3xsAwmIwij3iYYlZ6o
+-- \restrict TjdCi35WfufWDGAnucKRHo7S98ihm5RoSlKKJH6bSeEuL3xsAwmIwij3iYYlZ6o
 
 -- Dumped from database version 17.9
 -- Dumped by pg_dump version 17.9
@@ -498,5 +498,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,
 -- PostgreSQL database dump complete
 --
 
-\unrestrict TjdCi35WfufWDGAnucKRHo7S98ihm5RoSlKKJH6bSeEuL3xsAwmIwij3iYYlZ6o
+-- \unrestrict TjdCi35WfufWDGAnucKRHo7S98ihm5RoSlKKJH6bSeEuL3xsAwmIwij3iYYlZ6o
 
