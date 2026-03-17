@@ -68,20 +68,30 @@ async function fazerLogin() {
         const data = await response.json();
 
         if (response.ok) {
-            feedback.style.color = "#1cb0f6"; // Azul Duolingo
-            feedback.innerHTML = `<strong>${data.mensagem}</strong><br>Carregando suas lições...`;
+            // --- INTEGRAÇÃO REAL ---
             
-            // Aqui futuramente redirecionaremos para a tela de lições
-            // Por enquanto, vamos apenas simular:
+            // 1. Salvamos os dados do usuário no localStorage
+            // Isso permite que a Dashboard e as Lições saibam quem é o aluno
+            localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
+
+            // 2. Feedback visual de sucesso
+            feedback.style.color = "#1cb0f6"; 
+            feedback.innerHTML = `<strong>Bem-vindo(a), ${data.usuario.nome}!</strong><br>Preparando suas lições...`;
+            
+            // 3. Redirecionamento automático após 1.5 segundos
             setTimeout(() => {
-                alert("Login realizado! Próxima Sprint: Tela de Lições.");
-            }, 1000);
+                window.location.href = 'dashboard.html';
+            }, 1500);
             
         } else {
+            // Caso o servidor retorne 401 (Senha errada) ou 400
             feedback.style.color = "red";
             feedback.innerText = data.erro || "E-mail ou senha incorretos.";
         }
     } catch (error) {
-        feedback.innerText = "Erro de conexão com o servidor.";
+        console.error("Erro na requisição:", error);
+        feedback.style.color = "red";
+        feedback.innerText = "Erro de conexão com o servidor. Verifique se o node server.js está rodando.";
     }
 }
+

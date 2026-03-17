@@ -64,7 +64,14 @@ app.post('/api/login', (req, res) => {
 
         if (usuario) {
             console.log("✨ [Login] Sucesso:", usuario.nome);
-            res.json({ mensagem: `Bem-vindo, ${usuario.nome}!`, sucesso: true });
+            res.json({ 
+            sucesso: true,
+            usuario: {
+                nome: usuario.nome,
+                email: usuario.email,
+                pontos: usuario.pontos || 0
+            }
+    });
         } else {
             console.log("⚠️ [Login] Falha: Credenciais inválidas.");
             res.status(401).json({ erro: "E-mail ou senha incorretos." });
@@ -75,10 +82,86 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+app.get('/api/licao/:id'), (req, res) => {
+    const lessons = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'lessons.json'), 'utf8'));
+    const licao = lessons.find (l => l.id == requestAnimationFrame.params.id);
+
+    if(licao) {
+        const { respostaCorreta, ...dadosPublicos } = licao;
+        res.json(dadosPublicos);
+    } else {
+        res.status(404).json({ erro: "Lição não encontrada"})
+    }
+};
+
+app.get('/api/licoes', (req, res) => {
+    try {
+        if (!fs.existsSync(LESSONS_PATH)) return res.json([]);
+        const content = fs.readFileSync(LESSONS_PATH, 'utf8');
+        const lessons = JSON.parse(content);
+        
+        // Remove a resposta correta para não "colarem" pelo console do navegador
+        const dadosSeguros = lessons.map(({ respostaCorreta, ...resto }) => resto);
+        res.json(dadosSeguros);
+    } catch (error) {
+        res.status(500).json({ erro: "Erro ao carregar lições" });
+    }
+});
+
+app.get('/api/licao/:id', (req, res) => {
+    try {
+        const lessons = JSON.parse(fs.readFileSync(LESSONS_PATH, 'utf8'));
+        // Corrigido: usamos req.params.id (o seu estava requestAnimationFrame)
+        const licao = lessons.find(l => l.id == req.params.id);
+
+        if (licao) {
+            const { respostaCorreta, ...dadosPublicos } = licao;
+            res.json(dadosPublicos);
+        } else {
+            res.status(404).json({ erro: "Lição não encontrada" });
+        }
+    } catch (err) {
+        res.status(500).json({ erro: "Erro interno" });
+    }
+});
+
+
+//rota para validar a resposta e dar pontos
+
+app.post('/api/validar-resposta', (req, res) => {
+    const { usuarioEmail, licaoId, respostaUsuario } = req.body;
+    const lessons = JSON.parse(fs.readFileSync(LESSONS_PATH, 'utf8'));
+    const licao = lessons.find(l => l.id == licaoId); // Corrigido licaoID para licaoId
+
+    if (!licao) return res.status(404).json({ erro: "Lição inválida" });
+
+    if (!respostaUsuario || respostaUsuario.trim() === "") {
+        return res.status(400).json({ erro: "Você precisa responder a pergunta" });
+    }
+
+    const acertou = respostaUsuario.toLowerCase().trim() === licao.respostaCorreta.toLowerCase().trim();
+
+    if (acertou) {
+        let usuarios = getUsers();
+        const userIndex = usuarios.findIndex(u => u.email === usuarioEmail);
+
+        if (userIndex !== -1) {
+            // Corrigido: usarIndex para userIndex
+            usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + licao.pontos;
+            fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+        }
+        res.json({ feedback: "Correto! Well done!", acertou: true, pontos: licao.pontos });
+    } else {
+        res.json({ feedback: "Ops! Tente novamente.", acertou: false });
+    }
+});
+
 // --- O CORAÇÃO DO SERVIDOR (Não esqueça disso!) ---
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`---`);
     console.log(`🚀 InglEJA Online!`);
-    console.log(`📍 Link: http://localhost:${PORT}`);
+    console.log(`📍 Servidor interno rodando na porta: ${PORT}`);
+    console.log(`📢 Se estiver no Codespaces, use a aba 'Ports' para abrir o link.`);
     console.log(`---`);
 });
+

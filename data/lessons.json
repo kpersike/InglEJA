@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "titulo": "Saudações Básicas",
+    "audio": "/audio/greetings.mp3",
+    "pergunta": "Como se diz 'Bom dia' em inglês?",
+    "respostaCorreta": "Good morning",
+    "pontos": 10
+  },
+  {
+    "id": 2,
+    "titulo": "Apresentação",
+    "audio": "/audio/greetings.mp3",
+    "pergunta": "Ouça o áudio e escreva o nome mencionado:",
+    "respostaCorreta": "John",
+    "pontos": 15
+  }
+]
