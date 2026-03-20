@@ -1,0 +1,65 @@
+.container-exercicio {
+  max-width: 600px;
+  margin: 50px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.btn-voltar-seta {
+  float: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+}
+
+.btn-audio {
+  background: #1cb0f6;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: transform 0.2s;
+  border-bottom: 4px solid #1899d6;
+}
+
+.btn-audio:active {
+  transform: scale(0.95);
+}
+
+.pergunta-texto {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.btn-concluir {
+  background: #58cc02;
+  color: white;
+  border: none;
+  padding: 15px;
+  width: 100%;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-bottom: 4px solid #46a302;
+}
+
+.btn-proximo {
+  background: #1cb0f6;
+  border-bottom: 4px solid #1899d6;
+}
+
+#feedback-area {
+  margin-top: 20px;
+  font-weight: bold;
+  min-height: 24px;
+}

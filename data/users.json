@@ -8,5 +8,16 @@
     "nome": "teste3",
     "email": "teste.3@gmail.com",
     "senha": "teste3"
+  },
+  {
+    "nome": "fdsf",
+    "email": "fsdfds",
+    "senha": "fsdfds"
+  },
+  {
+    "nome": "matheuzinho",
+    "email": "123abc@gmail.com",
+    "senha": "teste123",
+    "pontos": 10
   }
 ]
