@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Auth from "./Auth.jsx";
-import Dashboard from "./Dashboard.jsx";
-import Exercicio from "./Exercicio.jsx";
+import Auth from "./pages/Auth/Auth.jsx";
+import Dashboard from "./pages/Dashboard/dashboard.jsx";
+import Exercicio from "./components/Exercicio/Exercicio.jsx";
 import "./App.css";
 
 function App() {
