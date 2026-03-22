@@ -25,5 +25,17 @@
     "email": "kaik@gmail.com",
     "senha": "123",
     "pontos": 30
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "jao@gmail.com",
+    "senha": "123",
+    "pontos": 0
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "lucas@gmail.com",
+    "senha": "123",
+    "pontos": 0
   }
 ]

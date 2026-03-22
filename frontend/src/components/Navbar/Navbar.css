@@ -1,0 +1,40 @@
+.main-navbar {
+  width: 100%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 80px;
+  position: sticky; 
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-dot {
+  width: 24px;
+  height: 24px;
+  background-color: #318ff5;
+  border-radius: 50%;
+}
+
+.logo-name {
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.btn-logout {
+  background: none;
+  border: 1px solid #e2e8f0;
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #ef4444; /* Vermelho para sair */
+}

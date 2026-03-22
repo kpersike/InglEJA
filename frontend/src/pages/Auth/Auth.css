@@ -5,19 +5,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: center; /* Centraliza verticalmente também */
-  min-height: 100vh;
+  /* min-height: 100vh; */
   margin: 0;
 }
 
 .container {
   background: white;
-  padding: 30px;
+  padding: 40px;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 90%;
+  max-width: 480px;
   /* Adicionamos uma transição suave para quando a tela mudar de tamanho */
   transition: all 0.3s ease;
+}
+
+#cadastro-area, #login-area{
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 h1 {
@@ -28,29 +33,42 @@ h1 {
 }
 h2 {
   color: #4b4b4b;
-  text-align: center;
-  font-size: 1.5rem;
+  /* text-align: center; */
+  font-size: 32px;
+  margin: 0;
+}
+.form-container{
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 label {
+  color: #0F172A;
   display: block;
-  margin-bottom: 8px;
+  /* margin-bottom: 8px; */
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 16px;
 }
 
 input {
   width: 100%;
   padding: 15px;
-  border: 2px solid #ddd;
-  border-radius: 10px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
   font-size: 1rem;
   box-sizing: border-box;
   transition: border-color 0.3s;
+
+  background-color: #F8FAFC;
+  color: #94A3B8;
+  font-size: 18px;
 }
 
 input:focus {
@@ -75,16 +93,14 @@ button:active {
   transform: translateY(2px); /* Efeito de apertar o botão */
 }
 
-.btn-primary {
-  background-color: #1cb0f6;
+.btn-sucess, .btn-primary {
+  font-size: 18px;
+  letter-spacing: 1px;
+  background-color: #2B8DEE;
   color: white;
-  border-bottom: 4px solid #1899d6;
-}
-
-.btn-sucess {
-  background-color: #58cc02;
-  color: white;
-  border-bottom: 4px solid #46a302;
+  border-radius: 24px;
+  padding: 20px 0px;
+  box-shadow: 0 10px 20px -5px rgba(49, 143, 245, 0.4);
 }
 
 /* Estilo para os links de alternar tela */
@@ -107,7 +123,32 @@ button:active {
 }
 
 p {
-  text-align: center;
+  /* text-align: center; */
   color: #777;
-  margin-top: 15px;
+  /* margin-top: 15px; */
+  margin: 0;
+}
+
+.form-title{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-title p{
+  color: #64748B;
+  font-size: 18px;
+}
+
+#footer-links{
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  justify-content: center;
+}
+
+.link{
+  color: #2B8DEE;
+  font-weight: bold;
+  cursor: pointer;
 }
