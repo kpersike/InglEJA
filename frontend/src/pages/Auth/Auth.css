@@ -57,15 +57,14 @@ label {
   font-size: 16px;
 }
 
-input {
+input, .input-container {
   width: 100%;
-  padding: 15px;
+  /* padding: 15px; */
   border: 1px solid #ddd;
   border-radius: 16px;
   font-size: 1rem;
   box-sizing: border-box;
   transition: border-color 0.3s;
-
   background-color: #F8FAFC;
   color: #94A3B8;
   font-size: 18px;
@@ -151,4 +150,30 @@ p {
   color: #2B8DEE;
   font-weight: bold;
   cursor: pointer;
+}
+
+/* O container que finge ser o input */
+.input-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Quando você clica no campo, a borda do container muda */
+.input-container:focus-within {
+  border-color: #318ff5;
+}
+
+/* O input real fica invisível (sem bordas próprias) */
+.input-container input {
+  border: none !important; /* Remove a borda padrão */
+  outline: none !important; /* Remove o contorno de clique */
+  padding: 15px;
+  width: 100%;
+  font-size: 16px;
+  background: transparent;
+}
+
+.material-symbols-outlined{
+  margin: 15px;
+  margin-right: 0;
 }

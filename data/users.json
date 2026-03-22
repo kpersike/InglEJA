@@ -37,5 +37,23 @@
     "email": "lucas@gmail.com",
     "senha": "123",
     "pontos": 0
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "dudu@gmail.com",
+    "senha": "123",
+    "pontos": 0
+  },
+  {
+    "nome": "Joaninha",
+    "email": "maria@gmail.com",
+    "senha": "123",
+    "pontos": 0
+  },
+  {
+    "nome": "Oliva",
+    "email": "mama@gmail.com",
+    "senha": "321",
+    "pontos": 0
   }
 ]

@@ -7,7 +7,7 @@ function Auth() {
 
   // 1. ESTADOS (Substituem o document.getElementById)
   const [isLogin, setIsLogin] = useState(true); // Controla se mostra Login ou Cadastro
-  const [formData, setFormData] = useState({ nome: "", email: "", senha: "" , confirmarSenha: ""});
+  const [formData, setFormData] = useState({ nome: "", email: "", senha: "", confirmarSenha: "" });
   const [feedback, setFeedback] = useState({ msg: "", color: "" });
 
   // 2. FUNÇÃO PARA ALTERNAR TELA
@@ -38,20 +38,21 @@ function Auth() {
       const response = await fetch("http://localhost:3000/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           nome: "Aluno InglEJA", // Enviamos isso para o servidor não dar erro 400
-          email: email, 
-          senha: senha 
+          email: email,
+          senha: senha
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("emailUsuario", email);
         setFeedback({ msg: "Conta criada com sucesso!", color: "#58cc02" });
         // setTimeout(alternarTela, 2000);
         setTimeout(() => {
-          navigate("/welcome"); 
+          navigate("/welcome");
         }, 1500);
 
       } else {
@@ -110,21 +111,27 @@ function Auth() {
           <div className="form-container">
             <div className="form-group">
               <label>Seu E-mail:</label>
-              <input
-                type="email"
-                id="email"
-                onChange={handleChange}
-                placeholder="exemplo@email.com"
-              />
+              <div className="input-container">
+                <span className="material-symbols-outlined">mail</span>
+                <input
+                  type="email"
+                  id="email"
+                  onChange={handleChange}
+                  placeholder="exemplo@email.com"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Sua senha:</label>
-              <input
-                type="password"
-                id="senha"
-                onChange={handleChange}
-                placeholder="Digite sua senha"
-              />
+              <div className="input-container">
+                <span class="material-symbols-outlined">lock</span>
+                <input
+                  type="password"
+                  id="senha"
+                  onChange={handleChange}
+                  placeholder="Digite sua senha"
+                />
+              </div>
             </div>
             <button onClick={fazerLogin} className="btn-primary">
               Logar
@@ -137,7 +144,7 @@ function Auth() {
               Clique aqui para criar uma
             </span>
           </p>
-          
+
         </section>
       ) : (
         /* ÁREA DE CADASTRO */
@@ -151,31 +158,40 @@ function Auth() {
           <div className="form-container">
             <div className="form-group">
               <label>Seu E-mail:</label>
-              <input
-                type="email"
-                id="email"
-                onChange={handleChange}
-                placeholder="Seu melhor e-mail"
-              />
+              <div className="input-container">
+                <span className="material-symbols-outlined">mail</span>
+                <input
+                  type="email"
+                  id="email"
+                  onChange={handleChange}
+                  placeholder="Seu melhor e-mail"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Senha:</label>
-              <input
-                type="password"
-                id="senha"
-                onChange={handleChange}
-                placeholder="Crie uma senha forte"
-              />
+              <div className="input-container">
+                <span className="material-symbols-outlined">lock</span>
+                <input
+                  type="password"
+                  id="senha"
+                  onChange={handleChange}
+                  placeholder="Crie uma senha forte"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Confirmar senha:</label>
-              <input
-                type="password"
-                id="confirmarSenha"
-                onChange={handleChange}
-                placeholder="Repita sua senha"
-                required
-              />
+              <div className="input-container">
+                <span className="material-symbols-outlined">verified_user</span>
+                <input
+                  type="password"
+                  id="confirmarSenha"
+                  onChange={handleChange}
+                  placeholder="Repita sua senha"
+                  required
+                />
+              </div>
             </div>
             <button onClick={fazerCadastro} className="btn-sucess">
               CADASTRAR
