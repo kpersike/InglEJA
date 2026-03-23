@@ -52,6 +52,20 @@ app.post("/api/cadastro", (req, res) => {
   }
 });
 
+// Rota para atualizar o nome do usuário
+app.put("/api/atualizar-nome", (req, res) => {
+  const { email, novoNome } = req.body;
+  let usuarios = getUsers();
+  const index = usuarios.findIndex(u => u.email === email);
+
+  if (index !== -1) {
+    usuarios[index].nome = novoNome;
+    fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+    return res.json({ sucesso: true, usuario: usuarios[index] });
+  }
+  res.status(404).json({ erro: "Usuário não encontrado" });
+});
+
 // Rota de Login
 app.post("/api/login", (req, res) => {
   try {

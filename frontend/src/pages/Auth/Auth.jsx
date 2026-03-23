@@ -7,7 +7,7 @@ function Auth() {
 
   // 1. ESTADOS (Substituem o document.getElementById)
   const [isLogin, setIsLogin] = useState(true); // Controla se mostra Login ou Cadastro
-  const [formData, setFormData] = useState({ nome: "", email: "", senha: "" });
+  const [formData, setFormData] = useState({ nome: "", email: "", senha: "", confirmarSenha: "" });
   const [feedback, setFeedback] = useState({ msg: "", color: "" });
 
   // 2. FUNÇÃO PARA ALTERNAR TELA
@@ -23,9 +23,14 @@ function Auth() {
 
   // 4. LÓGICA DE CADASTRO
   const fazerCadastro = async () => {
-    const { nome, email, senha } = formData;
-    if (!nome || !email || !senha) {
+    const { nome, email, senha, confirmarSenha } = formData;
+    if (!email || !senha || !confirmarSenha) {
       setFeedback({ msg: "Preencha todos os campos.", color: "blue" });
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      setFeedback({ msg: "As senhas não coincidem!", color: "red" });
       return;
     }
 
@@ -33,13 +38,23 @@ function Auth() {
       const response = await fetch("http://localhost:3000/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({
+          nome: "Aluno InglEJA", // Enviamos isso para o servidor não dar erro 400
+          email: email,
+          senha: senha
+        }),
       });
+
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("emailUsuario", email);
         setFeedback({ msg: "Conta criada com sucesso!", color: "#58cc02" });
-        setTimeout(alternarTela, 2000);
+        // setTimeout(alternarTela, 2000);
+        setTimeout(() => {
+          navigate("/welcome");
+        }, 1500);
+
       } else {
         setFeedback({ msg: data.erro || "Erro ao cadastrar.", color: "red" });
       }
@@ -83,77 +98,110 @@ function Auth() {
 
   return (
     <main className="container">
-      <h1>Bem-vindo ao InglEJA</h1>
-
       {isLogin ? (
         /* ÁREA DE LOGIN */
         <section id="login-area">
-          <h2>Entrar</h2>
-          <div className="form-group">
-            <label>Seu E-mail:</label>
-            <input
-              type="email"
-              id="email"
-              onChange={handleChange}
-              placeholder="exemplo@email.com"
-            />
+          <div className="form-title">
+            <h2>Entrar</h2>
+            <p>
+              Bem-vindo! Faça login para continuar.
+            </p>
           </div>
-          <div className="form-group">
-            <label>Sua senha:</label>
-            <input
-              type="password"
-              id="senha"
-              onChange={handleChange}
-              placeholder="Digite sua senha"
-            />
+
+          <div className="form-container">
+            <div className="form-group">
+              <label>Seu E-mail:</label>
+              <div className="input-container">
+                <span className="material-symbols-outlined">mail</span>
+                <input
+                  type="email"
+                  id="email"
+                  onChange={handleChange}
+                  placeholder="exemplo@email.com"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Sua senha:</label>
+              <div className="input-container">
+                <span class="material-symbols-outlined">lock</span>
+                <input
+                  type="password"
+                  id="senha"
+                  onChange={handleChange}
+                  placeholder="Digite sua senha"
+                />
+              </div>
+            </div>
+            <button onClick={fazerLogin} className="btn-primary">
+              Logar
+            </button>
           </div>
-          <button onClick={fazerLogin} className="btn-primary">
-            Entrar no Curso
-          </button>
+
           <p>
             Ainda não tem conta?{" "}
             <span className="link" onClick={alternarTela}>
               Clique aqui para criar uma
             </span>
           </p>
+
         </section>
       ) : (
         /* ÁREA DE CADASTRO */
         <section id="cadastro-area">
-          <h2>Criar nova conta</h2>
-          <div className="form-group">
-            <label>Seu nome:</label>
-            <input
-              type="text"
-              id="nome"
-              onChange={handleChange}
-              placeholder="Como quer ser chamado?"
-            />
+          <div className="form-title">
+            <h2>Crie sua conta</h2>
+            <p>
+              Comece agora de forma simples e rápida.
+            </p>
           </div>
-          <div className="form-group">
-            <label>Seu E-mail:</label>
-            <input
-              type="email"
-              id="email"
-              onChange={handleChange}
-              placeholder="Seu melhor e-mail"
-            />
+          <div className="form-container">
+            <div className="form-group">
+              <label>Seu E-mail:</label>
+              <div className="input-container">
+                <span className="material-symbols-outlined">mail</span>
+                <input
+                  type="email"
+                  id="email"
+                  onChange={handleChange}
+                  placeholder="Seu melhor e-mail"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Senha:</label>
+              <div className="input-container">
+                <span className="material-symbols-outlined">lock</span>
+                <input
+                  type="password"
+                  id="senha"
+                  onChange={handleChange}
+                  placeholder="Crie uma senha forte"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Confirmar senha:</label>
+              <div className="input-container">
+                <span className="material-symbols-outlined">verified_user</span>
+                <input
+                  type="password"
+                  id="confirmarSenha"
+                  onChange={handleChange}
+                  placeholder="Repita sua senha"
+                  required
+                />
+              </div>
+            </div>
+            <button onClick={fazerCadastro} className="btn-sucess">
+              CADASTRAR
+            </button>
           </div>
-          <div className="form-group">
-            <label>Crie uma Senha:</label>
-            <input
-              type="password"
-              id="senha"
-              onChange={handleChange}
-              placeholder="Escolha uma senha fácil"
-            />
-          </div>
-          <button onClick={fazerCadastro} className="btn-sucess">
-            Finalizar Cadastro
-          </button>
-          <p>
+
+          <p id="footer-links">
+            Já tem uma conta?
             <span className="link" onClick={alternarTela}>
-              Voltar para o Login
+              Entrar aqui
             </span>
           </p>
         </section>
