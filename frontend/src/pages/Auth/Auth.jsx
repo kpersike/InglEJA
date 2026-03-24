@@ -7,7 +7,12 @@ function Auth() {
 
   // 1. ESTADOS (Substituem o document.getElementById)
   const [isLogin, setIsLogin] = useState(true); // Controla se mostra Login ou Cadastro
-  const [formData, setFormData] = useState({ nome: "", email: "", senha: "", confirmarSenha: "" });
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+    confirmarSenha: "",
+  });
   const [feedback, setFeedback] = useState({ msg: "", color: "" });
 
   // 2. FUNÇÃO PARA ALTERNAR TELA
@@ -41,7 +46,7 @@ function Auth() {
         body: JSON.stringify({
           nome: "Aluno InglEJA", // Enviamos isso para o servidor não dar erro 400
           email: email,
-          senha: senha
+          senha: senha,
         }),
       });
 
@@ -54,7 +59,6 @@ function Auth() {
         setTimeout(() => {
           navigate("/welcome");
         }, 1500);
-
       } else {
         setFeedback({ msg: data.erro || "Erro ao cadastrar.", color: "red" });
       }
@@ -103,9 +107,7 @@ function Auth() {
         <section id="login-area">
           <div className="form-title">
             <h2>Entrar</h2>
-            <p>
-              Bem-vindo! Faça login para continuar.
-            </p>
+            <p>Bem-vindo! Faça login para continuar.</p>
           </div>
 
           <div className="form-container">
@@ -117,7 +119,7 @@ function Auth() {
                   type="email"
                   id="email"
                   onChange={handleChange}
-                  placeholder="exemplo@email.com"
+                  placeholder="exemplo@gmail.com"
                 />
               </div>
             </div>
@@ -144,16 +146,13 @@ function Auth() {
               Clique aqui para criar uma
             </span>
           </p>
-
         </section>
       ) : (
         /* ÁREA DE CADASTRO */
         <section id="cadastro-area">
           <div className="form-title">
             <h2>Crie sua conta</h2>
-            <p>
-              Comece agora de forma simples e rápida.
-            </p>
+            <p>Comece agora de forma simples e rápida.</p>
           </div>
           <div className="form-container">
             <div className="form-group">
