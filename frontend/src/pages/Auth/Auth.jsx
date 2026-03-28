@@ -28,7 +28,7 @@ function Auth() {
 
   // 4. LÓGICA DE CADASTRO
   const fazerCadastro = async () => {
-    const { nome, email, senha, confirmarSenha } = formData;
+    const { email, senha, confirmarSenha } = formData;
     if (!email || !senha || !confirmarSenha) {
       setFeedback({ msg: "Preencha todos os campos.", color: "blue" });
       return;
@@ -63,6 +63,7 @@ function Auth() {
         setFeedback({ msg: data.erro || "Erro ao cadastrar.", color: "red" });
       }
     } catch (error) {
+      console.error("Erro na requisição:", error); // Agora a variável está sendo usada!
       setFeedback({ msg: "Erro de conexão com o servidor.", color: "red" });
     }
   };
@@ -96,6 +97,7 @@ function Auth() {
         });
       }
     } catch (error) {
+      console.error("Erro capturado:", error); // <-- Isso avisa ao ESLint que a variável está sendo usada!
       setFeedback({ msg: "Erro de conexão.", color: "red" });
     }
   };
@@ -112,7 +114,7 @@ function Auth() {
 
           <div className="form-container">
             <div className="form-group">
-              <label>Seu E-mail:</label>
+              <label>E-mail:</label>
               <div className="input-container">
                 <span className="material-symbols-outlined">mail</span>
                 <input
@@ -124,9 +126,9 @@ function Auth() {
               </div>
             </div>
             <div className="form-group">
-              <label>Sua senha:</label>
+              <label>Senha:</label>
               <div className="input-container">
-                <span class="material-symbols-outlined">lock</span>
+                <span className="material-symbols-outlined">lock</span>
                 <input
                   type="password"
                   id="senha"
