@@ -92,66 +92,71 @@ app.post("/api/login", (req, res) => {
   }
 });
 
-// Rota para listar todas as lições
-app.get("/api/licoes", (req, res) => {
+// 1. Rota para pegar todos os dados de uma FASE específica pelo SLUG
+app.get("/api/fase/:slug", (req, res) => {
   try {
-    if (!fs.existsSync(LESSONS_PATH)) return res.json([]);
     const content = fs.readFileSync(LESSONS_PATH, "utf8");
-    const lessons = JSON.parse(content);
-    const dadosSeguros = lessons.map(({ respostaCorreta, ...resto }) => resto);
-    res.json(dadosSeguros);
-  } catch (error) {
-    res.status(500).json({ erro: "Erro ao carregar lições" });
-  }
-});
+    const db = JSON.parse(content);
+    
+    // Procura a fase pelo slug (ex: 'saudacoes' ou 'cores')
+    const fase = db.niveis.find((n) => n.slug === req.params.slug);
 
-// Rota para pegar uma lição específica pelo ID
-app.get("/api/licao/:id", (req, res) => {
-  try {
-    const lessons = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
-    const licao = lessons.find((l) => l.id == req.params.id);
-
-    if (licao) {
-      const { respostaCorreta, ...dadosPublicos } = licao;
-      res.json(dadosPublicos);
+    if (fase) {
+      // Removemos a resposta correta para o aluno não ver no F12/Inspect
+      const questoesSeguras = fase.questoes.map(({ respostaCorreta, ...resto }) => resto);
+      res.json({
+        titulo: fase.titulo,
+        slug: fase.slug,
+        questoes: questoesSeguras
+      });
     } else {
-      res.status(404).json({ erro: "Lição não encontrada" });
+      res.status(404).json({ erro: "Fase não encontrada" });
     }
   } catch (err) {
-    res.status(500).json({ erro: "Erro interno" });
+    res.status(500).json({ erro: "Erro ao carregar a fase" });
   }
 });
 
-// Rota para validar resposta
-app.post("/api/validar-resposta", (req, res) => {
-  const { usuarioEmail, licaoId, respostaUsuario } = req.body;
-  const lessons = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
-  const licao = lessons.find((l) => l.id == licaoId);
+app.post("/api/validar-resposta-v2", (req, res) => {
+  try {
+    const { usuarioEmail, slugFase, questaoId, respostaUsuario } = req.body;
 
-  if (!licao) return res.status(404).json({ erro: "Lição inválida" });
-  if (!respostaUsuario || respostaUsuario.trim() === "") {
-    return res.status(400).json({ erro: "Você precisa responder a pergunta" });
-  }
+    // Log para você ver no terminal o que está chegando
+    console.log("Recebido:", { slugFase, questaoId, respostaUsuario });
 
-  const acertou =
-    respostaUsuario.toLowerCase().trim() ===
-    licao.respostaCorreta.toLowerCase().trim();
-
-  if (acertou) {
-    let usuarios = getUsers();
-    const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
-    if (userIndex !== -1) {
-      usuarios[userIndex].pontos =
-        (usuarios[userIndex].pontos || 0) + licao.pontos;
-      fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+    const db = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
+    
+    // 1. Procura a fase
+    const fase = db.niveis.find(n => n.slug === slugFase);
+    if (!fase) {
+      console.log("❌ Fase não encontrada para o slug:", slugFase);
+      return res.status(404).json({ erro: "Fase não encontrada" });
     }
-    res.json({
-      feedback: "Correto! Well done!",
-      acertou: true,
-      pontos: licao.pontos,
-    });
-  } else {
-    res.json({ feedback: "Ops! Tente novamente.", acertou: false });
+
+    // 2. Procura a questão (usando == para ignorar se é string ou número)
+    const questao = fase.questoes.find(q => q.id == questaoId);
+    if (!questao) {
+      console.log("❌ Questão não encontrada ID:", questaoId);
+      return res.status(404).json({ erro: "Questão não encontrada" });
+    }
+
+    // 3. Valida
+    const acertou = respostaUsuario?.toLowerCase().trim() === questao.resposta?.toLowerCase().trim();
+
+    if (acertou) {
+      let usuarios = getUsers();
+      const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
+      if (userIndex !== -1) {
+        // Usamos || 10 caso você não tenha definido pontos no JSON ainda
+        usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
+        fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+      }
+    }
+
+    res.json({ acertou });
+  } catch (err) {
+    console.error("❌ ERRO CRÍTICO NO SERVIDOR:", err);
+    res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });
 

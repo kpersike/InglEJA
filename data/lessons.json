@@ -1,18 +1,21 @@
-[
-  {
-    "id": 1,
-    "titulo": "Saudações Básicas",
-    "audio": "/audio/greetings.mp3",
-    "pergunta": "Como se diz 'Bom dia' em inglês?",
-    "respostaCorreta": "Good morning",
-    "pontos": 10
-  },
-  {
-    "id": 2,
-    "titulo": "Apresentação",
-    "audio": "/audio/greetings.mp3",
-    "pergunta": "Ouça o áudio e escreva o nome mencionado:",
-    "respostaCorreta": "John",
-    "pontos": 15
-  }
-]
+{
+  "niveis": [
+    {
+      "id": 1,
+      "slug": "saudacoes",
+      "titulo": "Nível 1: Saudações",
+      "questoes": [
+        { "id": 1, "tipo": "audio_input", "pergunta": "Como se diz...", "resposta": "Good morning" },
+        { "id": 2, "tipo": "multipla_escolha", "pergunta": "Hello significa:", "opcoes": ["Oi", "Tchau"], "resposta": "Oi" }
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "cores",
+      "titulo": "Nível 2: Cores",
+      "questoes": [
+        { "id": 1, "tipo": "imagem", "pergunta": "Qual é a cor Apple?", "img": "apple.png", "resposta": "Red" }
+      ]
+    }
+  ]
+}
