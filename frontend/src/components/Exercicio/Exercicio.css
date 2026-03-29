@@ -63,3 +63,26 @@
   font-weight: bold;
   min-height: 24px;
 }
+
+.progresso-container {
+  width: 100%;
+  background-color: #e2e8f0; /* Cinza claro (fundo) */
+  border-radius: 10px;
+  height: 12px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progresso-barra {
+  height: 100%;
+  background-color: #1cb0f6; /* Verde do progresso */
+  border-radius: 10px;
+}
+
+.progresso-texto {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+}

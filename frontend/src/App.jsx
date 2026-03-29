@@ -17,7 +17,7 @@ function App() {
             <Route path="/" element={<Auth />} />
             <Route path="/welcome" element={<Welcome />} /> 
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/exercicio" element={<Exercicio />} />
+            <Route path="/exercicio/:slug" element={<Exercicio />} />
           </Routes>
         </main>
       </div>
