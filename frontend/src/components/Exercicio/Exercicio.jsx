@@ -1,116 +1,154 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Exercicio.css";
 
 function Exercicio() {
   const navigate = useNavigate();
-  const [exercicio, setExercicio] = useState(null);
-  const [selecionada, setSelecionada] = useState(null);
-  const [feedback, setFeedback] = useState({ msg: "", color: "", acertou: false });
+  const audioRef = useRef(null);
+  const tocarAudio = () => {
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.play();
+    } else {
+      alert("Áudio não disponível.");
+    }
+  };
+
+  // Estados
+  const [licao, setLicao] = useState(null);
+  const [resposta, setResposta] = useState("");
+  const [feedback, setFeedback] = useState({
+    msg: "",
+    color: "",
+    acertou: false,
+  });
   const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
-    const idLicao = localStorage.getItem("licaoAtualId") || "1";
+    const idLicao = localStorage.getItem("licaoAtualId");
     const dadosUsuario = JSON.parse(localStorage.getItem("usuarioLogado"));
-    
-    if (!dadosUsuario) {
-      navigate("/");
+
+    if (!idLicao || !dadosUsuario) {
+      navigate("/dashboard");
       return;
     }
 
     setUsuario(dadosUsuario);
-    carregarExercicio(idLicao);
+    carregarDadosLicao(idLicao);
   }, [navigate]);
 
-  const carregarExercicio = async (id) => {
+  const carregarDadosLicao = async (id) => {
     try {
-      // Busca o arquivo JSON na pasta public
-      const res = await fetch('/full_lessons.json');
-      const data = await res.json();
-      
-      // Procura a lição pelo ID (convertendo para String para garantir)
-      const encontrado = data.find(item => String(item.id) === String(id));
-      
-      if (encontrado) {
-        setExercicio(encontrado);
-        setSelecionada(null);
-        setFeedback({ msg: "", color: "", acertou: false });
-      } else {
-        navigate("/dashboard");
-      }
+      // Importante: use a URL completa do seu backend
+      const response = await fetch(`http://localhost:3000/api/licao/${id}`);
+      const data = await response.json();
+      setLicao(data);
     } catch (err) {
       console.error("Erro ao carregar lição:", err);
     }
   };
 
-  const validar = (opcaoTexto) => {
-    if (feedback.acertou) return;
+  const finalizarExercicio = async () => {
+    if (resposta.trim() === "") {
+      setFeedback({
+        msg: "⚠️ Por favor, preencha o campo antes de concluir.",
+        color: "orange",
+      });
+      return;
+    }
 
-    setSelecionada(opcaoTexto);
-    const correta = exercicio.respostaCorreta.toLowerCase().trim();
-    const escolhida = opcaoTexto.toLowerCase().trim();
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/validar-resposta",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usuarioEmail: usuario.email,
+            licaoId: licao.id,
+            respostaUsuario: resposta,
+          }),
+        },
+      );
 
-    if (escolhida === correta) {
-      // Atualiza pontos do Marcel
-      const novosPontos = (usuario.pontos || 0) + (exercicio.pontos || 10);
-      const usuarioAtualizado = { ...usuario, pontos: novosPontos };
-      
-      setUsuario(usuarioAtualizado);
-      localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
-      
-      setFeedback({ msg: "🎉 boaaa!", color: "#10b981", acertou: true });
+      const data = await response.json();
 
-      // Avanço automático para a próxima lição
-      setTimeout(() => {
-        const proximoId = parseInt(exercicio.id) + 1;
-        if (proximoId <= 20) {
-          localStorage.setItem("licaoAtualId", proximoId);
-          carregarExercicio(proximoId);
-        } else {
-          alert("🏆 Parabéns, Marcel! Você completou o Nível 1!");
-          navigate("/dashboard");
-        }
-      }, 1500);
-    } else {
-      setFeedback({ msg: "❌ Tente novamente!", color: "#ef4444", acertou: false });
+      if (data.acertou) {
+        setFeedback({
+          msg: `✅ ${data.feedback} | +${data.pontos} pontos!`,
+          color: "#58cc02",
+          acertou: true,
+        });
+
+        // Atualiza localStorage para o Dashboard ler os novos pontos
+        const usuarioAtualizado = {
+          ...usuario,
+          pontos: (usuario.pontos || 0) + data.pontos,
+        };
+        localStorage.setItem(
+          "usuarioLogado",
+          JSON.stringify(usuarioAtualizado),
+        );
+        setUsuario(usuarioAtualizado);
+      } else {
+        setFeedback({
+          msg: `❌ ${data.feedback}`,
+          color: "red",
+          acertou: false,
+        });
+      }
+    } catch (err) {
+      setFeedback({ msg: "Erro ao validar resposta.", color: "red" });
     }
   };
 
-  if (!exercicio) return <div className="container-exercicio">Carregando...</div>;
+  if (!licao) return <div className="container-exercicio">Carregando...</div>;
 
   return (
     <div className="container-exercicio">
-      <button className="btn-voltar-simples" onClick={() => navigate("/dashboard")}>
+
+      <h2>{licao.titulo}</h2>
+      <p>Clique no botão abaixo para ouvir e escreva o que entendeu:</p>
+
+      <button className="btn-audio" onClick={tocarAudio}>
+        🔊 Ouvir Pronúncia
+      </button>
+
+      {/* Áudio invisível controlado pelo Ref */}
+      <audio ref={audioRef} src={`http://localhost:3000${licao.audio}`} />
+
+      <p className="pergunta-texto">{licao.pergunta}</p>
+
+      <input
+        type="text" className="caixa-resposta"
+        value={resposta}
+        onChange={(e) => setResposta(e.target.value)}
+        placeholder="Digite sua resposta aqui..."
+        disabled={feedback.acertou}
+      />
+
+      {!feedback.acertou ? (
+        <button className="btn-concluir" onClick={finalizarExercicio}>
+          Concluir Exercício
+        </button>
+      ) : (
+        <button
+          className="btn-concluir btn-proximo"
+          onClick={() => navigate("/dashboard")}
+        >
+          Continuar para Dashboard
+        </button>
+      )}
+
+      <button
+        className="btn-voltar-seta"
+        onClick={() => navigate("/dashboard")}
+      >
         ⬅ Voltar
       </button>
 
-      <div className="exercicio-header">
-        <h2 className="titulo-licao">{exercicio.titulo}</h2>
+      <div id="feedback-area" style={{ color: feedback.color }}>
+        {feedback.msg}
       </div>
-
-      <div className="exercicio-enunciado">
-        <p className="pergunta-texto">{exercicio.pergunta}</p>
-      </div>
-
-      {/* CAIXAS DE CLICAR (BOTÕES) */}
-      <div className="opcoes-container">
-        {[exercicio.opcao_a, exercicio.opcao_b, exercicio.opcao_c, exercicio.opcao_d].map((opt, i) => (
-          <button
-            key={i}
-            className={`opcao-btn ${selecionada === opt ? 'selecionada' : ''} ${feedback.acertou && opt === exercicio.respostaCorreta ? 'correta' : ''}`}
-            onClick={() => validar(opt)}
-            disabled={feedback.acertou}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-
-      {feedback.msg && (
-        <p className="feedback-msg" style={{ color: feedback.color }}>
-          {feedback.msg}
-        </p>
-      )}
     </div>
   );
 }

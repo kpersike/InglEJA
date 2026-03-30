@@ -18,7 +18,7 @@
     "nome": "matheuzinho",
     "email": "123abc@gmail.com",
     "senha": "teste123",
-    "pontos": 120
+    "pontos": 10
   },
   {
     "nome": "Kaik",
@@ -87,15 +87,15 @@
     "pontos": 0
   },
   {
-    "nome": "Marcel",
-    "email": "crudelli.marcel@gmail.com",
-    "senha": "1234",
-    "pontos": 256
+    "nome": "junior cria",
+    "email": "armando@gmail.com",
+    "senha": "123",
+    "pontos": 10
   },
   {
-    "nome": "Elida",
-    "email": "BC.ELIDA@GMAIL.COM",
-    "senha": "1234",
-    "pontos": 50
+    "nome": "Matilde",
+    "email": "matheus@gmail.com",
+    "senha": "123",
+    "pontos": 10
   }
 ]

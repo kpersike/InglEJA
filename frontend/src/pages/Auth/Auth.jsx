@@ -112,7 +112,7 @@ function Auth() {
             <p>Bem-vindo! Faça login para continuar.</p>
           </div>
 
-          <div className="form-container">
+          <form className="form-container" onSubmit={fazerLogin}>
             <div className="form-group">
               <label>E-mail:</label>
               <div className="input-container">
@@ -137,10 +137,10 @@ function Auth() {
                 />
               </div>
             </div>
-            <button onClick={fazerLogin} className="btn-primary">
+            <button type="submit" className="btn-primary">
               Logar
             </button>
-          </div>
+          </form>
 
           <p>
             Ainda não tem conta?{" "}
@@ -156,7 +156,7 @@ function Auth() {
             <h2>Crie sua conta</h2>
             <p>Comece agora de forma simples e rápida.</p>
           </div>
-          <div className="form-container">
+          <form className="form-container" onSubmit={(e) => { e.preventDefault(); fazerCadastro(); }}>
             <div className="form-group">
               <label>Seu E-mail:</label>
               <div className="input-container">
@@ -194,10 +194,10 @@ function Auth() {
                 />
               </div>
             </div>
-            <button onClick={fazerCadastro} className="btn-sucess">
+            <button type="submit" className="btn-sucess">
               CADASTRAR
             </button>
-          </div>
+          </form>
 
           <p id="footer-links">
             Já tem uma conta?

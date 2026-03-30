@@ -2,7 +2,7 @@
   {
     "id": 1,
     "titulo": "Saudações Básicas",
-    "audio": "/audio/greetings.mp3",
+    "audio": "/audios/audio_good_morning.mp3",
     "pergunta": "Como se diz 'Bom dia' em inglês?",
     "respostaCorreta": "Good morning",
     "pontos": 10
