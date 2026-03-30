@@ -38,3 +38,18 @@
   font-weight: 600;
   color: #ef4444; /* Vermelho para sair */
 }
+
+/* Modo Escuro */
+body.dark-mode .main-navbar {
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+body.dark-mode .logo-name {
+  color: #f8fafc;
+}
+
+body.dark-mode .btn-logout {
+  border-color: #334155;
+  color: #ef4444;
+}

@@ -91,8 +91,10 @@
   cursor: pointer;
 
   /* --- CORREÇÃO DE CENTRALIZAÇÃO DO SOMBREADO TORTA --- */
-  padding: 0 !important; /* Remove o padding que estava deslocando o ícone */
-  width: 44px; /* Largura e altura idênticas criam o círculo perfeito */
+  padding: 0 !important;
+  /* Remove o padding que estava deslocando o ícone */
+  width: 44px;
+  /* Largura e altura idênticas criam o círculo perfeito */
   height: 44px;
 
   border-radius: 50%;
@@ -100,8 +102,10 @@
 
   /* Flexbox é essencial para alinhar o ícone */
   display: flex !important;
-  align-items: center !important; /* Centraliza verticalmente */
-  justify-content: center !important; /* Centraliza horizontalmente */
+  align-items: center !important;
+  /* Centraliza verticalmente */
+  justify-content: center !important;
+  /* Centraliza horizontalmente */
   flex-shrink: 0;
 }
 
@@ -109,9 +113,11 @@
 .icon-btn .material-symbols-outlined {
   margin: 0 !important;
   padding: 0 !important;
-  line-height: 1 !important; /* Impede que a fonte desloque o ícone tortamente */
+  line-height: 1 !important;
+  /* Impede que a fonte desloque o ícone tortamente */
   display: flex !important;
-  font-size: 22px !important; /* Ajuste suave no tamanho para equilibrar */
+  font-size: 22px !important;
+  /* Ajuste suave no tamanho para equilibrar */
 }
 
 .icon-btn:hover {
@@ -244,14 +250,17 @@
 /* Linha conectora MODIFICADA (Opacidade ok e por trás) */
 .timeline-line {
   position: absolute;
-  top: 110px; /* Começa abaixo do primeiro círculo */
-  bottom: -40px; /* Vai até o início do próximo */
+  top: 110px;
+  /* Começa abaixo do primeiro círculo */
+  bottom: -40px;
+  /* Vai até o início do próximo */
   left: 50%;
   width: 4px;
   /* Cor translúcida para passar suavemente por trás */
   background-color: rgba(229, 231, 235, 0.4);
   transform: translateX(-50%);
-  z-index: -1; /* Força a linha a ficar atrás de TUDO */
+  z-index: -1;
+  /* Força a linha a ficar atrás de TUDO */
 }
 
 /* --- CÍRCULOS (Correção de Centralização) --- */
@@ -265,7 +274,8 @@
   justify-content: center;
   background-color: white;
   position: relative;
-  z-index: 2; /* Fica acima da linha */
+  z-index: 2;
+  /* Fica acima da linha */
   margin-bottom: 20px;
   border: 6px solid #e5e7eb;
   transition: transform 0.2s;
@@ -275,9 +285,11 @@
 .node-icon {
   font-size: 45px !important;
   color: #9ca3af;
-  margin: 0 !important; /* Remove margens que Material Icons podem trazer */
+  margin: 0 !important;
+  /* Remove margens que Material Icons podem trazer */
   padding: 0 !important;
-  line-height: 1 !important; /* Evita que a altura da linha desloque o ícone */
+  line-height: 1 !important;
+  /* Evita que a altura da linha desloque o ícone */
 }
 
 /* Badges sobre os círculos */
@@ -314,7 +326,8 @@
   /* Removemos o fundo sólido e padding excessivo */
   background-color: transparent !important;
   padding: 0;
-  z-index: 2; /* Garante que o texto fique acima da linha */
+  z-index: 2;
+  /* Garante que o texto fique acima da linha */
   max-width: 280px;
 }
 
@@ -373,9 +386,11 @@
   background-color: #eff6ff;
   cursor: pointer;
 }
+
 .timeline-node.atual .node-icon {
   color: #3b82f6;
 }
+
 .timeline-node.atual .node-circle:hover {
   transform: scale(1.03);
 }
@@ -385,6 +400,7 @@
   background-color: #f0fdf4;
   cursor: default;
 }
+
 .timeline-node.concluido .node-icon {
   color: #22c55e;
 }
@@ -393,6 +409,7 @@
   background-color: #f9fafb;
   cursor: default;
 }
+
 .timeline-node.bloqueado .node-content h3,
 .timeline-node.bloqueado .node-content p {
   color: #9ca3af;
@@ -403,9 +420,11 @@
   background-color: #f5f3ff;
   cursor: pointer;
 }
+
 .timeline-node.revisando .node-icon {
   color: #8b5cf6;
 }
+
 .timeline-node.revisando .node-circle:hover {
   transform: scale(1.03);
 }
@@ -432,6 +451,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -452,6 +472,7 @@
   margin: 0;
   padding: 0;
 }
+
 .dropdown-list li {
   padding: 12px 20px;
   display: flex;
@@ -463,12 +484,15 @@
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .dropdown-list li:last-child {
   border-bottom: none;
 }
+
 .dropdown-list li:hover {
   background-color: #f3f4f6;
 }
+
 .dropdown-list li input[type="checkbox"] {
   margin-left: auto;
   cursor: pointer;
@@ -478,6 +502,7 @@
 .notifications-list li {
   align-items: flex-start;
 }
+
 .notif-icon {
   display: flex;
   align-items: center;
@@ -488,21 +513,26 @@
   color: white;
   flex-shrink: 0;
 }
+
 .notif-icon.green {
   background-color: #22c55e;
 }
+
 .notif-icon.orange {
   background-color: #f59e0b;
 }
+
 .notif-icon .material-symbols-outlined {
   font-size: 18px;
 }
+
 .notifications-list strong {
   display: block;
   font-size: 14px;
   color: #1f2937;
   margin-bottom: 2px;
 }
+
 .notifications-list p {
   margin: 0;
   font-size: 12px;
@@ -516,16 +546,20 @@
   font-size: 14px;
   color: #374151;
 }
+
 .profile-stats p {
   margin: 4px 0;
 }
+
 .logout-item {
   color: #ef4444 !important;
   font-weight: 600;
 }
+
 .logout-item:hover {
   background-color: #fef2f2 !important;
 }
+
 .logout-item .material-symbols-outlined {
   color: #ef4444;
 }
@@ -568,6 +602,20 @@ body.dark-mode nav {
   color: #f9fafb !important;
 }
 
+body.dark-mode .main-navbar {
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+body.dark-mode .logo-name {
+  color: #f8fafc;
+}
+
+body.dark-mode .btn-logout {
+  border-color: #334155;
+  color: #ef4444;
+}
+
 /* --- 2. MENUS FLUTUANTES (Configurações e Notificações) --- */
 body.dark-mode .dropdown-menu {
   background-color: #1f2937 !important;
@@ -595,7 +643,8 @@ body.dark-mode .dropdown-list li:hover {
 }
 
 body.dark-mode .notifications-list p {
-  color: #9ca3af !important; /* Cinza claro para não ofuscar o título */
+  color: #9ca3af !important;
+  /* Cinza claro para não ofuscar o título */
 }
 
 /* --- 3. TEXTOS DO DASHBOARD E TRILHA --- */
@@ -631,11 +680,13 @@ body.dark-mode .node-circle {
 
 /* Títulos e descrições das lições (Textos que estavam escuros) */
 body.dark-mode .node-content h3 {
-  color: #f9fafb !important; /* Título principal branco */
+  color: #f9fafb !important;
+  /* Título principal branco */
 }
 
 body.dark-mode .node-content p {
-  color: #d1d5db !important; /* Descrição cinza claro para boa leitura */
+  color: #d1d5db !important;
+  /* Descrição cinza claro para boa leitura */
 }
 
 /* Linha conectora translúcida */

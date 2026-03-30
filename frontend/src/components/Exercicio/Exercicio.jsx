@@ -4,7 +4,14 @@ import "./Exercicio.css";
 
 function Exercicio() {
   const navigate = useNavigate();
-  const audioRef = useRef(null); // Referência para o elemento de áudio
+  const audioRef = useRef(null);
+  const tocarAudio = () => {
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.play();
+    } else {
+      alert("Áudio não disponível.");
+    }
+  };
 
   // Estados
   const [licao, setLicao] = useState(null);
@@ -37,14 +44,6 @@ function Exercicio() {
       setLicao(data);
     } catch (err) {
       console.error("Erro ao carregar lição:", err);
-    }
-  };
-
-  const tocarAudio = () => {
-    if (audioRef.current && audioRef.current.src) {
-      audioRef.current.play();
-    } else {
-      alert("Áudio não disponível.");
     }
   };
 
@@ -106,12 +105,6 @@ function Exercicio() {
 
   return (
     <div className="container-exercicio">
-      <button
-        className="btn-voltar-simples"
-        onClick={() => navigate("/dashboard")}
-      >
-        ⬅ Voltar
-      </button>
 
       <h2>{licao.titulo}</h2>
       <p>Clique no botão abaixo para ouvir e escreva o que entendeu:</p>
@@ -126,7 +119,7 @@ function Exercicio() {
       <p className="pergunta-texto">{licao.pergunta}</p>
 
       <input
-        type="text"
+        type="text" className="caixa-resposta"
         value={resposta}
         onChange={(e) => setResposta(e.target.value)}
         placeholder="Digite sua resposta aqui..."
@@ -145,6 +138,13 @@ function Exercicio() {
           Continuar para Dashboard
         </button>
       )}
+
+      <button
+        className="btn-voltar-seta"
+        onClick={() => navigate("/dashboard")}
+      >
+        ⬅ Voltar
+      </button>
 
       <div id="feedback-area" style={{ color: feedback.color }}>
         {feedback.msg}
