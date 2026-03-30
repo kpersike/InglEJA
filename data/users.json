@@ -91,5 +91,11 @@
     "email": "armando@gmail.com",
     "senha": "123",
     "pontos": 10
+  },
+  {
+    "nome": "Matilde",
+    "email": "matheus@gmail.com",
+    "senha": "123",
+    "pontos": 10
   }
 ]
