@@ -1,0 +1,142 @@
+[
+  {
+    "id":1,
+    "titulo":"Saudações - 1/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Tradução Direta: 'Bom dia'?",
+    "opcoes": {
+      "a": "Good morning",
+      "b": "Good night",
+      "c": "Hello",
+      "d": "Bye"
+    },
+    "respostaCorreta":"Good morning",
+    "pontos":10
+  },
+  {
+    "id":2,
+    "titulo":"Saudações - 2/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Tradução Direta: 'Boa tarde'?",
+    "opcoes": {
+      "a": "Good afternoon",
+      "b": "See you",
+      "c": "Thanks",
+      "d": "Please"
+    },
+    "respostaCorreta":"Good afternoon",
+    "pontos":10
+  },
+  {
+    "id":3,
+    "titulo":"Saudações - 3/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Tradução Direta: 'Boa noite'?",
+    "opcoes": {
+      "a": "Good evening",
+      "b": "Good morning",
+      "c": "Goodbye",
+      "d": "Welcome"
+    },
+    "respostaCorreta":"Good evening",
+    "pontos":10
+  },
+  {
+    "id":4,
+    "titulo":"Saudações - 4/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Tradução Direta: 'Obrigado'?",
+    "opcoes": {
+      "a": "Thanks",
+      "b": "Please",
+      "c": "Sorry",
+      "d": "Hello"
+    },
+    "respostaCorreta":"Thanks",
+    "pontos":10
+  },
+  {
+    "id":5,
+    "titulo":"Saudações - 5/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Complete: 'Good ____!' (tarde)",
+    "opcoes": {
+      "a": "morning",
+      "b": "night",
+      "c": "afternoon",
+      "d": "day"
+    },
+    "respostaCorreta":"afternoon",
+    "pontos":12
+  },
+  {
+    "id":6,
+    "titulo":"Saudações - 6/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Complete: '____ you later!'",
+    "opcoes": {
+      "a": "Good",
+      "b": "See",
+      "c": "Nice",
+      "d": "Have"
+    },
+    "respostaCorreta":"See",
+    "pontos":12
+  },
+  {
+    "id":7,
+    "titulo":"Saudações - 7/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Complete: 'Have a nice ____!'",
+    "opcoes": {
+      "a": "morning",
+      "b": "day",
+      "c": "evening",
+      "d": "night"
+    },
+    "respostaCorreta":"day",
+    "pontos":12
+  },
+  {
+    "id":8,
+    "titulo":"Saudações - 8/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Associação: 👋 emoji",
+    "opcoes": {
+      "a": "goodbye",
+      "b": "hello",
+      "c": "thanks",
+      "d": "please"
+    },
+    "respostaCorreta":"hello",
+    "pontos":15
+  },
+  {
+    "id":9,
+    "titulo":"Saudações - 9/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Associação: 🌅 sol nascente",
+    "opcoes": {
+      "a": "good evening",
+      "b": "good morning",
+      "c": "good afternoon",
+      "d": "good night"
+    },
+    "respostaCorreta":"good morning",
+    "pontos":15
+  },
+  {
+    "id":10,
+    "titulo":"Saudações - 10/10",
+    "audio":"/audio/greetings.mp3",
+    "pergunta":"Associação: 🙏 mãos juntas",
+    "opcoes": {
+      "a": "please",
+      "b": "sorry",
+      "c": "hello",
+      "d": "thank you"
+    },
+    "respostaCorreta":"thank you",
+    "pontos":15
+  }
+]

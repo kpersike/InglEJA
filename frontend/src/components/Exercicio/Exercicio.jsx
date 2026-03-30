@@ -4,17 +4,17 @@ import "./Exercicio.css";
 
 function Exercicio() {
   const navigate = useNavigate();
-  const audioRef = useRef(null); // Referência para o elemento de áudio
+  const audioRef = useRef(null);
 
-  // Estados
-  const [licao, setLicao] = useState(null);
-  const [resposta, setResposta] = useState("");
+  const [exercicio, setExercicio] = useState(null);
+  const [selecionada, setSelecionada] = useState(null);
   const [feedback, setFeedback] = useState({
     msg: "",
     color: "",
     acertou: false,
   });
   const [usuario, setUsuario] = useState(null);
+  const [fullLessons, setFullLessons] = useState([]);
 
   useEffect(() => {
     const idLicao = localStorage.getItem("licaoAtualId");
@@ -31,126 +31,142 @@ function Exercicio() {
 
   const carregarDadosLicao = async (id) => {
     try {
-      // Importante: use a URL completa do seu backend
-      const response = await fetch(`http://localhost:3000/api/licao/${id}`);
+      console.log("Tentando carregar exercício ID:", id); // Debug no console (F12)
+      
+      // CORREÇÃO 1: Nome do arquivo ajustado para o que está na pasta public
+      const response = await fetch('/full_lessons.json'); 
+      if (!response.ok) throw new Error("Arquivo JSON não encontrado na pasta public!");
+      
       const data = await response.json();
-      setLicao(data);
+      
+      // CORREÇÃO 2: Comparação de string para garantir que IDs maiores que 10 funcionem
+      const licaoEncontrada = data.find(item => String(item.id) === String(id));
+      
+      if (licaoEncontrada) {
+        console.log("Lição encontrada:", licaoEncontrada);
+        setExercicio(licaoEncontrada);
+      } else {
+        console.error("ID não existe no JSON. Verifique se o ID no localStorage é de 1 a 20.");
+      }
     } catch (err) {
-      console.error("Erro ao carregar lição:", err);
+      console.error("Erro crítico ao carregar:", err);
     }
   };
 
   const tocarAudio = () => {
-    if (audioRef.current && audioRef.current.src) {
-      audioRef.current.play();
-    } else {
-      alert("Áudio não disponível.");
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.log('Áudio não disponível'));
     }
   };
 
-  const finalizarExercicio = async () => {
-    if (resposta.trim() === "") {
+  const validarResposta = (texto) => {
+    if (feedback.acertou) return;
+
+    const respostaCorreta = exercicio.respostaCorreta.toLowerCase().trim();
+    const respostaUsuario = texto.toLowerCase().trim();
+    
+    const acertou = respostaCorreta === respostaUsuario;
+    
+    setSelecionada(texto);
+    
+    if (acertou) {
+      // Update points locally
+      const pontos = exercicio.pontos || 10;
+      const usuarioAtualizado = {
+        ...usuario,
+        pontos: (usuario.pontos || 0) + pontos,
+      };
+      localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
+      setUsuario(usuarioAtualizado);
+
       setFeedback({
-        msg: "⚠️ Por favor, preencha o campo antes de concluir.",
-        color: "orange",
+        msg: `🎉 boaaa! +${pontos} pontos!`,
+        color: "#10b981",
+        acertou: true,
       });
-      return;
-    }
 
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/validar-resposta",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            usuarioEmail: usuario.email,
-            licaoId: licao.id,
-            respostaUsuario: resposta,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (data.acertou) {
-        setFeedback({
-          msg: `✅ ${data.feedback} | +${data.pontos} pontos!`,
-          color: "#58cc02",
-          acertou: true,
-        });
-
-        // Atualiza localStorage para o Dashboard ler os novos pontos
-        const usuarioAtualizado = {
-          ...usuario,
-          pontos: (usuario.pontos || 0) + data.pontos,
-        };
-        localStorage.setItem(
-          "usuarioLogado",
-          JSON.stringify(usuarioAtualizado),
-        );
-        setUsuario(usuarioAtualizado);
+      // CORREÇÃO 3: Auto advance atualizado para suportar até a lição 20
+      const currentId = parseInt(exercicio.id);
+      if (currentId < 20) { 
+        setTimeout(() => {
+          const nextId = currentId + 1;
+          localStorage.setItem('licaoAtualId', nextId);
+          window.location.reload();
+        }, 2000);
       } else {
-        setFeedback({
-          msg: `❌ ${data.feedback}`,
-          color: "red",
-          acertou: false,
-        });
+        // Finalização ao chegar na 20
+        setTimeout(() => {
+          alert("🏆 Parabéns! Você completou todas as 20 lições de Saudações!");
+          navigate("/dashboard");
+        }, 2000);
       }
-    } catch (err) {
-      setFeedback({ msg: "Erro ao validar resposta.", color: "red" });
+    } else {
+      setFeedback({
+        msg: "❌ Tente novamente!",
+        color: "#ef4444",
+        acertou: false,
+      });
     }
   };
 
-  if (!licao) return <div className="container-exercicio">Carregando...</div>;
+  if (!exercicio) return <div className="container-exercicio">Carregando...</div>;
 
   return (
     <div className="container-exercicio">
-      <button
-        className="btn-voltar-simples"
-        onClick={() => navigate("/dashboard")}
-      >
-        ⬅ Voltar
+      <button className="btn-voltar-simples" onClick={() => navigate("/dashboard")}>
+        ⬅ Voltar ao Dashboard
       </button>
 
-      <h2>{licao.titulo}</h2>
-      <p>Clique no botão abaixo para ouvir e escreva o que entendeu:</p>
-
-      <button className="btn-audio" onClick={tocarAudio}>
-        🔊 Ouvir Pronúncia
-      </button>
-
-      {/* Áudio invisível controlado pelo Ref */}
-      <audio ref={audioRef} src={`http://localhost:3000${licao.audio}`} />
-
-      <p className="pergunta-texto">{licao.pergunta}</p>
-
-      <input
-        type="text"
-        value={resposta}
-        onChange={(e) => setResposta(e.target.value)}
-        placeholder="Digite sua resposta aqui..."
-        disabled={feedback.acertou}
-      />
-
-      {!feedback.acertou ? (
-        <button className="btn-concluir" onClick={finalizarExercicio}>
-          Concluir Exercício
+      <div className="exercicio-header">
+        <h2>{exercicio.titulo}</h2>
+        <button className="btn-audio" onClick={tocarAudio}>
+          🔊 Ouvir
         </button>
-      ) : (
-        <button
-          className="btn-concluir btn-proximo"
-          onClick={() => navigate("/dashboard")}
-        >
-          Continuar para Dashboard
-        </button>
-      )}
-
-      <div id="feedback-area" style={{ color: feedback.color }}>
-        {feedback.msg}
+        <audio ref={audioRef} src={`http://localhost:3000${exercicio.audio}`} preload="auto" />
       </div>
+
+      <div className="exercicio-enunciado">
+        <p className="pergunta-texto">{exercicio.pergunta}</p>
+      </div>
+
+      <div className="opcoes-container">
+        <button
+          className={`opcao-btn ${selecionada === exercicio.opcao_a ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
+          onClick={() => validarResposta(exercicio.opcao_a)}
+          disabled={feedback.acertou}
+        >
+          {exercicio.opcao_a}
+        </button>
+        <button
+          className={`opcao-btn ${selecionada === exercicio.opcao_b ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
+          onClick={() => validarResposta(exercicio.opcao_b)}
+          disabled={feedback.acertou}
+        >
+          {exercicio.opcao_b}
+        </button>
+        <button
+          className={`opcao-btn ${selecionada === exercicio.opcao_c ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
+          onClick={() => validarResposta(exercicio.opcao_c)}
+          disabled={feedback.acertou}
+        >
+          {exercicio.opcao_c}
+        </button>
+        <button
+          className={`opcao-btn ${selecionada === exercicio.opcao_d ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
+          onClick={() => validarResposta(exercicio.opcao_d)}
+          disabled={feedback.acertou}
+        >
+          {exercicio.opcao_d}
+        </button>
+      </div>
+
+      {feedback.msg && (
+        <div className="feedback" style={{color: feedback.color}}>
+          {feedback.msg}
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default Exercicio;

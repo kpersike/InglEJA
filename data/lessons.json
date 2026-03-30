@@ -1,18 +1,1 @@
-[
-  {
-    "id": 1,
-    "titulo": "Saudações Básicas",
-    "audio": "/audio/greetings.mp3",
-    "pergunta": "Como se diz 'Bom dia' em inglês?",
-    "respostaCorreta": "Good morning",
-    "pontos": 10
-  },
-  {
-    "id": 2,
-    "titulo": "Apresentação",
-    "audio": "/audio/greetings.mp3",
-    "pergunta": "Ouça o áudio e escreva o nome mencionado:",
-    "respostaCorreta": "John",
-    "pontos": 15
-  }
-]
+[{"id":1,"titulo":"Saudações - 1/10","audio":"/audio/greetings.mp3","pergunta":"Tradução Direta: 'Bom dia'?","opcao_a":"Good morning","opcao_b":"Good night","opcao_c":"Hello","opcao_d":"Bye","respostaCorreta":"Good morning","pontos":10},{"id":2,"titulo":"Saudações - 2/10","audio":"/audio/greetings.mp3","pergunta":"Tradução Direta: 'Boa tarde'?","opcao_a":"Good afternoon","opcao_b":"See you","opcao_c":"Thanks","opcao_d":"Please","respostaCorreta":"Good afternoon","pontos":10},{"id":3,"titulo":"Saudações - 3/10","audio":"/audio/greetings.mp3","pergunta":"Tradução Direta: 'Boa noite'?","opcao_a":"Good evening","opcao_b":"Good morning","opcao_c":"Goodbye","opcao_d":"Welcome","respostaCorreta":"Good evening","pontos":10},{"id":4,"titulo":"Saudações - 4/10","audio":"/audio/greetings.mp3","pergunta":"Tradução Direta: 'Obrigado'?","opcao_a":"Thanks","opcao_b":"Please","opcao_c":"Sorry","opcao_d":"Hello","respostaCorreta":"Thanks","pontos":10},{"id":5,"titulo":"Saudações - 5/10","audio":"/audio/greetings.mp3","pergunta":"Complete: 'Good ____!' (tarde)","opcao_a":"morning","opcao_b":"night","opcao_c":"afternoon","opcao_d":"day","respostaCorreta":"afternoon","pontos":12},{"id":6,"titulo":"Saudações - 6/10","audio":"/audio/greetings.mp3","pergunta":"Complete: '____ you later!'","opcao_a":"Good","opcao_b":"See","opcao_c":"Nice","opcao_d":"Have","respostaCorreta":"See","pontos":12},{"id":7,"titulo":"Saudações - 7/10","audio":"/audio/greetings.mp3","pergunta":"Complete: 'Have a nice ____!'","opcao_a":"morning","opcao_b":"day","opcao_c":"evening","opcao_d":"night","respostaCorreta":"day","pontos":12},{"id":8,"titulo":"Saudações - 8/10","audio":"/audio/greetings.mp3","pergunta":"Associação: 👋 emoji","opcao_a":"goodbye","opcao_b":"hello","opcao_c":"thanks","opcao_d":"please","respostaCorreta":"hello","pontos":15},{"id":9,"titulo":"Saudações - 9/10","audio":"/audio/greetings.mp3","pergunta":"Associação: 🌅 sol nascente","opcao_a":"good evening","opcao_b":"good morning","opcao_c":"good afternoon","opcao_d":"good night","respostaCorreta":"good morning","pontos":15},{"id":10,"titulo":"Saudações - 10/10","audio":"/audio/greetings.mp3","pergunta":"Associação: 🙏 mãos juntas","opcao_a":"please","opcao_b":"sorry","opcao_c":"hello","opcao_d":"thank you","respostaCorreta":"thank you","pontos":15}]

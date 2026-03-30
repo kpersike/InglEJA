@@ -14,6 +14,7 @@ const LESSONS_PATH = path.join(__dirname, "data", "lessons.json");
 app.use(cors()); // Habilita o React (porta 5173) a falar com o Node (porta 3000)
 app.use(express.json()); // Permite que o servidor entenda JSON enviado pelo React
 app.use(express.static("public"));
+app.use('/audio', express.static("frontend/public"));
 
 // Função de leitura de usuários
 const getUsers = () => {

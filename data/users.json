@@ -85,5 +85,17 @@
     "email": "testandologica@gmail.com",
     "senha": "12",
     "pontos": 0
+  },
+  {
+    "nome": "Marcel",
+    "email": "crudelli.marcel@gmail.com",
+    "senha": "1234",
+    "pontos": 256
+  },
+  {
+    "nome": "Elida",
+    "email": "BC.ELIDA@GMAIL.COM",
+    "senha": "1234",
+    "pontos": 50
   }
 ]
