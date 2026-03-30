@@ -1,111 +1,78 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Exercicio.css";
 
 function Exercicio() {
   const navigate = useNavigate();
-  const audioRef = useRef(null);
-
   const [exercicio, setExercicio] = useState(null);
   const [selecionada, setSelecionada] = useState(null);
-  const [feedback, setFeedback] = useState({
-    msg: "",
-    color: "",
-    acertou: false,
-  });
+  const [feedback, setFeedback] = useState({ msg: "", color: "", acertou: false });
   const [usuario, setUsuario] = useState(null);
-  const [fullLessons, setFullLessons] = useState([]);
 
   useEffect(() => {
-    const idLicao = localStorage.getItem("licaoAtualId");
+    const idLicao = localStorage.getItem("licaoAtualId") || "1";
     const dadosUsuario = JSON.parse(localStorage.getItem("usuarioLogado"));
-
-    if (!idLicao || !dadosUsuario) {
-      navigate("/dashboard");
+    
+    if (!dadosUsuario) {
+      navigate("/");
       return;
     }
 
     setUsuario(dadosUsuario);
-    carregarDadosLicao(idLicao);
+    carregarExercicio(idLicao);
   }, [navigate]);
 
-  const carregarDadosLicao = async (id) => {
+  const carregarExercicio = async (id) => {
     try {
-      console.log("Tentando carregar exercício ID:", id); // Debug no console (F12)
+      // Busca o arquivo JSON na pasta public
+      const res = await fetch('/full_lessons.json');
+      const data = await res.json();
       
-      // CORREÇÃO 1: Nome do arquivo ajustado para o que está na pasta public
-      const response = await fetch('/full_lessons.json'); 
-      if (!response.ok) throw new Error("Arquivo JSON não encontrado na pasta public!");
+      // Procura a lição pelo ID (convertendo para String para garantir)
+      const encontrado = data.find(item => String(item.id) === String(id));
       
-      const data = await response.json();
-      
-      // CORREÇÃO 2: Comparação de string para garantir que IDs maiores que 10 funcionem
-      const licaoEncontrada = data.find(item => String(item.id) === String(id));
-      
-      if (licaoEncontrada) {
-        console.log("Lição encontrada:", licaoEncontrada);
-        setExercicio(licaoEncontrada);
+      if (encontrado) {
+        setExercicio(encontrado);
+        setSelecionada(null);
+        setFeedback({ msg: "", color: "", acertou: false });
       } else {
-        console.error("ID não existe no JSON. Verifique se o ID no localStorage é de 1 a 20.");
+        navigate("/dashboard");
       }
     } catch (err) {
-      console.error("Erro crítico ao carregar:", err);
+      console.error("Erro ao carregar lição:", err);
     }
   };
 
-  const tocarAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.play().catch(e => console.log('Áudio não disponível'));
-    }
-  };
-
-  const validarResposta = (texto) => {
+  const validar = (opcaoTexto) => {
     if (feedback.acertou) return;
 
-    const respostaCorreta = exercicio.respostaCorreta.toLowerCase().trim();
-    const respostaUsuario = texto.toLowerCase().trim();
-    
-    const acertou = respostaCorreta === respostaUsuario;
-    
-    setSelecionada(texto);
-    
-    if (acertou) {
-      // Update points locally
-      const pontos = exercicio.pontos || 10;
-      const usuarioAtualizado = {
-        ...usuario,
-        pontos: (usuario.pontos || 0) + pontos,
-      };
-      localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
+    setSelecionada(opcaoTexto);
+    const correta = exercicio.respostaCorreta.toLowerCase().trim();
+    const escolhida = opcaoTexto.toLowerCase().trim();
+
+    if (escolhida === correta) {
+      // Atualiza pontos do Marcel
+      const novosPontos = (usuario.pontos || 0) + (exercicio.pontos || 10);
+      const usuarioAtualizado = { ...usuario, pontos: novosPontos };
+      
       setUsuario(usuarioAtualizado);
+      localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
+      
+      setFeedback({ msg: "🎉 boaaa!", color: "#10b981", acertou: true });
 
-      setFeedback({
-        msg: `🎉 boaaa! +${pontos} pontos!`,
-        color: "#10b981",
-        acertou: true,
-      });
-
-      // CORREÇÃO 3: Auto advance atualizado para suportar até a lição 20
-      const currentId = parseInt(exercicio.id);
-      if (currentId < 20) { 
-        setTimeout(() => {
-          const nextId = currentId + 1;
-          localStorage.setItem('licaoAtualId', nextId);
-          window.location.reload();
-        }, 2000);
-      } else {
-        // Finalização ao chegar na 20
-        setTimeout(() => {
-          alert("🏆 Parabéns! Você completou todas as 20 lições de Saudações!");
+      // Avanço automático para a próxima lição
+      setTimeout(() => {
+        const proximoId = parseInt(exercicio.id) + 1;
+        if (proximoId <= 20) {
+          localStorage.setItem("licaoAtualId", proximoId);
+          carregarExercicio(proximoId);
+        } else {
+          alert("🏆 Parabéns, Marcel! Você completou o Nível 1!");
           navigate("/dashboard");
-        }, 2000);
-      }
+        }
+      }, 1500);
     } else {
-      setFeedback({
-        msg: "❌ Tente novamente!",
-        color: "#ef4444",
-        acertou: false,
-      });
+      setFeedback({ msg: "❌ Tente novamente!", color: "#ef4444", acertou: false });
     }
   };
 
@@ -114,59 +81,38 @@ function Exercicio() {
   return (
     <div className="container-exercicio">
       <button className="btn-voltar-simples" onClick={() => navigate("/dashboard")}>
-        ⬅ Voltar ao Dashboard
+        ⬅ Voltar
       </button>
 
       <div className="exercicio-header">
-        <h2>{exercicio.titulo}</h2>
-        <button className="btn-audio" onClick={tocarAudio}>
-          🔊 Ouvir
-        </button>
-        <audio ref={audioRef} src={`http://localhost:3000${exercicio.audio}`} preload="auto" />
+        <h2 className="titulo-licao">{exercicio.titulo}</h2>
       </div>
 
       <div className="exercicio-enunciado">
         <p className="pergunta-texto">{exercicio.pergunta}</p>
       </div>
 
+      {/* CAIXAS DE CLICAR (BOTÕES) */}
       <div className="opcoes-container">
-        <button
-          className={`opcao-btn ${selecionada === exercicio.opcao_a ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
-          onClick={() => validarResposta(exercicio.opcao_a)}
-          disabled={feedback.acertou}
-        >
-          {exercicio.opcao_a}
-        </button>
-        <button
-          className={`opcao-btn ${selecionada === exercicio.opcao_b ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
-          onClick={() => validarResposta(exercicio.opcao_b)}
-          disabled={feedback.acertou}
-        >
-          {exercicio.opcao_b}
-        </button>
-        <button
-          className={`opcao-btn ${selecionada === exercicio.opcao_c ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
-          onClick={() => validarResposta(exercicio.opcao_c)}
-          disabled={feedback.acertou}
-        >
-          {exercicio.opcao_c}
-        </button>
-        <button
-          className={`opcao-btn ${selecionada === exercicio.opcao_d ? 'selecionada' : ''} ${feedback.acertou ? 'disabled' : ''}`}
-          onClick={() => validarResposta(exercicio.opcao_d)}
-          disabled={feedback.acertou}
-        >
-          {exercicio.opcao_d}
-        </button>
+        {[exercicio.opcao_a, exercicio.opcao_b, exercicio.opcao_c, exercicio.opcao_d].map((opt, i) => (
+          <button
+            key={i}
+            className={`opcao-btn ${selecionada === opt ? 'selecionada' : ''} ${feedback.acertou && opt === exercicio.respostaCorreta ? 'correta' : ''}`}
+            onClick={() => validar(opt)}
+            disabled={feedback.acertou}
+          >
+            {opt}
+          </button>
+        ))}
       </div>
 
       {feedback.msg && (
-        <div className="feedback" style={{color: feedback.color}}>
+        <p className="feedback-msg" style={{ color: feedback.color }}>
           {feedback.msg}
-        </div>
+        </p>
       )}
     </div>
   );
-};
+}
 
 export default Exercicio;
