@@ -2,7 +2,8 @@
   {
     "nome": "teste2",
     "email": "teste.2@gmail.com",
-    "senha": "teste2"
+    "senha": "teste2",
+    "pontos": 10
   },
   {
     "nome": "teste3",
