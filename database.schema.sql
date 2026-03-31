@@ -9,17 +9,6 @@
 
 -- Started on 2026-03-13 01:24:21
 
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
 
 --
 -- TOC entry 2 (class 3079 OID 16751)
@@ -500,3 +489,17 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,
 
 -- \unrestrict TjdCi35WfufWDGAnucKRHo7S98ihm5RoSlKKJH6bSeEuL3xsAwmIwij3iYYlZ6o
 
+-- Isso apaga o registro de que você completou as lições
+TRUNCATE TABLE public.progresso_usuario CASCADE;
+
+
+-- Limpa as frases genéricas
+DELETE FROM public.frases WHERE frase_ingles = 'New Lesson';
+
+-- Insere com as colunas de opções preenchidas corretamente
+INSERT INTO public.frases (id, frase_ingles, traducao_portugues, nivel, opcao_a, opcao_b, opcao_c, opcao_d) VALUES 
+(gen_random_uuid(), 'Good morning', 'Bom dia', '1', 'Good morning', 'Good night', 'Hello', 'Bye'),
+(gen_random_uuid(), 'Good afternoon', 'Boa tarde', '1', 'See you', 'Good afternoon', 'Thanks', 'Please');
+
+-- Reseta o progresso para carregar as novas
+TRUNCATE TABLE public.progresso_usuario CASCADE;
