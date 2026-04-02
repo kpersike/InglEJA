@@ -44,49 +44,39 @@ function Exercicio() {
   const questaoAtual = questoes[indiceAtual];
 
   const finalizarExercicio = async () => {
-    if (!resposta.trim()) {
-      setFeedback({ msg: "Por favor, digite uma resposta!", color: "orange", acertou: false });
-      return;
-    }
+    if (!resposta.trim()) return;
 
     const questaoAtual = questoes[indiceAtual];
+    // Verifica se é a última questão
+    const eUltima = indiceAtual === questoes.length - 1;
 
     try {
-      // 1. Enviamos a resposta para o servidor validar
       const response = await fetch("http://localhost:3000/api/validar-resposta-v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           usuarioEmail: usuario.email,
-          slugFase: slug, // Esse 'slug' vem do useParams() lá no topo
+          slugFase: slug,
           questaoId: questaoAtual.id,
           respostaUsuario: resposta,
+          eUltimaQuestao: eUltima // Informamos ao servidor se acabou a fase
         }),
       });
 
       const data = await response.json();
 
-      // 2. O servidor agora é quem diz se acertou ou não
       if (data.acertou) {
-        setFeedback({
-          msg: "Incrível! Você acertou!",
-          color: "green",
-          acertou: true
-        });
+        setFeedback({ msg: "Incrível! Você acertou!", color: "green", acertou: true });
+
+        // Se acabou a fase e o servidor mandou o usuário atualizado, salvamos no localStorage
+        if (eUltima && data.usuarioAtualizado) {
+          localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+        }
       } else {
-        setFeedback({
-          msg: "Ops! Resposta incorreta. Tente novamente!",
-          color: "red",
-          acertou: false
-        });
+        setFeedback({ msg: "Ops! Resposta incorreta. Tente novamente!", color: "red", acertou: false });
       }
     } catch (err) {
       console.error("Erro ao validar:", err);
-      setFeedback({
-        msg: "Erro ao conectar com o servidor.",
-        color: "red",
-        acertou: false
-      });
     }
   };
 

@@ -29,64 +29,30 @@ function Dashboard() {
   const [notificacoes, setNotificacoes] = useState([]);
 
   // --- LÓGICA DE INICIALIZAÇÃO DA TRILHA DINÂMICA ---
+  // Dentro da função Dashboard
   const [licoes, setLicoes] = useState(() => {
-    const chaveProgresso = `progresso_${usuario.email}`;
-    const progressoSalvo = JSON.parse(localStorage.getItem(chaveProgresso)) || {};
+    // Pegamos o progresso que veio do banco de dados através do login
+    const progressoDoBanco = usuario.progresso || {};
 
-    // Definição das fases base
     const fasesBase = [
-      {
-        id: 1,
-        slug: "saudacoes",
-        titulo: "Nível 1: Saudações",
-        descricao: '"Hello", "Good Morning" e cortesias básicas.',
-        iconeTema: "waving_hand",
-      },
-      {
-        id: 2,
-        slug: "cores",
-        titulo: "Nível 2: Cores",
-        descricao: "Aprenda a descrever o mundo ao seu redor.",
-        iconeTema: "palette",
-      },
-      {
-        id: 3,
-        slug: "familia",
-        titulo: "Nível 3: Família",
-        descricao: "Aprenda os nomes dos membros da família.",
-        iconeTema: "family_restroom",
-      },
-      {
-        id: 4,
-        slug: "comida",
-        titulo: "Nível 4: Comida",
-        descricao: "Vocabulário de alimentos e restaurantes.",
-        iconeTema: "restaurant",
-      },
-      {
-        id: 5,
-        slug: "musica",
-        titulo: "Nível 5: Música",
-        descricao: "Termos sobre ritmos e instrumentos.",
-        iconeTema: "music_note",
-      },
+      { id: 1, slug: "saudacoes", titulo: "Nível 1: Saudações", iconeTema: "waving_hand" },
+      { id: 2, slug: "cores", titulo: "Nível 2: Cores", iconeTema: "palette" },
+      { id: 3, slug: "familia", titulo: "Nível 3: Família", iconeTema: "family_restroom" },
+      { id: 4, slug: "comida", titulo: "Nível 4: Comida", iconeTema: "restaurant" },
+      { id: 5, slug: "musica", titulo: "Nível 5: Música", iconeTema: "music_note" },
     ];
 
-    // Mapeia o status de cada fase baseado no que está no localStorage
     return fasesBase.map((fase, index) => {
-      const concluida = progressoSalvo[fase.slug] === true;
+      const concluida = progressoDoBanco[fase.slug] === true;
       let status = "bloqueado";
 
       if (concluida) {
         status = "concluido";
       } else {
-        // A fase está liberada (atual) se for a primeira OU se a anterior estiver concluída
-        const faseAnteriorConcluida = index === 0 || progressoSalvo[fasesBase[index - 1].slug] === true;
-        if (faseAnteriorConcluida) {
-          status = "atual";
-        }
+        // Liberado se for a primeira ou se a anterior foi concluída no banco
+        const anteriorConcluida = index === 0 || progressoDoBanco[fasesBase[index - 1].slug] === true;
+        if (anteriorConcluida) status = "atual";
       }
-
       return { ...fase, status };
     });
   });

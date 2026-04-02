@@ -24,7 +24,11 @@
     "nome": "Kaik",
     "email": "kaik@gmail.com",
     "senha": "123",
-    "pontos": 30
+    "pontos": 80,
+    "progresso": {
+      "saudacoes": true,
+      "cores": true
+    }
   },
   {
     "nome": "Aluno InglEJA",

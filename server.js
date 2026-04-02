@@ -71,9 +71,7 @@ app.post("/api/login", (req, res) => {
   try {
     const { email, senha } = req.body;
     const usuarios = getUsers();
-    const usuario = usuarios.find(
-      (u) => u && u.email === email && u.senha === senha,
-    );
+    const usuario = usuarios.find(u => u.email === email && u.senha === senha);
 
     if (usuario) {
       res.json({
@@ -82,6 +80,8 @@ app.post("/api/login", (req, res) => {
           nome: usuario.nome,
           email: usuario.email,
           pontos: usuario.pontos || 0,
+          // IMPORTANTE: Enviar o progresso que está no JSON
+          progresso: usuario.progresso || {} 
         },
       });
     } else {
@@ -119,44 +119,45 @@ app.get("/api/fase/:slug", (req, res) => {
 
 app.post("/api/validar-resposta-v2", (req, res) => {
   try {
-    const { usuarioEmail, slugFase, questaoId, respostaUsuario } = req.body;
-
-    // Log para você ver no terminal o que está chegando
-    console.log("Recebido:", { slugFase, questaoId, respostaUsuario });
+    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
 
     const db = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
-    
-    // 1. Procura a fase
     const fase = db.niveis.find(n => n.slug === slugFase);
-    if (!fase) {
-      console.log("❌ Fase não encontrada para o slug:", slugFase);
-      return res.status(404).json({ erro: "Fase não encontrada" });
-    }
+    if (!fase) return res.status(404).json({ erro: "Fase não encontrada" });
 
-    // 2. Procura a questão (usando == para ignorar se é string ou número)
     const questao = fase.questoes.find(q => q.id == questaoId);
-    if (!questao) {
-      console.log("❌ Questão não encontrada ID:", questaoId);
-      return res.status(404).json({ erro: "Questão não encontrada" });
-    }
+    if (!questao) return res.status(404).json({ erro: "Questão não encontrada" });
 
-    // 3. Valida
     const acertou = respostaUsuario?.toLowerCase().trim() === questao.resposta?.toLowerCase().trim();
 
     if (acertou) {
       let usuarios = getUsers();
       const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
+      
       if (userIndex !== -1) {
-        // Usamos || 10 caso você não tenha definido pontos no JSON ainda
+        // Incrementa pontos
         usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
+
+        // SE FOR A ÚLTIMA QUESTÃO, MARCA COMO CONCLUÍDO NO BANCO
+        if (eUltimaQuestao) {
+          if (!usuarios[userIndex].progresso) usuarios[userIndex].progresso = {};
+          usuarios[userIndex].progresso[slugFase] = true;
+          
+          // Atualiza também o objeto do usuário na resposta para o front atualizar o localStorage
+          console.log(`✅ Fase ${slugFase} concluída para ${usuarioEmail}`);
+        }
+
         fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+        
+        // Retornamos os dados atualizados do usuário para o Front-end sincronizar
+        return res.json({ acertou, usuarioAtualizado: usuarios[userIndex] });
       }
     }
 
     res.json({ acertou });
   } catch (err) {
-    console.error("❌ ERRO CRÍTICO NO SERVIDOR:", err);
-    res.status(500).json({ erro: "Erro interno no servidor" });
+    console.error("❌ ERRO NO SERVIDOR:", err);
+    res.status(500).json({ erro: "Erro interno" });
   }
 });
 
