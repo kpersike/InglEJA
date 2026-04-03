@@ -24,7 +24,7 @@
     "nome": "Kaik",
     "email": "kaik@gmail.com",
     "senha": "123",
-    "pontos": 240,
+    "pontos": 260,
     "progresso": {
       "saudacoes": true,
       "cores": true
@@ -34,7 +34,11 @@
     "nome": "Aluno InglEJA",
     "email": "jao@gmail.com",
     "senha": "123",
-    "pontos": 0
+    "pontos": 30,
+    "progresso": {
+      "saudacoes": true,
+      "cores": true
+    }
   },
   {
     "nome": "Aluno InglEJA",

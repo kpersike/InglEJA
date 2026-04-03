@@ -1,3 +1,8 @@
+// Fora da função Exercicio
+const API_BASE = window.location.hostname === "localhost" 
+  ? "http://localhost:3000" 
+  : ""; // Em produção, ele usará a rota relativa do próprio servidor
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // Importamos useParams
 import "./Exercicio.css";
@@ -109,6 +114,10 @@ function Exercicio() {
       {/* Barra de progresso visual baseada no índice */}
       {/* Barra de Progresso Interna */}
       <div className="progresso-container">
+        <div className="progresso-texto">
+          <span style={{color: "#64748B"}}>PROGRESSO DA LIÇÃO</span>
+          <span>Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}</span>
+        </div>
         <div
           className="progresso-barra"
           style={{
@@ -116,41 +125,88 @@ function Exercicio() {
             transition: "width 0.3s ease-in-out" // Para a barra deslizar suavemente
           }}
         ></div>
-        <div className="progresso-texto">
-          <span>Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}</span>
-        </div>
       </div>
 
-      <button className="btn-voltar-simples" onClick={() => navigate("/dashboard")}>⬅ Sair</button>
+      <div className="area-pergunta">
+        {/* Título Dinâmico */}
+        <h2 className="titulo-questao">
+          {questaoAtual.pergunta_exibicao || (questaoAtual.tipo === 'audio_input' ? 'Ouvir e Escrever' : 'Traduza')}
+        </h2>
+        {questaoAtual.subtitulo && <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>}
+        {/* Layout 1: Imagem + Opções de Clique (Baseado na sua Foto 1) */}
+        {questaoAtual.tipo === "escolha_palavra" ? (
+          <div className="layout-multipla-escolha">
 
-      <h2>{questaoAtual.tipo === 'audio' ? 'Ouvir e Escrever' : 'Traduza'}</h2>
+            <div className="container-imagem-central">
+              <img
+                src={`http://localhost:3000/images/${questaoAtual.img}`}
+                alt="Exercício"
+                className="img-pergunta-principal"
+              />
+            </div>
 
-      {questaoAtual.audio && (
-        <>
-          <button className="btn-audio" onClick={() => audioRef.current.play()}>🔊 Ouvir</button>
-          <audio ref={audioRef} src={`http://localhost:3000${questaoAtual.audio}`} />
-        </>
-      )}
+            <div className="lista-botoes-opcoes">
+              {questaoAtual.opcoes.map((opcao, idx) => (
+                <button
+                  key={idx}
+                  className={`btn-opcao-item ${resposta === opcao ? 'selecionada' : ''}`}
+                  onClick={() => setResposta(opcao)}
+                  disabled={feedback.acertou}
+                >
+                  <span className="numero-indicador">{idx + 1}</span>
+                  {opcao}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Layout Antigo/Padrão (Para não quebrar o Nível 1) */
+          <div className="layout-texto">
+            {questaoAtual.audio && (
+              <button className="btn-audio" onClick={() => audioRef.current.play()}>🔊 Ouvir</button>
+            )}
+            <p className="pergunta-texto">{questaoAtual.pergunta}</p>
+            <input
+              type="text"
+              value={resposta}
+              onChange={(e) => setResposta(e.target.value)}
+              placeholder="Digite sua resposta..."
+              disabled={feedback.acertou}
+              className="input-estilizado"
+            />
+          </div>
+        )}
+      </div>
 
-      <p className="pergunta-texto">{questaoAtual.pergunta}</p>
+      {/* Barra de Ação Inferior */}
+      <div className="barra-navegacao-inferior">
 
-      <input
-        type="text"
-        value={resposta}
-        onChange={(e) => setResposta(e.target.value)}
-        placeholder="Digite sua resposta..."
-        disabled={feedback.acertou}
-      />
+        {/* Botão Esquerdo: Sair ou Voltar */}
+        {indiceAtual === 0 ? (
+          <button className="btn-navegacao secundario" onClick={() => navigate("/dashboard")}>
+            ⬅ Sair
+          </button>
+        ) : (
+          <button className="btn-navegacao secundario" onClick={() => setIndiceAtual(prev => prev - 1)}>
+            ⬅ Voltar
+          </button>
+        )}
 
-      {!feedback.acertou ? (
-        <button className="btn-concluir" onClick={finalizarExercicio}>Verificar</button>
-      ) : (
-        <button className="btn-concluir btn-proximo" onClick={proximaQuestao}>
-          {indiceAtual + 1 === questoes.length ? "Finalizar Fase" : "Próxima Questão ➔"}
-        </button>
-      )}
-
-      <div id="feedback-area" style={{ color: feedback.color }}>{feedback.msg}</div>
+        {/* Botão Direito: Verificar ou Próximo/Finalizar */}
+        {!feedback.acertou ? (
+          <button
+            className="btn-navegacao primario"
+            onClick={finalizarExercicio}
+            disabled={!resposta.trim()}
+          >
+            Verificar
+          </button>
+        ) : (
+          <button className="btn-navegacao sucesso" onClick={proximaQuestao}>
+            {indiceAtual === questoes.length - 1 ? "Finalizar ✨" : "Próximo ➡"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

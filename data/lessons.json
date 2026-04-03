@@ -14,7 +14,15 @@
       "slug": "cores",
       "titulo": "Nível 2: Cores",
       "questoes": [
-        { "id": 1, "tipo": "imagem", "pergunta": "Qual é a cor Apple?", "img": "apple.png", "resposta": "Red" }
+        { 
+          "id": 1, 
+          "tipo": "escolha_palavra", 
+          "pergunta_exibicao": "O que é isto?",
+          "subtitulo": "Selecione a palavra correspondente",
+          "img": "red_apple.jpg", 
+          "opcoes": ["Banana", "Apple", "Orange", "Grape"],
+          "resposta": "Apple" 
+        }
       ]
     }
   ]

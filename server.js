@@ -13,7 +13,13 @@ const LESSONS_PATH = path.join(__dirname, "data", "lessons.json");
 // Middlewares
 app.use(cors()); // Habilita o React (porta 5173) a falar com o Node (porta 3000)
 app.use(express.json()); // Permite que o servidor entenda JSON enviado pelo React
-app.use(express.static("public"));
+// app.use(express.static("public"));
+
+// --- 🚨 AJUSTE DE ROTA DEFINITIVO 🚨 ---
+// 1. Tenta o caminho mais provável (Saindo de backend e entrando em frontend/public)
+const publicPath = path.resolve(__dirname, "frontend", "public");
+
+app.use(express.static(publicPath));
 
 // Função de leitura de usuários
 const getUsers = () => {
