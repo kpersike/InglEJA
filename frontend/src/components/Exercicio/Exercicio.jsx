@@ -134,7 +134,7 @@ function Exercicio() {
         </h2>
         {questaoAtual.subtitulo && <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>}
         {/* Layout 1: Imagem + Opções de Clique (Baseado na sua Foto 1) */}
-        {questaoAtual.tipo === "escolha_palavra" ? (
+        {questaoAtual.tipo === "escolha_palavra" && (
           <div className="layout-multipla-escolha">
 
             <div className="container-imagem-central">
@@ -159,21 +159,30 @@ function Exercicio() {
               ))}
             </div>
           </div>
-        ) : (
-          /* Layout Antigo/Padrão (Para não quebrar o Nível 1) */
-          <div className="layout-texto">
-            {questaoAtual.audio && (
-              <button className="btn-audio" onClick={() => audioRef.current.play()}>🔊 Ouvir</button>
-            )}
-            <p className="pergunta-texto">{questaoAtual.pergunta}</p>
-            <input
-              type="text"
-              value={resposta}
-              onChange={(e) => setResposta(e.target.value)}
-              placeholder="Digite sua resposta..."
-              disabled={feedback.acertou}
-              className="input-estilizado"
-            />
+        )}
+        {/* Layout 2: Grade de Imagens (Baseado no Tipo de questão 2) */}
+        {questaoAtual.tipo === "escolha_imagem" && (
+          <div className="layout-grade-imagens">
+            <div className="tag-palavra-ingles">
+              <span class="material-symbols-outlined" style={{margin: "0"}}>translate</span>
+              <span>{questaoAtual.palavra_ingles}</span>
+            </div>
+
+            <div className="grade-cards">
+              {questaoAtual.opcoes.map((opcao, idx) => (
+                <button
+                  key={idx}
+                  className={`card-imagem-item ${resposta === opcao.texto ? 'selecionada' : ''}`}
+                  onClick={() => setResposta(opcao.texto)}
+                  disabled={feedback.acertou}
+                >
+                  <div className="container-img-card">
+                    <img src={`${API_BASE}/images/${opcao.img}`} alt={opcao.texto} />
+                  </div>
+                  <span className="legenda-card">{opcao.texto}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

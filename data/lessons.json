@@ -22,6 +22,19 @@
           "img": "red_apple.jpg", 
           "opcoes": ["Banana", "Apple", "Orange", "Grape"],
           "resposta": "Apple" 
+        },
+        {
+          "id": 2,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha a imagem correta",
+          "palavra_ingles": "APPLE",
+          "opcoes": [
+            { "texto": "Maçã", "img": "apple_card.jpg" },
+            { "texto": "Casa", "img": "house_card.jpg" },
+            { "texto": "Carro", "img": "car_card.jpg" },
+            { "texto": "Cachorro", "img": "dog_card.jpg" }
+          ],
+          "resposta": "Maçã"
         }
       ]
     }
