@@ -70,6 +70,7 @@ function Exercicio() {
 
         // Se acabou a fase e o servidor mandou o usuário atualizado, salvamos no localStorage
         if (eUltima && data.usuarioAtualizado) {
+          localStorage.removeItem("fase_em_revisao");
           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
         }
       } else {
