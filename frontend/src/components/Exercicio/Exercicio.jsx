@@ -185,6 +185,40 @@ function Exercicio() {
             </div>
           </div>
         )}
+        {/* --- LAYOUT 3: PREENCHER LACUNA (Baseado na Foto 3) --- */}
+        {questaoAtual.tipo === "preencher_lacuna" && (
+          <div className="layout-lacuna">
+            <div className="container-imagem-lacuna">
+              <img src={`${API_BASE}/images/${questaoAtual.img}`} alt="Contexto" />
+            </div>
+
+            <div className="frase-container">
+              <span className="texto-frase">{questaoAtual.frase_parte_1}</span>
+
+              {/* A mágica acontece aqui: mostra a resposta ou os tracinhos */}
+              <span className={`lacuna-vazia ${resposta ? 'preenchida' : ''}`}>
+                {resposta || "__"}
+              </span>
+
+              <span className="texto-frase">{questaoAtual.frase_parte_2}</span>
+            </div>
+
+            <div className="input-container-lacuna">
+              <input
+                type="text"
+                className="input-lacuna"
+                placeholder="Clique aqui para digitar..."
+                value={resposta}
+                onChange={(e) => setResposta(e.target.value)}
+                disabled={feedback.acertou}
+                autoFocus
+              />
+              <span id="icone-lapis" class="material-symbols-outlined">edit</span>
+            </div>
+
+            {questaoAtual.dica && <p className="dica-texto">Dica: {questaoAtual.dica}</p>}
+          </div>
+        )}
       </div>
 
       {/* Barra de Ação Inferior */}

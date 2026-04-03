@@ -35,6 +35,16 @@
             { "texto": "Cachorro", "img": "dog_card.jpg" }
           ],
           "resposta": "Maçã"
+        },
+        {
+          "id": 3,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Where do you live?",
+          "frase_parte_1": "I live",
+          "frase_parte_2": "Brazil",
+          "img": "brazil_map.jpg",
+          "dica": "Pense na preposição usada para países.",
+          "resposta": "in"
         }
       ]
     }

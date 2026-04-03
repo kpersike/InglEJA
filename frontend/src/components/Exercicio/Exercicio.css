@@ -348,3 +348,82 @@
   background-color: #ddf4ff;
   border-bottom-color: #1cb0f6;
 }
+
+/* Layout 3: Lacunas */
+.layout-lacuna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.container-imagem-lacuna img {
+  max-width: 400px;
+  height: auto;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.frase-container {
+  display: flex;
+  flex-wrap: wrap; /* Garante que não quebre em telas pequenas */
+  justify-content: center;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #3c3c3c;
+  margin: 30px 0;
+}
+
+.lacuna-vazia {
+  min-width: 40px;
+  text-align: center;
+  transition: all 0.2s ease;
+  color: #1cb0f6;
+  border-bottom: 4px solid #64748b65;
+  padding: 8px;
+}
+
+.lacuna-vazia.preenchida {
+  color: #1cb0f6; /* A cor muda quando o aluno digita */
+  padding: 8px;
+}
+
+.input-container-lacuna {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.input-lacuna {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 2px solid #e5e5e5;
+  border-radius: 15px;
+  text-align: center;
+  outline: none;
+  background-color: #fff;
+  transition: border-color 0.2s;
+}
+
+.input-lacuna:focus {
+  border-color: #1cb0f6;
+}
+
+#icone-lapis {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-100%);
+  color: #1cb0f6;
+}
+
+.dica-texto {
+  margin-top: 15px;
+  color: #777;
+  font-style: italic;
+  font-size: 0.9rem;
+}
