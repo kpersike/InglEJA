@@ -351,6 +351,24 @@
   box-shadow: none !important;
 }
 
+.btn-start-review {
+  background-color: #8b5cf6 !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #7c3aed !important;
+  transition: all 0.1s;
+}
+
+.btn-start-review:active {
+  transform: translateY(4px);
+  box-shadow: none !important;
+}
+
 .btn-review {
   background-color: transparent !important;
   color: #3b82f6 !important;

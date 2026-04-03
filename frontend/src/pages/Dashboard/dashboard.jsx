@@ -28,65 +28,37 @@ function Dashboard() {
 
   const [notificacoes, setNotificacoes] = useState([]);
 
-  // --- LÓGICA DE INICIALIZAÇÃO DA TRILHA DINÂMICA ---
-  const [licoes, setLicoes] = useState(() => {
-    const chaveProgresso = `progresso_${usuario.email}`;
-    const progressoSalvo = JSON.parse(localStorage.getItem(chaveProgresso)) || {};
+  // 1. Crie um estado para a revisão persistir enquanto o usuário navega
+  const [faseEmRevisao, setFaseEmRevisao] = useState(() => {
+    return localStorage.getItem("fase_em_revisao") || null;
+  });
 
-    // Definição das fases base
+  const [licoes, setLicoes] = useState(() => {
+    const progressoDoBanco = usuario.progresso || {};
+
     const fasesBase = [
-      {
-        id: 1,
-        slug: "saudacoes",
-        titulo: "Nível 1: Saudações",
-        descricao: '"Hello", "Good Morning" e cortesias básicas.',
-        iconeTema: "waving_hand",
-      },
-      {
-        id: 2,
-        slug: "cores",
-        titulo: "Nível 2: Cores",
-        descricao: "Aprenda a descrever o mundo ao seu redor.",
-        iconeTema: "palette",
-      },
-      {
-        id: 3,
-        slug: "familia",
-        titulo: "Nível 3: Família",
-        descricao: "Aprenda os nomes dos membros da família.",
-        iconeTema: "family_restroom",
-      },
-      {
-        id: 4,
-        slug: "comida",
-        titulo: "Nível 4: Comida",
-        descricao: "Vocabulário de alimentos e restaurantes.",
-        iconeTema: "restaurant",
-      },
-      {
-        id: 5,
-        slug: "musica",
-        titulo: "Nível 5: Música",
-        descricao: "Termos sobre ritmos e instrumentos.",
-        iconeTema: "music_note",
-      },
+      { id: 1, slug: "saudacoes", titulo: "Nível 1: Saudações", iconeTema: "waving_hand", descricao: "Saudações básicas." },
+      { id: 2, slug: "cores", titulo: "Nível 2: Cores", iconeTema: "palette", descricao: "Cores e descrições." },
+      { id: 3, slug: "familia", titulo: "Nível 3: Família", iconeTema: "family_restroom", descricao: "Membros da família." },
+      { id: 4, slug: "comida", titulo: "Nível 4: Comida", iconeTema: "restaurant", descricao: "Alimentos e restaurantes." },
+      { id: 5, slug: "musica", titulo: "Nível 5: Música", iconeTema: "music_note", descricao: "Ritmos e instrumentos." },
     ];
 
-    // Mapeia o status de cada fase baseado no que está no localStorage
+    // Recupera qual fase estava sendo revisada (salvo no passo anterior)
+    const slugSendoRevisado = localStorage.getItem("fase_em_revisao");
+
     return fasesBase.map((fase, index) => {
-      const concluida = progressoSalvo[fase.slug] === true;
+      const concluida = progressoDoBanco[fase.slug] === true;
       let status = "bloqueado";
 
-      if (concluida) {
+      if (fase.slug === slugSendoRevisado) {
+        status = "revisando"; // Prioridade visual para revisão
+      } else if (concluida) {
         status = "concluido";
       } else {
-        // A fase está liberada (atual) se for a primeira OU se a anterior estiver concluída
-        const faseAnteriorConcluida = index === 0 || progressoSalvo[fasesBase[index - 1].slug] === true;
-        if (faseAnteriorConcluida) {
-          status = "atual";
-        }
+        const anteriorConcluida = index === 0 || progressoDoBanco[fasesBase[index - 1].slug] === true;
+        if (anteriorConcluida) status = "atual";
       }
-
       return { ...fase, status };
     });
   });
@@ -142,8 +114,29 @@ function Dashboard() {
     navigate(`/exercicio/${slug}`);
   };
 
+  // Função para gerenciar a Revisão de forma "Bem Feita"
   const handleRevisarBotao = (slug) => {
+    localStorage.setItem("fase_em_revisao", slug);
+    setFaseEmRevisao(slug);
+
+    // Atualiza o estado das lições para refletir a mudança imediata na UI
+    setLicoes(prev => prev.map(l => {
+      if (l.slug === slug) return { ...l, status: "revisando" };
+      return l;
+    }));
+
     navigate(`/exercicio/${slug}`);
+  };
+
+  const handleCancelarRevisao = (slug) => {
+    localStorage.removeItem("fase_em_revisao");
+    setFaseEmRevisao(null);
+
+    // Volta o status para concluído
+    setLicoes(prev => prev.map(l => {
+      if (l.slug === slug) return { ...l, status: "concluido" };
+      return l;
+    }));
   };
 
   return (
@@ -187,6 +180,32 @@ function Dashboard() {
                   Modo Escuro
                   <input type="checkbox" checked={configuracoes.modoEscuro} readOnly />
                 </li>
+              </ul>
+            </div>
+          )}
+
+          {menuAberto === "notificacoes" && (
+            <div className="dropdown-menu">
+              <div className="dropdown-header">
+                Notificações
+                {notificacoes.length > 0 && <button onClick={limparNotificacoes} className="btn-limpar">Limpar</button>}
+              </div>
+              <ul className="dropdown-list notifications-list">
+                {notificacoes.length > 0 ? (
+                  notificacoes.map((n) => (
+                    <li key={n.id}>
+                      <div className={`notif-icon ${n.tipo}`}>
+                        <span className="material-symbols-outlined">{n.icone}</span>
+                      </div>
+                      <div>
+                        <strong>{n.titulo}</strong>
+                        <p>{n.desc}</p>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <li className="notif-vazia">Nenhuma novidade por aqui.</li>
+                )}
               </ul>
             </div>
           )}
@@ -237,6 +256,8 @@ function Dashboard() {
               <div className="node-circle" onClick={() => handleCliqueCirculo(licao.slug, licao.status)}>
                 {licao.status === "atual" && <div className="node-badge">JOGANDO AGORA</div>}
                 {licao.status === "concluido" && <div className="node-badge-green">CONCLUÍDO</div>}
+                {/* BADGE ROXO RESTAURADO */}
+                {licao.status === "revisando" && <div className="node-badge-purple">REVISANDO</div>}
 
                 <span className="material-symbols-outlined node-icon">
                   {licao.status === "concluido" ? "check_circle" : licao.status === "bloqueado" ? "lock" : licao.iconeTema}
@@ -248,18 +269,25 @@ function Dashboard() {
                 <p>{licao.descricao}</p>
 
                 {licao.status === "atual" && (
-                  <button className="btn-start" onClick={() => handleContinuarBotao(licao.slug)}>
-                    Continuar Missão
-                  </button>
+                  <button className="btn-start" onClick={() => navigate(`/exercicio/${licao.slug}`)}>Continuar Missão</button>
                 )}
 
                 {licao.status === "concluido" && (
-                  <button className="btn-review" onClick={() => handleRevisarBotao(licao.slug)}>
-                    Revisar Nível
-                  </button>
+                  <button className="btn-review" onClick={() => handleRevisarBotao(licao.slug)}>Revisar Nível</button>
                 )}
-              </div>
 
+                {licao.status === "revisando" && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <button className="btn-start-review" onClick={() => navigate(`/exercicio/${licao.slug}`)}>
+                      Continuar Revisão
+                    </button>
+                    <button className="btn-review" style={{ color: '#6b7280' }} onClick={() => handleCancelarRevisao(licao.slug)}>
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+                
+              </div>
               {index !== licoes.length - 1 && <div className="timeline-line"></div>}
             </div>
           ))
