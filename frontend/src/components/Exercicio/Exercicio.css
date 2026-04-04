@@ -3,10 +3,13 @@
    ========================================= */
 
 .container-exercicio {
+  background-color: white;
+  padding: 20px;
   padding-bottom: 80px; /* Isso cria o espaço para a barra não cobrir nada */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 800px;
 }
 
 .area-pergunta {
@@ -426,4 +429,112 @@
   color: #777;
   font-style: italic;
   font-size: 0.9rem;
+}
+
+.layout-ordenar { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
+
+.container-audio-exibicao {
+  background-color: hsla(210, 85%, 55%, 0.05);
+  border-radius: 24px;
+  border: solid 2px hsla(210, 85%, 55%, 0.2);
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.btn-audio-circular{
+  margin: 20px;
+  margin-right: 0;
+  width: 56px;
+  border-radius: 100%;
+  background-color: #2B8CEE;
+  color: white;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.balao-frase {
+  margin: 20px;
+  margin-left: 0;
+  background: white;
+  width: 100%;
+  border: 2px solid #e5e5e5;
+  padding: 15px 25px;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  position: relative;
+}
+
+/* Área onde as palavras aparecem */
+.area-montagem {
+  width: 100%;
+  min-height: 60px;
+  border-bottom: 2px solid #e5e5e5;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+
+.palavra-montada {
+  padding: 8px 15px;
+  border: 2px solid #1cb0f6;
+  border-radius: 10px;
+  background: white;
+  color: #1cb0f6;
+  font-weight: bold;
+}
+
+/* Peças do Quebra-cabeça */
+.banco-palavras {
+  width: 100%;
+  padding: 0 20px;
+  display: grid;
+  /* Cria 3 colunas com tamanhos iguais (1 fração cada) */
+  grid-template-columns: repeat(3, 1fr); 
+  
+  /* Mantém o espaçamento e margem que você já tinha */
+  gap: 10px;
+  margin-top: 20px;
+  
+  /* Opcional: Centraliza o conteúdo se o container for maior que o grid */
+  justify-content: center;
+}
+
+.btn-puzzle {
+  background: white;
+  border: 2px solid #e5e5e5;
+  border-bottom: 4px solid #e5e5e5;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-puzzle:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+.btn-puzzle.em-uso {
+  background: #e5e5e5;
+  color: #e5e5e5; /* Fica "invisível" ou cinza */
+  border-bottom: 2px solid #ccc;
+  cursor: default;
+}
+
+.container-img-pequena{
+  width: 100%;
+  text-align: center;
+  background-color: #F8FAFC;
+  border-radius: 24px;
+  padding: 32px;
+}
+
+.container-img-pequena img{
+  border-radius: 16px;
 }

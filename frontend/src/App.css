@@ -27,7 +27,7 @@ body, html, #root {
   align-items: center;
   justify-content: center; /* Centraliza o card de login no meio do espaço branco */
   width: 100%;
-  padding: 20px;
+  /* padding: 20px; */
 }
 
 /* Se quiser que em outras telas o conteúdo comece do topo e não do centro: */

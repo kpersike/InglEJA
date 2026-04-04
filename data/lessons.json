@@ -45,6 +45,16 @@
           "img": "brazil_map.jpg",
           "dica": "Pense na preposição usada para países.",
           "resposta": "in"
+        },
+        {
+          "id": 4,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Traduza esta frase",
+          "audio": "cat_on_mat.mp3",
+          "frase_exibicao": "The cat is on the mat.",
+          "img": "cat_mat.jpg",
+          "opcoes": ["is", "on", "mat", "dog", "the", "under", "cat", "The"],
+          "resposta": "The cat is on the mat"
         }
       ]
     }

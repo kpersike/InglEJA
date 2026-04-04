@@ -106,6 +106,31 @@ function Exercicio() {
     }
   };
 
+  // Função para adicionar palavra à frase
+  const adicionarPalavra = (palavra) => {
+    if (feedback.acertou) return;
+
+    // Criamos um array das palavras que já estão na resposta
+    const palavrasAtuais = resposta.split(" ");
+
+    // TRAVA: Se a palavra já existe na frase montada, não faz nada
+    if (palavrasAtuais.includes(palavra)) {
+      console.log("Palavra já utilizada!");
+      return;
+    }
+
+    const novaFrase = resposta ? `${resposta} ${palavra}` : palavra;
+    setResposta(novaFrase);
+  };
+
+  // Função para remover a ÚLTIMA palavra (caso o aluno erre)
+  const removerUltimaPalavra = () => {
+    if (feedback.acertou) return;
+    const palavras = resposta.split(" ");
+    palavras.pop();
+    setResposta(palavras.join(" "));
+  };
+
   if (loading) return <div className="container-exercicio">Carregando fase...</div>;
   if (!questaoAtual) return <div className="container-exercicio">Nenhuma questão encontrada.</div>;
 
@@ -217,6 +242,53 @@ function Exercicio() {
             </div>
 
             {questaoAtual.dica && <p className="dica-texto">Dica: {questaoAtual.dica}</p>}
+          </div>
+        )}
+
+        {/* --- LAYOUT 5: PREENCHER COM BLOCOS (Baseado na Foto 5) --- */}
+        {questaoAtual.tipo === "ordenar_frase" && (
+          <div className="layout-ordenar">
+            {/* Campo de Áudio e Frase */}
+            <div className="container-audio-exibicao">
+              <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
+                <span class="material-symbols-outlined" style={{margin: "0"}}>volume_up</span>
+              </button>
+              <div className="balao-frase">{questaoAtual.frase_exibicao}</div>
+            </div>
+
+            {/* Imagem de Contexto */}
+            <div className="container-img-pequena">
+              <img src={`${API_BASE}/images/${questaoAtual.img}`} alt="Cena" />
+            </div>
+
+            {/* Área onde a frase é montada */}
+            <div className="area-montagem" onClick={removerUltimaPalavra}>
+              {resposta ? (
+                resposta.split(" ").map((pal, i) => (
+                  <span key={i} className="palavra-montada">{pal}</span>
+                ))
+              ) : (
+                <span className="placeholder-montagem">Toque nas palavras abaixo...</span>
+              )}
+            </div>
+
+            {/* Banco de Palavras (Quebra-cabeça) */}
+            <div className="banco-palavras">
+              {questaoAtual.opcoes.map((palavra, idx) => {
+                // Lógica simples: se a palavra já está na frase, ela fica "apagada" (opcional)
+                const selecionada = resposta.split(" ").includes(palavra);
+                return (
+                  <button
+                    key={idx}
+                    className={`btn-puzzle ${selecionada ? 'item-escondido' : ''}`}
+                    onClick={() => adicionarPalavra(palavra)}
+                    disabled={feedback.acertou || selecionada}
+                  >
+                    {palavra}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
