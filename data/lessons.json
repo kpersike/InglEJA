@@ -14,7 +14,48 @@
       "slug": "cores",
       "titulo": "Nível 2: Cores",
       "questoes": [
-        { "id": 1, "tipo": "imagem", "pergunta": "Qual é a cor Apple?", "img": "apple.png", "resposta": "Red" }
+        { 
+          "id": 1, 
+          "tipo": "escolha_palavra", 
+          "pergunta_exibicao": "O que é isto?",
+          "subtitulo": "Selecione a palavra correspondente",
+          "img": "red_apple.jpg", 
+          "opcoes": ["Banana", "Apple", "Orange", "Grape"],
+          "resposta": "Apple" 
+        },
+        {
+          "id": 2,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha a imagem correta",
+          "palavra_ingles": "APPLE",
+          "opcoes": [
+            { "texto": "Maçã", "img": "apple_card.jpg" },
+            { "texto": "Casa", "img": "house_card.jpg" },
+            { "texto": "Carro", "img": "car_card.jpg" },
+            { "texto": "Cachorro", "img": "dog_card.jpg" }
+          ],
+          "resposta": "Maçã"
+        },
+        {
+          "id": 3,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Where do you live?",
+          "frase_parte_1": "I live",
+          "frase_parte_2": "Brazil",
+          "img": "brazil_map.jpg",
+          "dica": "Pense na preposição usada para países.",
+          "resposta": "in"
+        },
+        {
+          "id": 4,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Traduza esta frase",
+          "audio": "cat_on_mat.mp3",
+          "frase_exibicao": "The cat is on the mat.",
+          "img": "cat_mat.jpg",
+          "opcoes": ["is", "on", "mat", "dog", "the", "under", "cat", "The"],
+          "resposta": "The cat is on the mat"
+        }
       ]
     }
   ]

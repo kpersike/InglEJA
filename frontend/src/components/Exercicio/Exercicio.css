@@ -1,22 +1,91 @@
+/* =========================================
+   1. ESTRUTURA PRINCIPAL (LAYOUT)
+   ========================================= */
+
 .container-exercicio {
-  max-width: 600px;
-  margin: 50px auto;
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  background-color: white;
+  padding: 20px;
+  padding-bottom: 80px; /* Isso cria o espaço para a barra não cobrir nada */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 800px;
 }
 
-.btn-voltar-seta {
-  float: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #666;
+.area-pergunta {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
 }
 
+/* Títulos */
+.titulo-questao {
+  font-size: 1.8rem;
+  color: #3c3c3c;
+  margin-bottom: 10px;
+}
+
+.subtitulo-exercicio {
+  color: #777;
+  font-size: 1.1rem;
+  /* margin-bottom: 20px; */
+}
+
+/* =========================================
+   2. BARRA DE PROGRESSO (MANTIDA ORIGINAL)
+   ========================================= */
+.progresso-container {
+  width: 100%;
+  /* background-color: #e5e7eb; */
+  /* border-radius: 10px; */
+  /* height: 15px; */
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progresso-barra {
+  height: 12px;
+  background-color: #2B8CEE; /* Verde Duolingo */
+  border-radius: 10px;
+}
+
+.progresso-texto {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #2B8CEE;
+}
+
+/* =========================================
+   3. ELEMENTOS DE INTERAÇÃO (BOTÕES E INPUT)
+   ========================================= */
+
+/* Estilo para questões de digitar (Nível 1) */
+.input-estilizado {
+  width: 100%;
+  max-width: 400px;
+  padding: 15px;
+  font-size: 1.2rem;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  background-color: #f7f7f7;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-estilizado:focus {
+  border-color: #1cb0f6;
+}
+
+/* Botão de Áudio */
 .btn-audio {
   background: #1cb0f6;
   color: white;
@@ -26,63 +95,446 @@
   font-size: 1.2rem;
   cursor: pointer;
   margin-bottom: 20px;
-  transition: transform 0.2s;
   border-bottom: 4px solid #1899d6;
+  transition: all 0.1s;
 }
 
 .btn-audio:active {
-  transform: scale(0.95);
+  transform: translateY(2px);
+  border-bottom-width: 2px;
 }
 
-.pergunta-texto {
-  font-style: italic;
-  color: #666;
-  margin-bottom: 20px;
+/* =========================================
+   4. NOVOS LAYOUTS (IMAGEM 1 E 2)
+   ========================================= */
+
+/* Container da Imagem Central */
+.container-imagem-central {
+  max-width: 488px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
+.img-pergunta-principal {
+  /* max-height: 160px; */
+  width: auto;
+  border-radius: 10px;
+}
+
+/* Grade de Opções (Lista Vertical) */
+.lista-botoes-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 450px;
+}
+
+.btn-opcao-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border: 2px solid #e5e5e5;
+  border-bottom: 4px solid #e5e5e5;
+  border-radius: 15px;
+  background: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4b4b4b;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.btn-opcao-item.selecionada {
+  border-color: #84d8ff;
+  background-color: #ddf4ff;
+  color: #1899d6;
+  border-bottom-width: 4px;
+}
+
+.numero-indicador {
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  font-size: 0.8rem;
+  color: #afafaf;
+}
+
+/* =========================================
+   5. RODAPÉ E FINALIZAÇÃO
+   ========================================= */
 .btn-concluir {
   background: #58cc02;
   color: white;
   border: none;
-  padding: 15px;
+  padding: 18px;
   width: 100%;
-  border-radius: 10px;
-  font-size: 1.1rem;
+  border-radius: 15px;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
   border-bottom: 4px solid #46a302;
+  margin-top: 30px;
+  text-transform: uppercase;
+}
+
+.btn-concluir:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn-concluir:disabled {
+  background: #e5e5e5;
+  border-bottom-color: #ccc;
+  cursor: not-allowed;
 }
 
 .btn-proximo {
   background: #1cb0f6;
-  border-bottom: 4px solid #1899d6;
+  border-bottom-color: #1899d6;
 }
 
-#feedback-area {
-  margin-top: 20px;
+.btn-voltar-simples {
+  background: none;
+  border: none;
+  color: #afafaf;
+  cursor: pointer;
   font-weight: bold;
-  min-height: 24px;
+  align-self: flex-start;
+  margin-bottom: 10px;
 }
 
-.progresso-container {
+.barra-navegacao-inferior {
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  background-color: #e2e8f0; /* Cinza claro (fundo) */
-  border-radius: 10px;
-  height: 12px;
+  background: white;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+  border-top: 1px solid #eee;
+  z-index: 100;
+}
+
+.btn-navegacao {
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.btn-navegacao.primario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 600px;
+  background-color: #007bff;
+  color: white;
+  box-shadow: 0 4px 0 #0056b3;
+}
+
+.btn-navegacao.primario:disabled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 600px;
+  background-color: #ccc;
+  box-shadow: 0 4px 0 #999;
+  cursor: not-allowed;
+}
+
+.btn-navegacao.secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 300px;
+  background-color: #f0f2f5;
+  color: #555;
+}
+
+.btn-navegacao.sucesso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 600px;
+  background-color: #28a745;
+  color: white;
+  box-shadow: 0 4px 0 #1e7e34;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.layout-grade-imagens {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tag-palavra-ingles {
+  background-color: #e1f5fe;
+  color: #039be5;
+  padding: 8px 25px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 1.4rem;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grade-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 colunas */
+  gap: 20px;
+  width: 100%;
+}
+
+.card-imagem-item {
+  background: white;
+  border: 2px solid #e5e5e5;
+  border-bottom: 5px solid #e5e5e5;
+  border-radius: 20px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-imagem-item img {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.legenda-card {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #4b4b4b;
+  font-size: 1.1rem;
+}
+
+/* Feedback de Seleção */
+.card-imagem-item.selecionada {
+  border-color: #84d8ff;
+  background-color: #ddf4ff;
+  border-bottom-color: #1cb0f6;
+}
+
+/* Layout 3: Lacunas */
+.layout-lacuna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.container-imagem-lacuna img {
+  max-width: 400px;
+  height: auto;
+  border-radius: 20px;
   margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
+  opacity: 0.9;
 }
 
-.progresso-barra {
-  height: 100%;
-  background-color: #1cb0f6; /* Verde do progresso */
-  border-radius: 10px;
+.frase-container {
+  display: flex;
+  flex-wrap: wrap; /* Garante que não quebre em telas pequenas */
+  justify-content: center;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #3c3c3c;
+  margin: 30px 0;
 }
 
-.progresso-texto {
+.lacuna-vazia {
+  min-width: 40px;
   text-align: center;
-  margin-top: 8px;
+  transition: all 0.2s ease;
+  color: #1cb0f6;
+  border-bottom: 4px solid #64748b65;
+  padding: 8px;
+}
+
+.lacuna-vazia.preenchida {
+  color: #1cb0f6; /* A cor muda quando o aluno digita */
+  padding: 8px;
+}
+
+.input-container-lacuna {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.input-lacuna {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 2px solid #e5e5e5;
+  border-radius: 15px;
+  text-align: center;
+  outline: none;
+  background-color: #fff;
+  transition: border-color 0.2s;
+}
+
+.input-lacuna:focus {
+  border-color: #1cb0f6;
+}
+
+#icone-lapis {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-100%);
+  color: #1cb0f6;
+}
+
+.dica-texto {
+  margin-top: 15px;
+  color: #777;
+  font-style: italic;
   font-size: 0.9rem;
-  color: #64748b;
+}
+
+.layout-ordenar { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
+
+.container-audio-exibicao {
+  background-color: hsla(210, 85%, 55%, 0.05);
+  border-radius: 24px;
+  border: solid 2px hsla(210, 85%, 55%, 0.2);
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.btn-audio-circular{
+  margin: 20px;
+  margin-right: 0;
+  width: 56px;
+  border-radius: 100%;
+  background-color: #2B8CEE;
+  color: white;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.balao-frase {
+  margin: 20px;
+  margin-left: 0;
+  background: white;
+  width: 100%;
+  border: 2px solid #e5e5e5;
+  padding: 15px 25px;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  position: relative;
+}
+
+/* Área onde as palavras aparecem */
+.area-montagem {
+  width: 100%;
+  min-height: 60px;
+  border-bottom: 2px solid #e5e5e5;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+
+.palavra-montada {
+  padding: 8px 15px;
+  border: 2px solid #1cb0f6;
+  border-radius: 10px;
+  background: white;
+  color: #1cb0f6;
+  font-weight: bold;
+}
+
+/* Peças do Quebra-cabeça */
+.banco-palavras {
+  width: 100%;
+  padding: 0 20px;
+  display: grid;
+  /* Cria 3 colunas com tamanhos iguais (1 fração cada) */
+  grid-template-columns: repeat(3, 1fr); 
+  
+  /* Mantém o espaçamento e margem que você já tinha */
+  gap: 10px;
+  margin-top: 20px;
+  
+  /* Opcional: Centraliza o conteúdo se o container for maior que o grid */
+  justify-content: center;
+}
+
+.btn-puzzle {
+  background: white;
+  border: 2px solid #e5e5e5;
+  border-bottom: 4px solid #e5e5e5;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-puzzle:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+.btn-puzzle.em-uso {
+  background: #e5e5e5;
+  color: #e5e5e5; /* Fica "invisível" ou cinza */
+  border-bottom: 2px solid #ccc;
+  cursor: default;
+}
+
+.container-img-pequena{
+  width: 100%;
+  text-align: center;
+  background-color: #F8FAFC;
+  border-radius: 24px;
+  padding: 32px;
+}
+
+.container-img-pequena img{
+  border-radius: 16px;
 }

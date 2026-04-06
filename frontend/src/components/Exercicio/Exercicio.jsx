@@ -1,3 +1,8 @@
+// Fora da função Exercicio
+const API_BASE = window.location.hostname === "localhost" 
+  ? "http://localhost:3000" 
+  : ""; // Em produção, ele usará a rota relativa do próprio servidor
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // Importamos useParams
 import "./Exercicio.css";
@@ -101,6 +106,31 @@ function Exercicio() {
     }
   };
 
+  // Função para adicionar palavra à frase
+  const adicionarPalavra = (palavra) => {
+    if (feedback.acertou) return;
+
+    // Criamos um array das palavras que já estão na resposta
+    const palavrasAtuais = resposta.split(" ");
+
+    // TRAVA: Se a palavra já existe na frase montada, não faz nada
+    if (palavrasAtuais.includes(palavra)) {
+      console.log("Palavra já utilizada!");
+      return;
+    }
+
+    const novaFrase = resposta ? `${resposta} ${palavra}` : palavra;
+    setResposta(novaFrase);
+  };
+
+  // Função para remover a ÚLTIMA palavra (caso o aluno erre)
+  const removerUltimaPalavra = () => {
+    if (feedback.acertou) return;
+    const palavras = resposta.split(" ");
+    palavras.pop();
+    setResposta(palavras.join(" "));
+  };
+
   if (loading) return <div className="container-exercicio">Carregando fase...</div>;
   if (!questaoAtual) return <div className="container-exercicio">Nenhuma questão encontrada.</div>;
 
@@ -109,6 +139,10 @@ function Exercicio() {
       {/* Barra de progresso visual baseada no índice */}
       {/* Barra de Progresso Interna */}
       <div className="progresso-container">
+        <div className="progresso-texto">
+          <span style={{color: "#64748B"}}>PROGRESSO DA LIÇÃO</span>
+          <span>Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}</span>
+        </div>
         <div
           className="progresso-barra"
           style={{
@@ -116,41 +150,178 @@ function Exercicio() {
             transition: "width 0.3s ease-in-out" // Para a barra deslizar suavemente
           }}
         ></div>
-        <div className="progresso-texto">
-          <span>Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}</span>
-        </div>
       </div>
 
-      <button className="btn-voltar-simples" onClick={() => navigate("/dashboard")}>⬅ Sair</button>
+      <div className="area-pergunta">
+        {/* Título Dinâmico */}
+        <h2 className="titulo-questao">
+          {questaoAtual.pergunta_exibicao || (questaoAtual.tipo === 'audio_input' ? 'Ouvir e Escrever' : 'Traduza')}
+        </h2>
+        {questaoAtual.subtitulo && <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>}
+        {/* Layout 1: Imagem + Opções de Clique (Baseado na sua Foto 1) */}
+        {questaoAtual.tipo === "escolha_palavra" && (
+          <div className="layout-multipla-escolha">
 
-      <h2>{questaoAtual.tipo === 'audio' ? 'Ouvir e Escrever' : 'Traduza'}</h2>
+            <div className="container-imagem-central">
+              <img
+                src={`http://localhost:3000/images/${questaoAtual.img}`}
+                alt="Exercício"
+                className="img-pergunta-principal"
+              />
+            </div>
 
-      {questaoAtual.audio && (
-        <>
-          <button className="btn-audio" onClick={() => audioRef.current.play()}>🔊 Ouvir</button>
-          <audio ref={audioRef} src={`http://localhost:3000${questaoAtual.audio}`} />
-        </>
-      )}
+            <div className="lista-botoes-opcoes">
+              {questaoAtual.opcoes.map((opcao, idx) => (
+                <button
+                  key={idx}
+                  className={`btn-opcao-item ${resposta === opcao ? 'selecionada' : ''}`}
+                  onClick={() => setResposta(opcao)}
+                  disabled={feedback.acertou}
+                >
+                  <span className="numero-indicador">{idx + 1}</span>
+                  {opcao}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Layout 2: Grade de Imagens (Baseado no Tipo de questão 2) */}
+        {questaoAtual.tipo === "escolha_imagem" && (
+          <div className="layout-grade-imagens">
+            <div className="tag-palavra-ingles">
+              <span class="material-symbols-outlined" style={{margin: "0"}}>translate</span>
+              <span>{questaoAtual.palavra_ingles}</span>
+            </div>
 
-      <p className="pergunta-texto">{questaoAtual.pergunta}</p>
+            <div className="grade-cards">
+              {questaoAtual.opcoes.map((opcao, idx) => (
+                <button
+                  key={idx}
+                  className={`card-imagem-item ${resposta === opcao.texto ? 'selecionada' : ''}`}
+                  onClick={() => setResposta(opcao.texto)}
+                  disabled={feedback.acertou}
+                >
+                  <div className="container-img-card">
+                    <img src={`${API_BASE}/images/${opcao.img}`} alt={opcao.texto} />
+                  </div>
+                  <span className="legenda-card">{opcao.texto}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* --- LAYOUT 3: PREENCHER LACUNA (Baseado na Foto 3) --- */}
+        {questaoAtual.tipo === "preencher_lacuna" && (
+          <div className="layout-lacuna">
+            <div className="container-imagem-lacuna">
+              <img src={`${API_BASE}/images/${questaoAtual.img}`} alt="Contexto" />
+            </div>
 
-      <input
-        type="text"
-        value={resposta}
-        onChange={(e) => setResposta(e.target.value)}
-        placeholder="Digite sua resposta..."
-        disabled={feedback.acertou}
-      />
+            <div className="frase-container">
+              <span className="texto-frase">{questaoAtual.frase_parte_1}</span>
 
-      {!feedback.acertou ? (
-        <button className="btn-concluir" onClick={finalizarExercicio}>Verificar</button>
-      ) : (
-        <button className="btn-concluir btn-proximo" onClick={proximaQuestao}>
-          {indiceAtual + 1 === questoes.length ? "Finalizar Fase" : "Próxima Questão ➔"}
-        </button>
-      )}
+              {/* A mágica acontece aqui: mostra a resposta ou os tracinhos */}
+              <span className={`lacuna-vazia ${resposta ? 'preenchida' : ''}`}>
+                {resposta || "__"}
+              </span>
 
-      <div id="feedback-area" style={{ color: feedback.color }}>{feedback.msg}</div>
+              <span className="texto-frase">{questaoAtual.frase_parte_2}</span>
+            </div>
+
+            <div className="input-container-lacuna">
+              <input
+                type="text"
+                className="input-lacuna"
+                placeholder="Clique aqui para digitar..."
+                value={resposta}
+                onChange={(e) => setResposta(e.target.value)}
+                disabled={feedback.acertou}
+                autoFocus
+              />
+              <span id="icone-lapis" class="material-symbols-outlined">edit</span>
+            </div>
+
+            {questaoAtual.dica && <p className="dica-texto">Dica: {questaoAtual.dica}</p>}
+          </div>
+        )}
+
+        {/* --- LAYOUT 5: PREENCHER COM BLOCOS (Baseado na Foto 5) --- */}
+        {questaoAtual.tipo === "ordenar_frase" && (
+          <div className="layout-ordenar">
+            {/* Campo de Áudio e Frase */}
+            <div className="container-audio-exibicao">
+              <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
+                <span class="material-symbols-outlined" style={{margin: "0"}}>volume_up</span>
+              </button>
+              <div className="balao-frase">{questaoAtual.frase_exibicao}</div>
+            </div>
+
+            {/* Imagem de Contexto */}
+            <div className="container-img-pequena">
+              <img src={`${API_BASE}/images/${questaoAtual.img}`} alt="Cena" />
+            </div>
+
+            {/* Área onde a frase é montada */}
+            <div className="area-montagem" onClick={removerUltimaPalavra}>
+              {resposta ? (
+                resposta.split(" ").map((pal, i) => (
+                  <span key={i} className="palavra-montada">{pal}</span>
+                ))
+              ) : (
+                <span className="placeholder-montagem">Toque nas palavras abaixo...</span>
+              )}
+            </div>
+
+            {/* Banco de Palavras (Quebra-cabeça) */}
+            <div className="banco-palavras">
+              {questaoAtual.opcoes.map((palavra, idx) => {
+                // Lógica simples: se a palavra já está na frase, ela fica "apagada" (opcional)
+                const selecionada = resposta.split(" ").includes(palavra);
+                return (
+                  <button
+                    key={idx}
+                    className={`btn-puzzle ${selecionada ? 'item-escondido' : ''}`}
+                    onClick={() => adicionarPalavra(palavra)}
+                    disabled={feedback.acertou || selecionada}
+                  >
+                    {palavra}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Barra de Ação Inferior */}
+      <div className="barra-navegacao-inferior">
+
+        {/* Botão Esquerdo: Sair ou Voltar */}
+        {indiceAtual === 0 ? (
+          <button className="btn-navegacao secundario" onClick={() => navigate("/dashboard")}>
+            ⬅ Sair
+          </button>
+        ) : (
+          <button className="btn-navegacao secundario" onClick={() => setIndiceAtual(prev => prev - 1)}>
+            ⬅ Voltar
+          </button>
+        )}
+
+        {/* Botão Direito: Verificar ou Próximo/Finalizar */}
+        {!feedback.acertou ? (
+          <button
+            className="btn-navegacao primario"
+            onClick={finalizarExercicio}
+            disabled={!resposta.trim()}
+          >
+            Verificar
+          </button>
+        ) : (
+          <button className="btn-navegacao sucesso" onClick={proximaQuestao}>
+            {indiceAtual === questoes.length - 1 ? "Finalizar ✨" : "Próximo ➡"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
