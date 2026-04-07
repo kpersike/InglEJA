@@ -16,6 +16,7 @@ function Exercicio() {
   const [questoes, setQuestoes] = useState([]); // Array com as 10 questões
   const [indiceAtual, setIndiceAtual] = useState(0); // Controla qual questão estamos vendo
   const [resposta, setResposta] = useState("");
+  const [mostrarDica, setMostrarDica] = useState(false);
   const [feedback, setFeedback] = useState({ msg: "", color: "", acertou: false });
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,30 @@ function Exercicio() {
     carregarFase();
   }, [slug]);
 
+  // EFEITO 2: Resetar tudo quando mudar de questão (O que faltava)
+  useEffect(() => {
+    setResposta("");
+    setFeedback({ msg: "", color: "", acertou: false });
+    setMostrarDica(false); 
+  }, [indiceAtual]);
+
+    // Dentro do componente Exercicio
+  useEffect(() => {
+    // 1. Verificamos se a questão atual existe e tem áudio
+    const questaoAt = questoes[indiceAtual];
+
+    if (questaoAt && questaoAt.audio) {
+      const novoAudioUrl = `${API_BASE}/audios/${questaoAt.audio}`;
+
+      if (audioRef.current) {
+        // 2. Atualizamos o src e carregamos o novo ficheiro
+        audioRef.current.src = novoAudioUrl;
+        audioRef.current.load();
+        console.log("Áudio atualizado para:", questaoAt.audio);
+      }
+    }
+  }, [indiceAtual, questoes]); // Sempre que o índice mudar, ele corre isto
+
   const carregarFase = async () => {
     try {
       // Chamada para a nova rota que criamos no server.js
@@ -43,6 +68,14 @@ function Exercicio() {
     } catch (err) {
       console.error("Erro ao carregar fase:", err);
       setLoading(false);
+    }
+  };
+
+  const tocarAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => {
+        console.error("Erro ao tocar áudio: O navegador bloqueou o autoplay ou o arquivo não existe.", err);
+      });
     }
   };
 
@@ -140,24 +173,61 @@ function Exercicio() {
       {/* Barra de Progresso Interna */}
       <div className="progresso-container">
         <div className="progresso-texto">
-          <span style={{color: "#64748B"}}>PROGRESSO DA LIÇÃO</span>
+          <span style={{ color: "#64748B" }}>PROGRESSO DA LIÇÃO</span>
           <span>Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}</span>
         </div>
-        <div
-          className="progresso-barra"
-          style={{
-            width: `${questoes.length > 0 ? ((indiceAtual + 1) / questoes.length) * 100 : 0}%`,
-            transition: "width 0.3s ease-in-out" // Para a barra deslizar suavemente
-          }}
-        ></div>
+
+        {/* Este é o "trilho" (o fundo vazio) */}
+        <div className="progresso-fundo">
+          <div
+            className="progresso-barra"
+            style={{
+              width: `${questoes.length > 0 ? ((indiceAtual + 1) / questoes.length) * 100 : 0}%`,
+              transition: "width 0.3s ease-in-out"
+            }}
+          ></div>
+        </div>
       </div>
 
       <div className="area-pergunta">
+
+        {/* Elemento de áudio invisível que controlamos via Ref */}
+        <audio
+          ref={audioRef}
+          key={`audio-${indiceAtual}`} // Isso força o reset do áudio a cada questão
+        />
+
+        <div className="container-audio-principal">
+          <button className="btn-audio-grande" onClick={tocarAudio} title="Ouvir pronúncia">
+            <span className="icone-auto-falante">🔊</span>
+          </button>
+          <span className="texto-clique-ouvir">Clique para ouvir</span>
+        </div>
+
         {/* Título Dinâmico */}
         <h2 className="titulo-questao">
           {questaoAtual.pergunta_exibicao || (questaoAtual.tipo === 'audio_input' ? 'Ouvir e Escrever' : 'Traduza')}
         </h2>
         {questaoAtual.subtitulo && <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>}
+
+        {/* BOTÃO DE DICA (HINT) */}
+        {questoes[indiceAtual]?.dica && (
+          <div className="container-dica">
+            <button
+              className={`btn-dica ${mostrarDica ? 'ativo' : ''}`}
+              onClick={() => setMostrarDica(!mostrarDica)}
+            >
+              💡 {mostrarDica ? "Esconder Dica" : "Ver Dica"}
+            </button>
+
+            {mostrarDica && (
+              <div className="balao-dica">
+                {questoes[indiceAtual].dica}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Layout 1: Imagem + Opções de Clique (Baseado na sua Foto 1) */}
         {questaoAtual.tipo === "escolha_palavra" && (
           <div className="layout-multipla-escolha">
@@ -168,6 +238,17 @@ function Exercicio() {
                 alt="Exercício"
                 className="img-pergunta-principal"
               />
+
+              {/* Campo de Áudio e Frase */}
+              <div className="container-audio-hint">
+                <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
+                  <span class="material-symbols-outlined" style={{ margin: "0" }}>volume_up</span>
+                </button>
+
+                <button className="btn-hint-circular">
+                  <span class="material-symbols-outlined" style={{ margin: "0" }}>lightbulb</span>
+                </button>
+              </div>
             </div>
 
             <div className="lista-botoes-opcoes">
@@ -188,9 +269,14 @@ function Exercicio() {
         {/* Layout 2: Grade de Imagens (Baseado no Tipo de questão 2) */}
         {questaoAtual.tipo === "escolha_imagem" && (
           <div className="layout-grade-imagens">
-            <div className="tag-palavra-ingles">
-              <span class="material-symbols-outlined" style={{margin: "0"}}>translate</span>
-              <span>{questaoAtual.palavra_ingles}</span>
+            <div className="container-translate-audio">
+              <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
+                <span class="material-symbols-outlined" style={{ margin: "0" }}>volume_up</span>
+              </button>
+              <div className="tag-palavra-ingles">
+                <span class="material-symbols-outlined" style={{margin: "0"}}>translate</span>
+                <span>{questaoAtual.palavra_ingles}</span>
+              </div>
             </div>
 
             <div className="grade-cards">
@@ -215,6 +301,16 @@ function Exercicio() {
           <div className="layout-lacuna">
             <div className="container-imagem-lacuna">
               <img src={`${API_BASE}/images/${questaoAtual.img}`} alt="Contexto" />
+              {/* Campo de Áudio e Frase */}
+              <div className="container-audio-hint">
+                <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
+                  <span class="material-symbols-outlined" style={{ margin: "0" }}>volume_up</span>
+                </button>
+
+                <button className="btn-hint-circular">
+                  <span class="material-symbols-outlined" style={{ margin: "0" }}>lightbulb</span>
+                </button>
+              </div>
             </div>
 
             <div className="frase-container">
