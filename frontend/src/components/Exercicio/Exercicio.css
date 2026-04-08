@@ -679,3 +679,45 @@
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Posicionamento do botão e balão */
+.wrapper-hint-relativo {
+  position: relative; /* Define o ponto de origem para o balão */
+  display: flex;
+  align-items: center;
+}
+
+.balao-hint-lateral {
+  position: absolute;
+  left: 90px; /* Empurra o balão para a direita do botão */
+  top: 50%;
+  transform: translateY(-50%); /* Centraliza verticalmente */
+  
+  width: 180px;
+  background: #FFF9C4; /* Amarelo suave para o EJA */
+  border: 1px solid #FBC02D;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #5D4037;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+  z-index: 99;
+  animation: aparecerDica 0.3s ease-out; /* Animação suave */
+}
+
+/* Triângulo/Setinha do balão */
+.balao-hint-lateral::before {
+  content: "";
+  position: absolute;
+  right: 100%; /* Lado esquerdo do balão */
+  top: 50%;
+  margin-top: -8px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent #FBC02D transparent transparent; /* Aponta para o botão */
+}
+
+@keyframes aparecerDica {
+  from { opacity: 0; transform: translateY(-50%) translateX(-10px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}

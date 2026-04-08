@@ -17,6 +17,7 @@ function Exercicio() {
   const [indiceAtual, setIndiceAtual] = useState(0); // Controla qual questão estamos vendo
   const [resposta, setResposta] = useState("");
   const [mostrarDica, setMostrarDica] = useState(false);
+  const [mostrarTraducao, setMostrarTraducao] = useState(false);
   const [feedback, setFeedback] = useState({ msg: "", color: "", acertou: false });
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,7 @@ function Exercicio() {
     setResposta("");
     setFeedback({ msg: "", color: "", acertou: false });
     setMostrarDica(false); 
+    setMostrarTraducao(false);
   }, [indiceAtual]);
 
     // Dentro do componente Exercicio
@@ -197,12 +199,14 @@ function Exercicio() {
           key={`audio-${indiceAtual}`} // Isso força o reset do áudio a cada questão
         />
 
+        {/*
         <div className="container-audio-principal">
           <button className="btn-audio-grande" onClick={tocarAudio} title="Ouvir pronúncia">
             <span className="icone-auto-falante">🔊</span>
           </button>
           <span className="texto-clique-ouvir">Clique para ouvir</span>
         </div>
+        */}
 
         {/* Título Dinâmico */}
         <h2 className="titulo-questao">
@@ -211,6 +215,7 @@ function Exercicio() {
         {questaoAtual.subtitulo && <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>}
 
         {/* BOTÃO DE DICA (HINT) */}
+        {/*
         {questoes[indiceAtual]?.dica && (
           <div className="container-dica">
             <button
@@ -227,6 +232,7 @@ function Exercicio() {
             )}
           </div>
         )}
+        */}
 
         {/* Layout 1: Imagem + Opções de Clique (Baseado na sua Foto 1) */}
         {questaoAtual.tipo === "escolha_palavra" && (
@@ -244,10 +250,22 @@ function Exercicio() {
                 <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
                   <span class="material-symbols-outlined" style={{ margin: "0" }}>volume_up</span>
                 </button>
+                {/* Container da Dica para posicionamento lateral */}
+                <div className="wrapper-hint-relativo">
+                  <button
+                    className={`btn-hint-circular ${mostrarDica ? 'ativo' : ''}`}
+                    onClick={() => setMostrarDica(!mostrarDica)}
+                  >
+                    <span className="material-symbols-outlined" style={{ margin: "0" }}>lightbulb</span>
+                  </button>
 
-                <button className="btn-hint-circular">
-                  <span class="material-symbols-outlined" style={{ margin: "0" }}>lightbulb</span>
-                </button>
+                  {/* Balão de Dica Lateral */}
+                  {mostrarDica && (
+                    <div className="balao-hint-lateral">
+                      {questaoAtual.dica}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -273,9 +291,19 @@ function Exercicio() {
               <button className="btn-audio-circular" onClick={() => audioRef.current.play()}>
                 <span class="material-symbols-outlined" style={{ margin: "0" }}>volume_up</span>
               </button>
-              <div className="tag-palavra-ingles">
-                <span class="material-symbols-outlined" style={{margin: "0"}}>translate</span>
-                <span>{questaoAtual.palavra_ingles}</span>
+              <div
+                className={`tag-palavra-ingles ${mostrarTraducao ? 'modo-pt' : ''}`}
+                onClick={() => setMostrarTraducao(!mostrarTraducao)}
+                style={{ cursor: 'pointer' }} // Garante que o mouse mude para a mãozinha
+              >
+                <span className="material-symbols-outlined" style={{ margin: "0" }}>
+                  translate
+                </span>
+
+                {/* Lógica: Se mostrarTraducao for true, exibe a tradução, senão exibe o inglês */}
+                <span>
+                  {mostrarTraducao ? questaoAtual.traducao : questaoAtual.palavra_ingles}
+                </span>
               </div>
             </div>
 
