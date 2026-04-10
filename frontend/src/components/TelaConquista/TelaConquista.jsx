@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import "./TelaConquista.css";
 
 // Adicionando valores padrão para as estatísticas para simular a imagem
-const TelaConquista = ({ xpGanhos = 500, tempoTotal = "12:45", comboAtual = 12 }) => {
+const TelaConquista = ({ xpGanhos, tempoTotal, comboAtual, tituloNivel }) => {
   const navigate = useNavigate();
 
   return (
@@ -19,7 +19,7 @@ const TelaConquista = ({ xpGanhos = 500, tempoTotal = "12:45", comboAtual = 12 }
 
         {/* Textos Principais */}
         <h1 className="md-parabens-title">Parabéns!</h1>
-        <p className="md-concluiu-subtitle">Você concluiu o Nível 1!</p>
+        <p className="md-concluiu-subtitle">Você concluiu o {tituloNivel}!</p>
         
         {/* Container das Estatísticas */}
         <div className="md-stats-container">

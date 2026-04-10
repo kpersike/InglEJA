@@ -16,6 +16,7 @@ function Exercicio() {
   // ESTADOS
   const [questoes, setQuestoes] = useState([]); // Array com as 10 questões
   const [indiceAtual, setIndiceAtual] = useState(0); // Controla qual questão estamos vendo
+  const [tituloNivel, setTituloNivel] = useState("");
   const [resposta, setResposta] = useState("");
   const [mostrarDica, setMostrarDica] = useState(false);
   const [mostrarTraducao, setMostrarTraducao] = useState(false);
@@ -23,6 +24,12 @@ function Exercicio() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [faseConcluida, setFaseConcluida] = useState(false);
+
+  const [startTime] = useState(Date.now()); // Marca quando começou a lição
+  const [pontos, setPontos] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [tempoFinal, setTempoFinal] = useState("");
 
   useEffect(() => {
     const dadosUsuario = JSON.parse(localStorage.getItem("usuarioLogado"));
@@ -67,6 +74,7 @@ function Exercicio() {
 
       if (data.questoes) {
         setQuestoes(data.questoes);
+        setTituloNivel(data.titulo || slug.toUpperCase());
       }
       setLoading(false);
     } catch (err) {
@@ -109,6 +117,15 @@ function Exercicio() {
 
       if (data.acertou) {
         tocarSFX('acerto.mp3');
+
+        // Lógica de Pontos e Combo
+        setPontos(prev => prev + 10); // Ganha 10 pontos por acerto
+        setCombo(prev => {
+          const novoCombo = prev + 1;
+          if (novoCombo > maxCombo) setMaxCombo(novoCombo); // Salva o maior combo da sessão
+          return novoCombo;
+        });
+
         setFeedback({ msg: "Incrível! Você acertou!", color: "green", acertou: true });
 
         // Se acabou a fase e o servidor mandou o usuário atualizado, salvamos no localStorage
@@ -137,6 +154,15 @@ function Exercicio() {
       // Se houver algum input de texto ou ordenação, é bom resetar aqui também
       // setPalavrasSelecionadas([]); // Caso use no layout de ordenar
     } else {
+      // Cálculo do Tempo Total
+      const endTime = Date.now();
+      const totalSegundos = Math.floor((endTime - startTime) / 1000);
+      const minutos = Math.floor(totalSegundos / 60);
+      const segundos = totalSegundos % 60;
+      const tempoFormatado = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+
+      setTempoFinal(tempoFormatado);
+
       // Se já está na última questão e clicou em Próximo/Finalizar
       console.log("Fase concluída! Mudando estado..."); // Debug para você ver no console
       setFaseConcluida(true);
@@ -180,7 +206,12 @@ function Exercicio() {
   return (
     <div className="container-exercicio">
       {faseConcluida ? (
-        <TelaConquista questoesTotais={questoes.length} />
+        <TelaConquista questoesTotais={questoes.length}
+          xpGanhos={pontos}
+          tempoTotal={tempoFinal}
+          comboAtual={maxCombo}
+          tituloNivel={tituloNivel} // Passando o nome dinâmico
+        />
       ) : (
         <>
           {/* Barra de progresso visual baseada no índice */}
