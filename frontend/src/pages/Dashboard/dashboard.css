@@ -12,7 +12,6 @@
   box-sizing: border-box;
 }
 
-/* Garante que o box-sizing se aplique a tudo para evitar erros de alinhamento */
 .dashboard-wrapper *,
 .dashboard-wrapper *::before,
 .dashboard-wrapper *::after {
@@ -83,36 +82,30 @@
   color: #374151;
 }
 
-/* --- BOTÕES DO HEADER (Correção do Sombreado Desalinhado) --- */
+/* --- BOTÕES DO HEADER --- */
 .icon-btn {
   position: relative;
   background: transparent !important;
   border: none !important;
   color: #6b7280;
   cursor: pointer;
-
-  /* --- CORREÇÃO DE CENTRALIZAÇÃO DO SOMBREADO TORTA --- */
-  padding: 0 !important; /* Remove o padding que estava deslocando o ícone */
-  width: 44px; /* Largura e altura idênticas criam o círculo perfeito */
+  padding: 0 !important;
+  width: 44px;
   height: 44px;
-
   border-radius: 50%;
   transition: background 0.2s;
-
-  /* Flexbox é essencial para alinhar o ícone */
   display: flex !important;
-  align-items: center !important; /* Centraliza verticalmente */
-  justify-content: center !important; /* Centraliza horizontalmente */
+  align-items: center !important;
+  justify-content: center !important;
   flex-shrink: 0;
 }
 
-/* --- Ajuste fino no ícone para não ser deslocado por alinhamento de fonte --- */
 .icon-btn .material-symbols-outlined {
   margin: 0 !important;
   padding: 0 !important;
-  line-height: 1 !important; /* Impede que a fonte desloque o ícone tortamente */
+  line-height: 1 !important;
   display: flex !important;
-  font-size: 22px !important; /* Ajuste suave no tamanho para equilibrar */
+  font-size: 22px !important;
 }
 
 .icon-btn:hover {
@@ -120,7 +113,6 @@
   color: #374151;
 }
 
-/* Fundo do botão fica cinza quando o menu está aberto */
 .icon-btn.ativo {
   background: #e5e7eb !important;
   color: #1f2937;
@@ -136,14 +128,16 @@
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
 }
 
 .avatar-btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
 }
 
 /* =========================================
@@ -153,9 +147,9 @@
   background: #ffffff;
   border-radius: 20px;
   padding: 25px 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   margin-bottom: 50px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
 .progress-header {
@@ -199,7 +193,7 @@
   height: 100%;
   background-color: #3b82f6;
   border-radius: 10px;
-  transition: width 0.5s ease-in-out;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); /* Animação mais suave */
 }
 
 .progress-footer {
@@ -223,13 +217,28 @@
 }
 
 /* =========================================
-   TRILHA (TIMELINE)
+   ANIMAÇÃO DE ENTRADA DA TRILHA
+   ========================================= */
+@keyframes slideFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   TRILHA VERTICAL (PADRÃO)
    ========================================= */
 .timeline-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .timeline-node {
@@ -240,45 +249,249 @@
   position: relative;
   width: 100%;
   margin-bottom: 40px;
+
+  /* Aplica a animação de entrada */
+  animation: slideFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
 }
 
-/* Linha conectora MODIFICADA (Opacidade ok e por trás) */
+/* Efeito Cascata: As lições aparecem uma após a outra */
+.timeline-node:nth-child(1) {
+  animation-delay: 0s;
+}
+.timeline-node:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.timeline-node:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.timeline-node:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.timeline-node:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
 .timeline-line {
   position: absolute;
-  top: 110px; /* Começa abaixo do primeiro círculo */
-  bottom: -40px; /* Vai até o início do próximo */
+  top: 110px;
+  bottom: -40px;
   left: 50%;
   width: 4px;
-  /* Cor translúcida para passar suavemente por trás */
-  background-color: rgba(229, 231, 235, 0.4);
+  background-color: #e5e7eb;
+  border-radius: 4px;
   transform: translateX(-50%);
-  z-index: -1; /* Força a linha a ficar atrás de TUDO */
+  z-index: -1;
 }
 
-/* --- CÍRCULOS (Correção de Centralização) --- */
+/* =========================================
+   /* =========================================
+   LAYOUT HORIZONTAL & SETAS DE NAVEGAÇÃO
+   ========================================= */
+.timeline-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Espaçamento lateral maior para a seta não "morder" os círculos */
+.timeline-wrapper.horizontal-mode {
+  padding: 0 45px;
+}
+
+/* Setas flutuantes com visual moderno (Baseado na referência) */
+.scroll-arrow {
+  position: absolute;
+  /* CORREÇÃO DO ALINHAMENTO: 20px (padding do container) + 55px (metade do círculo) = 75px */
+  top: 75px;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+
+  /* Visual Limpo e Premium */
+  background-color: white;
+  color: #3b82f6;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.scroll-arrow .material-symbols-outlined {
+  font-size: 24px;
+  font-weight: 600; /* Deixa a setinha mais gordinha/legível */
+}
+
+/* Efeito Hover (Interação moderna ao passar o mouse) */
+.scroll-arrow:hover {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.scroll-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Posição exata nas pontas */
+.scroll-arrow.left {
+  left: 0px;
+}
+.scroll-arrow.right {
+  right: 0px;
+}
+
+/* Trilha rolando internamente com SCROLL SNAP (Efeito Ímã) */
+.timeline-container.horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+  overflow-x: auto;
+  /* Padding top de 20px é o que obriga a seta a ficar em 75px */
+  padding: 20px 20px 40px 20px;
+  gap: 70px; /* Mais espaço para os cards respirarem */
+  justify-content: flex-start;
+  scroll-behavior: smooth;
+
+  /* Efeito Magnético do Carrossel */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 20px;
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.timeline-container.horizontal::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-container.horizontal .timeline-node {
+  min-width: 220px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-snap-align: center; /* O scroll sempre trava no centro da lição */
+}
+
+/* --- A LINHA CONECTORA HORIZONTAL --- */
+.timeline-container.horizontal .timeline-line {
+  width: calc(100% + 70px);
+  height: 4px;
+  /* A linha fica dentro do Node, então ela só olha pro círculo: metade de 110px = 55px */
+  top: 55px;
+  left: 50%;
+  bottom: auto;
+  transform: translateY(
+    -50%
+  ); /* Centraliza perfeitamente os 4px de altura no eixo de 55px */
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.timeline-container.horizontal .node-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* =========================================
+   CÍRCULOS E EFEITOS DE HOVER
+   ========================================= */
+
+/* Trilha rolando internamente com SCROLL SNAP (Efeito Ímã) */
+.timeline-container.horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 20px 20px 40px 20px;
+  gap: 70px; /* Mais espaço para os cards respirarem */
+  justify-content: flex-start;
+  scroll-behavior: smooth;
+
+  /* Efeito Magnético do Carrossel */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 20px;
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.timeline-container.horizontal::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-container.horizontal .timeline-node {
+  min-width: 220px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-snap-align: center; /* O scroll sempre trava no centro da lição */
+}
+
+/* --- A LINHA CONECTORA HORIZONTAL --- */
+.timeline-container.horizontal .timeline-line {
+  width: calc(100% + 70px);
+  height: 4px;
+  top: 53px;
+  left: 50%;
+  bottom: auto;
+  transform: none;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.timeline-container.horizontal .node-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* =========================================
+   CÍRCULOS E EFEITOS DE HOVER
+   ========================================= */
 .node-circle {
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  /* Flexbox é o melhor amigo da centralização */
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: white;
   position: relative;
-  z-index: 2; /* Fica acima da linha */
+  z-index: 2;
   margin-bottom: 20px;
-  border: 6px solid #e5e7eb;
-  transition: transform 0.2s;
+  border: 5px solid #e5e7eb;
+
+  /* Sombra moderna e transição elástica (bounce) */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Ícone centralizado cirurgicamente */
+.node-circle:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
 .node-icon {
   font-size: 45px !important;
   color: #9ca3af;
-  margin: 0 !important; /* Remove margens que Material Icons podem trazer */
+  margin: 0 !important;
   padding: 0 !important;
-  line-height: 1 !important; /* Evita que a altura da linha desloque o ícone */
+  line-height: 1 !important;
 }
 
 /* Badges sobre os círculos */
@@ -286,36 +499,41 @@
 .node-badge-green,
 .node-badge-purple {
   position: absolute;
-  top: -16px;
+  top: -14px;
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.5px;
+  transition: transform 0.3s;
+}
+
+/* O Badge acompanha o pulo do círculo */
+.node-circle:hover .node-badge,
+.node-circle:hover .node-badge-green,
+.node-circle:hover .node-badge-purple {
+  transform: scale(1.1);
 }
 
 .node-badge {
   background: #3b82f6;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
-
 .node-badge-green {
   background: #22c55e;
-  box-shadow: 0 4px 6px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
 }
-
 .node-badge-purple {
   background: #8b5cf6;
-  box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.4);
 }
 
-/* Textos da Trilha MODIFICADOS (Sem caixinha, linha por trás) */
+/* Textos da Trilha */
 .node-content {
-  /* Removemos o fundo sólido e padding excessivo */
   background-color: transparent !important;
   padding: 0;
-  z-index: 2; /* Garante que o texto fique acima da linha */
+  z-index: 2;
   max-width: 280px;
 }
 
@@ -324,6 +542,11 @@
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
+  transition: color 0.3s;
+}
+
+.timeline-node:hover .node-content h3 {
+  color: #3b82f6; /* Ao passar o mouse, o título fica azul levemente */
 }
 
 .node-content p {
@@ -343,27 +566,29 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 0 #2563eb !important;
-  transition: all 0.1s;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-start:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
 }
 
 .btn-start:active {
-  transform: translateY(4px);
-  box-shadow: none !important;
+  transform: translateY(2px) scale(0.98);
 }
 
+/* Efeito Pulsante Super Suave e Moderno */
 @keyframes pulseRoxoImbativel {
   0% {
-    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.8);
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.6);
   }
-  50% {
+  70% {
     box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
-    transform: scale(1.03);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
-    transform: scale(1);
   }
 }
 
@@ -376,14 +601,16 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: pulseRoxoImbativel 2.5s infinite ease-in-out !important;
+}
 
-  /* ADICIONADO A ANIMAÇÃO PULSANTE AQUI COM !IMPORTANT */
-  animation: pulseRoxoImbativel 2s infinite ease-in-out !important;
+.btn-start-review:hover {
+  transform: translateY(-2px) scale(1.05);
 }
 
 .btn-start-review:active {
-  transform: translateY(4px) scale(0.98);
+  transform: translateY(2px) scale(0.98);
 }
 
 .btn-review {
@@ -394,10 +621,11 @@
   font-weight: 700;
   cursor: pointer;
   padding: 10px;
+  transition: opacity 0.2s;
 }
 
 .btn-review:hover {
-  text-decoration: underline;
+  opacity: 0.7;
 }
 
 /* =========================================
@@ -405,44 +633,47 @@
    ========================================= */
 .timeline-node.atual .node-circle {
   border-color: #3b82f6;
-  background-color: #eff6ff;
   cursor: pointer;
 }
 .timeline-node.atual .node-icon {
   color: #3b82f6;
 }
-.timeline-node.atual .node-circle:hover {
-  transform: scale(1.03);
-}
 
 .timeline-node.concluido .node-circle {
   border-color: #22c55e;
-  background-color: #f0fdf4;
   cursor: default;
 }
 .timeline-node.concluido .node-icon {
   color: #22c55e;
 }
+.timeline-node.concluido .node-circle:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+}
 
 .timeline-node.bloqueado .node-circle {
   background-color: #f9fafb;
   cursor: default;
+  border-color: #f3f4f6;
+}
+.timeline-node.bloqueado .node-circle:hover {
+  transform: none;
+  box-shadow: none;
 }
 .timeline-node.bloqueado .node-content h3,
 .timeline-node.bloqueado .node-content p {
   color: #9ca3af;
 }
+.timeline-node.bloqueado:hover .node-content h3 {
+  color: #9ca3af;
+}
 
 .timeline-node.revisando .node-circle {
   border-color: #8b5cf6;
-  background-color: #f5f3ff;
   cursor: pointer;
 }
 .timeline-node.revisando .node-icon {
   color: #8b5cf6;
-}
-.timeline-node.revisando .node-circle:hover {
-  transform: scale(1.03);
 }
 
 /* =========================================
@@ -455,31 +686,33 @@
   width: 280px;
   background-color: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f3f4f6;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   z-index: 100;
   overflow: hidden;
-  animation: fadeInDown 0.2s ease-out;
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .dropdown-header {
   padding: 15px 20px;
-  background-color: #f9fafb;
+  background-color: #f8fafc;
   font-weight: 700;
   color: #374151;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f1f5f9;
   font-size: 15px;
+  display: flex;
+  align-items: center;
 }
 
 .dropdown-list {
@@ -487,6 +720,7 @@
   margin: 0;
   padding: 0;
 }
+
 .dropdown-list li {
   padding: 12px 20px;
   display: flex;
@@ -494,19 +728,24 @@
   gap: 12px;
   font-size: 14px;
   color: #4b5563;
-  border-bottom: 1px solid #f9fafb;
+  border-bottom: 1px solid #f8fafc;
   cursor: pointer;
-  transition: background 0.15s;
+  transition:
+    background 0.2s,
+    padding-left 0.2s;
 }
+
 .dropdown-list li:last-child {
   border-bottom: none;
 }
 .dropdown-list li:hover {
-  background-color: #f3f4f6;
+  background-color: #f1f5f9;
+  padding-left: 24px;
 }
 .dropdown-list li input[type="checkbox"] {
   margin-left: auto;
   cursor: pointer;
+  accent-color: #3b82f6;
 }
 
 /* Notificações */
@@ -517,8 +756,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: white;
   flex-shrink: 0;
@@ -536,18 +775,19 @@
   display: block;
   font-size: 14px;
   color: #1f2937;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .notifications-list p {
   margin: 0;
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
 }
 
 /* Perfil */
 .profile-stats {
   padding: 15px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
   color: #374151;
 }
@@ -560,6 +800,7 @@
 }
 .logout-item:hover {
   background-color: #fef2f2 !important;
+  color: #dc2626 !important;
 }
 .logout-item .material-symbols-outlined {
   color: #ef4444;
@@ -569,24 +810,19 @@
 .btn-limpar {
   background: none;
   border: none;
-  color: #3b82f6; /* Azul InglEJA */
+  color: #3b82f6;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 6px;
-  margin-left: auto; /* Empurra para a direita */
-  transition: background 0.2s;
+  margin-left: auto;
+  transition: all 0.2s;
 }
 
 .btn-limpar:hover {
   background-color: #eff6ff;
-  text-decoration: underline;
-}
-
-.dropdown-header {
-  display: flex;
-  align-items: center; /* Garante que o texto e o botão limpar fiquem na mesma linha */
+  color: #2563eb;
 }
 
 /* =========================================
@@ -600,50 +836,41 @@
   height: 10px;
   background-color: #ef4444;
   border-radius: 50%;
-  border: 2px solid #ffffff; /* Borda da cor do fundo do header */
+  border: 2px solid #ffffff;
 }
 
 body.dark-mode .notif-badge {
-  border-color: #111827 !important; /* Cor do fundo do header no modo escuro */
+  border-color: #111827 !important;
 }
 
 /* =========================================
-   MODO ESCURO CORRIGIDO E REFINADO
+   MODO ESCURO - REFINADO
    ========================================= */
-
-/* Fundo geral da página */
 body.dark-mode,
 body.dark-mode #root,
 body.dark-mode .app-container {
   background-color: #111827 !important;
   color: #f9fafb !important;
 }
-
 body.dark-mode .dashboard-wrapper {
   color: #f9fafb;
 }
-
-/* --- 1. NAVBAR EXTERNA (Logo InglEJA) --- */
-/* Força qualquer <h1> ou texto que esteja solto no topo do body a ficar branco no modo escuro */
 body.dark-mode h1,
 body.dark-mode header,
 body.dark-mode nav {
   color: #f9fafb !important;
 }
 
-/* --- 2. MENUS FLUTUANTES (Configurações e Notificações) --- */
 body.dark-mode .dropdown-menu {
   background-color: #1f2937 !important;
   border-color: #374151 !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
 }
-
 body.dark-mode .dropdown-header {
   background-color: #374151 !important;
   color: #f9fafb !important;
   border-bottom: 1px solid #4b5563 !important;
 }
-
-/* Textos dentro das listas (Efeitos Sonoros, Modo Escuro, Sair) */
 body.dark-mode .dropdown-list li,
 body.dark-mode .dropdown-list li span,
 body.dark-mode .profile-stats,
@@ -652,21 +879,18 @@ body.dark-mode .notifications-list strong {
   color: #f9fafb !important;
   border-bottom-color: #374151 !important;
 }
-
 body.dark-mode .dropdown-list li:hover {
   background-color: #4b5563 !important;
 }
-
 body.dark-mode .notifications-list p {
-  color: #9ca3af !important; /* Cinza claro para não ofuscar o título */
+  color: #9ca3af !important;
 }
 
-/* --- 3. TEXTOS DO DASHBOARD E TRILHA --- */
 body.dark-mode .progress-card {
   background-color: #1f2937 !important;
   border-color: #374151 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
-
 body.dark-mode .progress-texts h3,
 body.dark-mode .progress-texts p,
 body.dark-mode .progress-footer,
@@ -675,39 +899,56 @@ body.dark-mode .profile-title {
   color: #f9fafb !important;
 }
 
-/* Ícones cinzas do topo */
 body.dark-mode .icon-btn {
   color: #d1d5db !important;
 }
-
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn.ativo {
   background-color: #374151 !important;
   color: #f9fafb !important;
 }
 
-/* Círculos da trilha */
+body.dark-mode .scroll-arrow {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+body.dark-mode .scroll-arrow:hover {
+  background-color: #4b5563;
+  border-color: #4b5563;
+}
+
 body.dark-mode .node-circle {
   background-color: #1f2937 !important;
   border-color: #374151 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
-
-/* Títulos e descrições das lições (Textos que estavam escuros) */
+body.dark-mode .node-circle:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
 body.dark-mode .node-content h3 {
-  color: #f9fafb !important; /* Título principal branco */
+  color: #f9fafb !important;
 }
-
+body.dark-mode .timeline-node:hover .node-content h3 {
+  color: #60a5fa !important;
+} /* Azul mais claro no dark mode */
 body.dark-mode .node-content p {
-  color: #d1d5db !important; /* Descrição cinza claro para boa leitura */
+  color: #d1d5db !important;
 }
 
-/* Linha conectora translúcida */
 body.dark-mode .timeline-line {
-  background-color: rgba(243, 244, 246, 0.15) !important;
+  background-color: #374151 !important;
+}
+body.dark-mode .timeline-container.horizontal .timeline-line {
+  background-color: #374151 !important;
 }
 
-/* Estado Revisando (Roxo) no Modo Escuro */
 body.dark-mode .timeline-node.revisando .node-circle {
   background-color: #1f2937 !important;
   border-color: #8b5cf6 !important;
+}
+body.dark-mode .timeline-node.bloqueado .node-circle {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
 }

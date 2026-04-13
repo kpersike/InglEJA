@@ -19,14 +19,17 @@ function Dashboard() {
 
   const [loading] = useState(false);
   const [menuAberto, setMenuAberto] = useState(null);
-  const menuRef = useRef(null);
 
-  // Salva as configurações (Som e Modo Escuro) no LocalStorage
+  // Referências para fechar o menu e para o scroll do carrossel
+  const menuRef = useRef(null);
+  const timelineRef = useRef(null);
+
+  // Salva as configurações (Som, Modo Escuro e Layout Horizontal) no LocalStorage
   const [configuracoes, setConfiguracoes] = useState(() => {
     const configSalvas = localStorage.getItem("configuracoes_ingleja");
     return configSalvas
       ? JSON.parse(configSalvas)
-      : { som: true, modoEscuro: false };
+      : { som: true, modoEscuro: false, layoutHorizontal: false };
   });
 
   useEffect(() => {
@@ -124,6 +127,9 @@ function Dashboard() {
       : Math.round((missoesConcluidas / totalMissoes) * 100);
   const xpAcumulado = missoesConcluidas * 250;
 
+  // Lógica de filtro removida: Agora usamos 'licoes' diretamente para que
+  // todos os níveis (mesmo bloqueados) apareçam no carrossel.
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -153,11 +159,9 @@ function Dashboard() {
 
   const toggleConfig = (chave) => {
     setConfiguracoes((prev) => {
-      const novoEstado = !prev[chave]; // Se era true vira false, se era false vira true
+      const novoEstado = !prev[chave];
 
-      // Se a chave alterada for o 'som' e o novo estado for true (ligando o som)
       if (chave === "som" && novoEstado === true) {
-        // Toca o feedback sonoro
         const audio = new Audio("/audios/sfx/acerto.mp3");
         audio.play().catch((err) => console.log("Erro ao tocar áudio:", err));
       }
@@ -172,17 +176,14 @@ function Dashboard() {
 
   const handleNotificacaoClick = (slug) => {
     if (slug) {
-      // Fecha o menu de notificações
       setMenuAberto(null);
-
-      // Atraso de 50ms para garantir que a tela feche o menu antes de rolar
       setTimeout(() => {
         const elementoLicao = document.getElementById(`licao-${slug}`);
         if (elementoLicao) {
-          // scrollIntoView é mais robusto e centraliza a lição na tela
-          elementoLicao.scrollIntoView({ behavior: "smooth", block: "center" });
-
-          // Efeito de "piscadinha" rápida para dar destaque à lição selecionada
+          elementoLicao.scrollIntoView({
+            behavior: "smooth",
+            block: configuracoes.layoutHorizontal ? "nearest" : "center",
+          });
           elementoLicao.style.transition = "transform 0.3s";
           elementoLicao.style.transform = "scale(1.05)";
           setTimeout(() => (elementoLicao.style.transform = "scale(1)"), 400);
@@ -204,9 +205,8 @@ function Dashboard() {
       desc,
       icone,
       tipo,
-      acaoSlug, // Guarda o slug da lição (ex: "saudacoes") para rolar até ela depois
+      acaoSlug,
     };
-
     setNotificacoes((prev) => [novaNotificacao, ...prev]);
   };
 
@@ -220,7 +220,6 @@ function Dashboard() {
     localStorage.setItem("fase_em_revisao", slug);
     setFaseEmRevisao(slug);
 
-    // Atualiza o estado das lições para refletir a mudança imediata na UI
     setLicoes((prev) =>
       prev.map((l) => {
         if (l.slug === slug) return { ...l, status: "revisando" };
@@ -228,7 +227,6 @@ function Dashboard() {
       }),
     );
 
-    // Dispara a notificação de revisão no momento do clique
     dispararNotificacao(
       "Modo Revisão",
       `Você ativou a revisão da missão: ${slug}`,
@@ -242,13 +240,23 @@ function Dashboard() {
     localStorage.removeItem("fase_em_revisao");
     setFaseEmRevisao(null);
 
-    // Volta o status para concluído
     setLicoes((prev) =>
       prev.map((l) => {
         if (l.slug === slug) return { ...l, status: "concluido" };
         return l;
       }),
     );
+  };
+
+  // Função para mover o carrossel horizontalmente nas setas
+  const scrollTimeline = (direcao) => {
+    if (timelineRef.current) {
+      const scrollAmount = 320; // Quantidade de pixels que a tela desliza por clique
+      timelineRef.current.scrollBy({
+        left: direcao === "esquerda" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
   };
 
   return (
@@ -307,6 +315,19 @@ function Dashboard() {
                   <input
                     type="checkbox"
                     checked={configuracoes.modoEscuro}
+                    readOnly
+                  />
+                </li>
+                <li onClick={() => toggleConfig("layoutHorizontal")}>
+                  <span className="material-symbols-outlined">
+                    {configuracoes.layoutHorizontal
+                      ? "view_column"
+                      : "view_stream"}
+                  </span>
+                  Visão Horizontal
+                  <input
+                    type="checkbox"
+                    checked={configuracoes.layoutHorizontal || false}
                     readOnly
                   />
                 </li>
@@ -403,92 +424,120 @@ function Dashboard() {
         </div>
       </section>
 
-      <main className="timeline-container">
-        {loading ? (
-          <p>Carregando mapa...</p>
-        ) : (
-          licoes.map((licao, index) => (
-            <div
-              key={licao.id}
-              id={`licao-${licao.slug}`}
-              className={`timeline-node ${licao.status}`}
-            >
+      {/* Container wrapper que exibe as setas apenas se for modo horizontal */}
+      <div
+        className={`timeline-wrapper ${configuracoes.layoutHorizontal ? "horizontal-mode" : ""}`}
+      >
+        {configuracoes.layoutHorizontal && licoes.length > 2 && (
+          <button
+            className="scroll-arrow left"
+            onClick={() => scrollTimeline("esquerda")}
+          >
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+        )}
+
+        <main
+          className={`timeline-container ${configuracoes.layoutHorizontal ? "horizontal" : ""}`}
+          ref={timelineRef}
+        >
+          {loading ? (
+            <p>Carregando mapa...</p>
+          ) : (
+            // AQUI ESTÁ A CORREÇÃO: Usando 'licoes' direto para renderizar TUDO, inclusive os bloqueados
+            licoes.map((licao, index) => (
               <div
-                className="node-circle"
-                onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+                key={licao.id}
+                id={`licao-${licao.slug}`}
+                className={`timeline-node ${licao.status}`}
               >
-                {licao.status === "atual" && (
-                  <div className="node-badge">JOGANDO AGORA</div>
-                )}
-                {licao.status === "concluido" && (
-                  <div className="node-badge-green">CONCLUÍDO</div>
-                )}
-                {licao.status === "revisando" && (
-                  <div className="node-badge-purple">REVISANDO</div>
-                )}
+                <div
+                  className="node-circle"
+                  onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+                >
+                  {licao.status === "atual" && (
+                    <div className="node-badge">JOGANDO AGORA</div>
+                  )}
+                  {licao.status === "concluido" && (
+                    <div className="node-badge-green">CONCLUÍDO</div>
+                  )}
+                  {licao.status === "revisando" && (
+                    <div className="node-badge-purple">REVISANDO</div>
+                  )}
 
-                <span className="material-symbols-outlined node-icon">
-                  {licao.status === "concluido"
-                    ? "check_circle"
-                    : licao.status === "bloqueado"
-                      ? "lock"
-                      : licao.iconeTema}
-                </span>
-              </div>
+                  <span className="material-symbols-outlined node-icon">
+                    {licao.status === "concluido"
+                      ? "check_circle"
+                      : licao.status === "bloqueado"
+                        ? "lock"
+                        : licao.iconeTema}
+                  </span>
+                </div>
 
-              <div className="node-content">
-                <h3>{licao.titulo}</h3>
-                <p>{licao.descricao}</p>
+                <div className="node-content">
+                  <h3>{licao.titulo}</h3>
+                  <p>{licao.descricao}</p>
 
-                {licao.status === "atual" && (
-                  <button
-                    className="btn-start"
-                    onClick={() => navigate(`/exercicio/${licao.slug}`)}
-                  >
-                    Continuar Missão
-                  </button>
-                )}
-
-                {licao.status === "concluido" && (
-                  <button
-                    className="btn-review"
-                    onClick={() => handleRevisarBotao(licao.slug)}
-                  >
-                    Revisar Nível
-                  </button>
-                )}
-
-                {licao.status === "revisando" && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "5px",
-                    }}
-                  >
+                  {licao.status === "atual" && (
                     <button
-                      className="btn-start-review"
+                      className="btn-start"
                       onClick={() => navigate(`/exercicio/${licao.slug}`)}
                     >
-                      Continuar Revisão
+                      Continuar Missão
                     </button>
+                  )}
+
+                  {licao.status === "concluido" && (
                     <button
                       className="btn-review"
-                      style={{ color: "#6b7280" }}
-                      onClick={() => handleCancelarRevisao(licao.slug)}
+                      onClick={() => handleRevisarBotao(licao.slug)}
                     >
-                      Cancelar
+                      Revisar Nível
                     </button>
-                  </div>
+                  )}
+
+                  {licao.status === "revisando" && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                      }}
+                    >
+                      <button
+                        className="btn-start-review"
+                        onClick={() => navigate(`/exercicio/${licao.slug}`)}
+                      >
+                        Continuar Revisão
+                      </button>
+                      <button
+                        className="btn-review"
+                        style={{ color: "#6b7280" }}
+                        onClick={() => handleCancelarRevisao(licao.slug)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* A linha se estende sempre, exceto após a última lição do array */}
+                {index !== licoes.length - 1 && (
+                  <div className="timeline-line"></div>
                 )}
               </div>
-              {index !== licoes.length - 1 && (
-                <div className="timeline-line"></div>
-              )}
-            </div>
-          ))
+            ))
+          )}
+        </main>
+
+        {configuracoes.layoutHorizontal && licoes.length > 2 && (
+          <button
+            className="scroll-arrow right"
+            onClick={() => scrollTimeline("direita")}
+          >
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
         )}
-      </main>
+      </div>
     </div>
   );
 }
