@@ -2,7 +2,12 @@
   {
     "nome": "teste2",
     "email": "teste.2@gmail.com",
-    "senha": "teste2"
+    "senha": "teste2",
+    "pontos": 590,
+    "progresso": {
+      "saudacoes": true,
+      "cores": true
+    }
   },
   {
     "nome": "teste3",

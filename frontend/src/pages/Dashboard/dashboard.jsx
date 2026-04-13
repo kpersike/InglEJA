@@ -21,15 +21,34 @@ function Dashboard() {
   const [menuAberto, setMenuAberto] = useState(null);
   const menuRef = useRef(null);
 
-  const [configuracoes, setConfiguracoes] = useState({
-    som: true,
-    modoEscuro: false,
+  // Salva as configurações (Som e Modo Escuro) no LocalStorage
+  const [configuracoes, setConfiguracoes] = useState(() => {
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    return configSalvas
+      ? JSON.parse(configSalvas)
+      : { som: true, modoEscuro: false };
   });
 
-  const [notificacoes, setNotificacoes] = useState([]);
+  useEffect(() => {
+    localStorage.setItem(
+      "configuracoes_ingleja",
+      JSON.stringify(configuracoes),
+    );
+  }, [configuracoes]);
 
-  // 1. Crie um estado para a revisão persistir enquanto o usuário navega
-  const [faseEmRevisao, setFaseEmRevisao] = useState(() => {
+  // Inicializa lendo do localStorage, se não tiver nada, inicia vazio
+  const [notificacoes, setNotificacoes] = useState(() => {
+    const salvas = localStorage.getItem("notificacoes_ingleja");
+    return salvas ? JSON.parse(salvas) : [];
+  });
+
+  // Sempre que a lista de notificações mudar, salva no localStorage
+  useEffect(() => {
+    localStorage.setItem("notificacoes_ingleja", JSON.stringify(notificacoes));
+  }, [notificacoes]);
+
+  // Crie um estado para a revisão persistir enquanto o usuário navega
+  const [, setFaseEmRevisao] = useState(() => {
     return localStorage.getItem("fase_em_revisao") || null;
   });
 
@@ -37,11 +56,41 @@ function Dashboard() {
     const progressoDoBanco = usuario.progresso || {};
 
     const fasesBase = [
-      { id: 1, slug: "saudacoes", titulo: "Nível 1: Saudações", iconeTema: "waving_hand", descricao: "Saudações básicas." },
-      { id: 2, slug: "cores", titulo: "Nível 2: Cores", iconeTema: "palette", descricao: "Cores e descrições." },
-      { id: 3, slug: "familia", titulo: "Nível 3: Família", iconeTema: "family_restroom", descricao: "Membros da família." },
-      { id: 4, slug: "comida", titulo: "Nível 4: Comida", iconeTema: "restaurant", descricao: "Alimentos e restaurantes." },
-      { id: 5, slug: "musica", titulo: "Nível 5: Música", iconeTema: "music_note", descricao: "Ritmos e instrumentos." },
+      {
+        id: 1,
+        slug: "saudacoes",
+        titulo: "Nível 1: Saudações",
+        iconeTema: "waving_hand",
+        descricao: "Saudações básicas.",
+      },
+      {
+        id: 2,
+        slug: "cores",
+        titulo: "Nível 2: Cores",
+        iconeTema: "palette",
+        descricao: "Cores e descrições.",
+      },
+      {
+        id: 3,
+        slug: "familia",
+        titulo: "Nível 3: Família",
+        iconeTema: "family_restroom",
+        descricao: "Membros da família.",
+      },
+      {
+        id: 4,
+        slug: "comida",
+        titulo: "Nível 4: Comida",
+        iconeTema: "restaurant",
+        descricao: "Alimentos e restaurantes.",
+      },
+      {
+        id: 5,
+        slug: "musica",
+        titulo: "Nível 5: Música",
+        iconeTema: "music_note",
+        descricao: "Ritmos e instrumentos.",
+      },
     ];
 
     // Recupera qual fase estava sendo revisada (salvo no passo anterior)
@@ -56,7 +105,8 @@ function Dashboard() {
       } else if (concluida) {
         status = "concluido";
       } else {
-        const anteriorConcluida = index === 0 || progressoDoBanco[fasesBase[index - 1].slug] === true;
+        const anteriorConcluida =
+          index === 0 || progressoDoBanco[fasesBase[index - 1].slug] === true;
         if (anteriorConcluida) status = "atual";
       }
       return { ...fase, status };
@@ -64,9 +114,14 @@ function Dashboard() {
   });
 
   // --- CÁLCULOS DE PROGRESSO ---
-  const missoesConcluidas = licoes.filter((l) => l.status === "concluido").length;
+  const missoesConcluidas = licoes.filter(
+    (l) => l.status === "concluido",
+  ).length;
   const totalMissoes = licoes.length;
-  const porcentagemProgresso = totalMissoes === 0 ? 0 : Math.round((missoesConcluidas / totalMissoes) * 100);
+  const porcentagemProgresso =
+    totalMissoes === 0
+      ? 0
+      : Math.round((missoesConcluidas / totalMissoes) * 100);
   const xpAcumulado = missoesConcluidas * 250;
 
   useEffect(() => {
@@ -97,11 +152,62 @@ function Dashboard() {
   };
 
   const toggleConfig = (chave) => {
-    setConfiguracoes((prev) => ({ ...prev, [chave]: !prev[chave] }));
+    setConfiguracoes((prev) => {
+      const novoEstado = !prev[chave]; // Se era true vira false, se era false vira true
+
+      // Se a chave alterada for o 'som' e o novo estado for true (ligando o som)
+      if (chave === "som" && novoEstado === true) {
+        // Toca o feedback sonoro
+        const audio = new Audio("/audios/sfx/acerto.mp3");
+        audio.play().catch((err) => console.log("Erro ao tocar áudio:", err));
+      }
+
+      return { ...prev, [chave]: novoEstado };
+    });
   };
 
   const limparNotificacoes = () => {
     setNotificacoes([]);
+  };
+
+  const handleNotificacaoClick = (slug) => {
+    if (slug) {
+      // Fecha o menu de notificações
+      setMenuAberto(null);
+
+      // Atraso de 50ms para garantir que a tela feche o menu antes de rolar
+      setTimeout(() => {
+        const elementoLicao = document.getElementById(`licao-${slug}`);
+        if (elementoLicao) {
+          // scrollIntoView é mais robusto e centraliza a lição na tela
+          elementoLicao.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          // Efeito de "piscadinha" rápida para dar destaque à lição selecionada
+          elementoLicao.style.transition = "transform 0.3s";
+          elementoLicao.style.transform = "scale(1.05)";
+          setTimeout(() => (elementoLicao.style.transform = "scale(1)"), 400);
+        }
+      }, 50);
+    }
+  };
+
+  const dispararNotificacao = (
+    titulo,
+    desc,
+    icone = "info",
+    tipo = "info",
+    acaoSlug = null,
+  ) => {
+    const novaNotificacao = {
+      id: Date.now(),
+      titulo,
+      desc,
+      icone,
+      tipo,
+      acaoSlug, // Guarda o slug da lição (ex: "saudacoes") para rolar até ela depois
+    };
+
+    setNotificacoes((prev) => [novaNotificacao, ...prev]);
   };
 
   // --- NAVEGAÇÃO ---
@@ -110,22 +216,26 @@ function Dashboard() {
     navigate(`/exercicio/${slug}`);
   };
 
-  const handleContinuarBotao = (slug) => {
-    navigate(`/exercicio/${slug}`);
-  };
-
-  // Função para gerenciar a Revisão de forma "Bem Feita"
   const handleRevisarBotao = (slug) => {
     localStorage.setItem("fase_em_revisao", slug);
     setFaseEmRevisao(slug);
 
     // Atualiza o estado das lições para refletir a mudança imediata na UI
-    setLicoes(prev => prev.map(l => {
-      if (l.slug === slug) return { ...l, status: "revisando" };
-      return l;
-    }));
+    setLicoes((prev) =>
+      prev.map((l) => {
+        if (l.slug === slug) return { ...l, status: "revisando" };
+        return l;
+      }),
+    );
 
-    navigate(`/exercicio/${slug}`);
+    // Dispara a notificação de revisão no momento do clique
+    dispararNotificacao(
+      "Modo Revisão",
+      `Você ativou a revisão da missão: ${slug}`,
+      "history",
+      "info",
+      slug,
+    );
   };
 
   const handleCancelarRevisao = (slug) => {
@@ -133,10 +243,12 @@ function Dashboard() {
     setFaseEmRevisao(null);
 
     // Volta o status para concluído
-    setLicoes(prev => prev.map(l => {
-      if (l.slug === slug) return { ...l, status: "concluido" };
-      return l;
-    }));
+    setLicoes((prev) =>
+      prev.map((l) => {
+        if (l.slug === slug) return { ...l, status: "concluido" };
+        return l;
+      }),
+    );
   };
 
   return (
@@ -147,17 +259,31 @@ function Dashboard() {
           <h2>Missões de Inglês</h2>
         </div>
 
-        <div className="header-right" ref={menuRef} style={{ position: "relative" }}>
+        <div
+          className="header-right"
+          ref={menuRef}
+          style={{ position: "relative" }}
+        >
           <div className="profile-info">
             <span className="profile-level">NÍVEL {missoesConcluidas + 1}</span>
-            <span className="profile-title">{porcentagemProgresso === 100 ? "Mestre de Inglês" : "Explorador Aprendiz"}</span>
+            <span className="profile-title">
+              {porcentagemProgresso === 100
+                ? "Mestre de Inglês"
+                : "Explorador Aprendiz"}
+            </span>
           </div>
 
-          <button className={`icon-btn ${menuAberto === "config" ? "ativo" : ""}`} onClick={() => toggleMenu("config")}>
+          <button
+            className={`icon-btn ${menuAberto === "config" ? "ativo" : ""}`}
+            onClick={() => toggleMenu("config")}
+          >
             <span className="material-symbols-outlined">settings</span>
           </button>
 
-          <button className={`icon-btn ${menuAberto === "notificacoes" ? "ativo" : ""}`} onClick={() => toggleMenu("notificacoes")}>
+          <button
+            className={`icon-btn ${menuAberto === "notificacoes" ? "ativo" : ""}`}
+            onClick={() => toggleMenu("notificacoes")}
+          >
             <span className="material-symbols-outlined">notifications</span>
             {notificacoes.length > 0 && <span className="notif-badge"></span>}
           </button>
@@ -178,7 +304,11 @@ function Dashboard() {
                 <li onClick={() => toggleConfig("modoEscuro")}>
                   <span className="material-symbols-outlined">dark_mode</span>
                   Modo Escuro
-                  <input type="checkbox" checked={configuracoes.modoEscuro} readOnly />
+                  <input
+                    type="checkbox"
+                    checked={configuracoes.modoEscuro}
+                    readOnly
+                  />
                 </li>
               </ul>
             </div>
@@ -188,14 +318,24 @@ function Dashboard() {
             <div className="dropdown-menu">
               <div className="dropdown-header">
                 Notificações
-                {notificacoes.length > 0 && <button onClick={limparNotificacoes} className="btn-limpar">Limpar</button>}
+                {notificacoes.length > 0 && (
+                  <button onClick={limparNotificacoes} className="btn-limpar">
+                    Limpar
+                  </button>
+                )}
               </div>
               <ul className="dropdown-list notifications-list">
                 {notificacoes.length > 0 ? (
                   notificacoes.map((n) => (
-                    <li key={n.id}>
+                    <li
+                      key={n.id}
+                      onClick={() => handleNotificacaoClick(n.acaoSlug)}
+                      style={{ cursor: n.acaoSlug ? "pointer" : "default" }}
+                    >
                       <div className={`notif-icon ${n.tipo}`}>
-                        <span className="material-symbols-outlined">{n.icone}</span>
+                        <span className="material-symbols-outlined">
+                          {n.icone}
+                        </span>
                       </div>
                       <div>
                         <strong>{n.titulo}</strong>
@@ -214,12 +354,17 @@ function Dashboard() {
             <div className="dropdown-menu profile-menu">
               <div className="dropdown-header">Meu Perfil</div>
               <div className="profile-stats">
-                <p><strong>Nome:</strong> {usuario.nome}</p>
-                <p><strong>XP Total:</strong> {xpAcumulado}</p>
+                <p>
+                  <strong>Nome:</strong> {usuario.nome}
+                </p>
+                <p>
+                  <strong>XP Total:</strong> {xpAcumulado}
+                </p>
               </div>
               <ul className="dropdown-list">
                 <li className="logout-item" onClick={fazerLogout}>
-                  <span className="material-symbols-outlined">logout</span> Sair do InglEJA
+                  <span className="material-symbols-outlined">logout</span> Sair
+                  do InglEJA
                 </li>
               </ul>
             </div>
@@ -231,17 +376,28 @@ function Dashboard() {
         <div className="progress-header">
           <div className="progress-texts">
             <h3>Seu Progresso Geral</h3>
-            <p>{porcentagemProgresso === 100 ? "Parabéns! Você completou tudo!" : "Continue assim! Você está dominando o idioma."}</p>
+            <p>
+              {porcentagemProgresso === 100
+                ? "Parabéns! Você completou tudo!"
+                : "Continue assim! Você está dominando o idioma."}
+            </p>
           </div>
           <h2 className="progress-percentage">{porcentagemProgresso}%</h2>
         </div>
         <div className="progress-bar-bg">
-          <div className="progress-bar-fill" style={{ width: `${porcentagemProgresso}%` }}></div>
+          <div
+            className="progress-bar-fill"
+            style={{ width: `${porcentagemProgresso}%` }}
+          ></div>
         </div>
         <div className="progress-footer">
-          <span>{missoesConcluidas} de {totalMissoes} missões concluídas</span>
+          <span>
+            {missoesConcluidas} de {totalMissoes} missões concluídas
+          </span>
           <span className="streak-badge">
-            <span className="material-symbols-outlined streak-icon">local_fire_department</span>
+            <span className="material-symbols-outlined streak-icon">
+              local_fire_department
+            </span>
             Série de 5 dias!
           </span>
         </div>
@@ -252,15 +408,31 @@ function Dashboard() {
           <p>Carregando mapa...</p>
         ) : (
           licoes.map((licao, index) => (
-            <div key={licao.id} className={`timeline-node ${licao.status}`}>
-              <div className="node-circle" onClick={() => handleCliqueCirculo(licao.slug, licao.status)}>
-                {licao.status === "atual" && <div className="node-badge">JOGANDO AGORA</div>}
-                {licao.status === "concluido" && <div className="node-badge-green">CONCLUÍDO</div>}
-                {/* BADGE ROXO RESTAURADO */}
-                {licao.status === "revisando" && <div className="node-badge-purple">REVISANDO</div>}
+            <div
+              key={licao.id}
+              id={`licao-${licao.slug}`}
+              className={`timeline-node ${licao.status}`}
+            >
+              <div
+                className="node-circle"
+                onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+              >
+                {licao.status === "atual" && (
+                  <div className="node-badge">JOGANDO AGORA</div>
+                )}
+                {licao.status === "concluido" && (
+                  <div className="node-badge-green">CONCLUÍDO</div>
+                )}
+                {licao.status === "revisando" && (
+                  <div className="node-badge-purple">REVISANDO</div>
+                )}
 
                 <span className="material-symbols-outlined node-icon">
-                  {licao.status === "concluido" ? "check_circle" : licao.status === "bloqueado" ? "lock" : licao.iconeTema}
+                  {licao.status === "concluido"
+                    ? "check_circle"
+                    : licao.status === "bloqueado"
+                      ? "lock"
+                      : licao.iconeTema}
                 </span>
               </div>
 
@@ -269,26 +441,50 @@ function Dashboard() {
                 <p>{licao.descricao}</p>
 
                 {licao.status === "atual" && (
-                  <button className="btn-start" onClick={() => navigate(`/exercicio/${licao.slug}`)}>Continuar Missão</button>
+                  <button
+                    className="btn-start"
+                    onClick={() => navigate(`/exercicio/${licao.slug}`)}
+                  >
+                    Continuar Missão
+                  </button>
                 )}
 
                 {licao.status === "concluido" && (
-                  <button className="btn-review" onClick={() => handleRevisarBotao(licao.slug)}>Revisar Nível</button>
+                  <button
+                    className="btn-review"
+                    onClick={() => handleRevisarBotao(licao.slug)}
+                  >
+                    Revisar Nível
+                  </button>
                 )}
 
                 {licao.status === "revisando" && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <button className="btn-start-review" onClick={() => navigate(`/exercicio/${licao.slug}`)}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "5px",
+                    }}
+                  >
+                    <button
+                      className="btn-start-review"
+                      onClick={() => navigate(`/exercicio/${licao.slug}`)}
+                    >
                       Continuar Revisão
                     </button>
-                    <button className="btn-review" style={{ color: '#6b7280' }} onClick={() => handleCancelarRevisao(licao.slug)}>
+                    <button
+                      className="btn-review"
+                      style={{ color: "#6b7280" }}
+                      onClick={() => handleCancelarRevisao(licao.slug)}
+                    >
                       Cancelar
                     </button>
                   </div>
                 )}
-                
               </div>
-              {index !== licoes.length - 1 && <div className="timeline-line"></div>}
+              {index !== licoes.length - 1 && (
+                <div className="timeline-line"></div>
+              )}
             </div>
           ))
         )}

@@ -85,6 +85,7 @@
 
 /* --- BOTÕES DO HEADER (Correção do Sombreado Desalinhado) --- */
 .icon-btn {
+  position: relative;
   background: transparent !important;
   border: none !important;
   color: #6b7280;
@@ -351,6 +352,21 @@
   box-shadow: none !important;
 }
 
+@keyframes pulseRoxoImbativel {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
+    transform: scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+    transform: scale(1);
+  }
+}
+
 .btn-start-review {
   background-color: #8b5cf6 !important;
   color: white !important;
@@ -360,13 +376,14 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 0 #7c3aed !important;
   transition: all 0.1s;
+
+  /* ADICIONADO A ANIMAÇÃO PULSANTE AQUI COM !IMPORTANT */
+  animation: pulseRoxoImbativel 2s infinite ease-in-out !important;
 }
 
 .btn-start-review:active {
-  transform: translateY(4px);
-  box-shadow: none !important;
+  transform: translateY(4px) scale(0.98);
 }
 
 .btn-review {
@@ -548,18 +565,46 @@
   color: #ef4444;
 }
 
+/* Botão Limpar Estilizado */
+.btn-limpar {
+  background: none;
+  border: none;
+  color: #3b82f6; /* Azul InglEJA */
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-left: auto; /* Empurra para a direita */
+  transition: background 0.2s;
+}
+
+.btn-limpar:hover {
+  background-color: #eff6ff;
+  text-decoration: underline;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center; /* Garante que o texto e o botão limpar fiquem na mesma linha */
+}
+
 /* =========================================
    ADICIONAIS E MODO ESCURO
    ========================================= */
 .notif-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
+  top: 10px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
   background-color: #ef4444;
   border-radius: 50%;
-  border: 1px solid white;
+  border: 2px solid #ffffff; /* Borda da cor do fundo do header */
+}
+
+body.dark-mode .notif-badge {
+  border-color: #111827 !important; /* Cor do fundo do header no modo escuro */
 }
 
 /* =========================================
