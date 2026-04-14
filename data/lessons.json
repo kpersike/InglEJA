@@ -24,50 +24,111 @@
         { 
           "id": 1, 
           "tipo": "escolha_palavra", 
-          "pergunta_exibicao": "O que é isto?",
+          "pergunta_exibicao": "qual a cor desta fruta ?",
           "dica": "É uma fruta vermelha muito comum.",
           "subtitulo": "Selecione a palavra correspondente",
-          "audio": "red_apple.mp3",
+          "audio": "red.mp3",
           "img": "red_apple.jpg", 
-          "opcoes": ["Banana", "Apple", "Orange", "Grape"],
-          "resposta": "Apple" 
+          "opcoes": ["Red", "Blue", "Orange", "green"],
+          "resposta": "Red" 
         },
         {
-          "id": 2,
-          "tipo": "escolha_imagem",
-          "pergunta_exibicao": "Escolha a imagem correta",
-          "palavra_ingles": "APPLE",
-          "audio": "red_apple.mp3",
-          "traducao": "Maçã",
-          "opcoes": [
-            { "texto": "Maçã", "img": "apple_card.jpg" },
-            { "texto": "Casa", "img": "house_card.jpg" },
-            { "texto": "Carro", "img": "car_card.jpg" },
-            { "texto": "Cachorro", "img": "dog_card.jpg" }
-          ],
-          "resposta": "Maçã"
-        },
-        {
-          "id": 3,
-          "tipo": "preencher_lacuna",
-          "pergunta_exibicao": "Where do you live?",
-          "frase_parte_1": "I live",
-          "frase_parte_2": "Brazil",
-          "audio": "live_in_brazil.mp3",
-          "img": "brazil_map.jpg",
-          "dica": "Pense na preposição usada para países.",
-          "resposta": "in"
-        },
-        {
-          "id": 4,
-          "tipo": "ordenar_frase",
-          "pergunta_exibicao": "Traduza esta frase",
-          "audio": "the_cat_is_on_the_mat.mp3",
-          "frase_exibicao": "The cat is on the mat.",
-          "img": "cat_mat.jpg",
-          "opcoes": ["is", "on", "mat", "dog", "the", "under", "cat", "The"],
-          "resposta": "The cat is on the mat"
-        }
+    "id": 2,
+    "tipo": "escolha_palavra",
+    "pergunta_exibicao": "Como se escreve a cor 'Azul' em inglês?",
+    "img": "blue_card.jpg",
+    "dica": "Rima com 'glue'.",
+    "audio": "blue.mp3",
+    "opcoes": ["Blue", "Red", "Yellow", "Green"],
+    "resposta": "Blue"
+  },
+  {
+    "id": 3,
+    "tipo": "escolha_imagem",
+    "pergunta_exibicao": "Selecione a fruta que é 'YELLOW':",
+    "palavra_ingles": "YELLOW",
+    "audio": "yellow.mp3",
+    "opcoes": [
+      { "texto": "Banana", "img": "banana_card.jpg" },
+      { "texto": "Maçã", "img": "apple_card.jpg" },
+      { "texto": "Uva", "img": "grape_card.jpg" }
+    ],
+    "resposta": "Banana"
+  },
+  {
+    "id": 4,
+    "tipo": "preencher_lacuna",
+    "pergunta_exibicao": "Qual é a cor do café:",
+    "img": "coffee_card.jpg",
+    "frase_parte_1": "The coffee is",
+    "frase_parte_2": ".",
+    "audio": "black_coffee.mp3",
+    "dica": "Preto em inglês começa com 'B'.",
+    "resposta": "black"
+  },
+{
+    "id": 5,
+    "tipo": "preencher_lacuna",
+    "pergunta_exibicao": "O Sol é amarelo:",
+    "img": "sun_yellow.jpg",
+    "frase_parte_1": "The sun",
+    "frase_parte_2": "yellow.",
+    "audio": "sun_yellow.mp3",
+    "dica": "Use o verbo 'to be' (is).",
+    "resposta": "is"
+  },
+{
+    "id": 6,
+    "tipo": "ordenar_frase",
+    "pergunta_exibicao": "Traduza: O carro é azul",
+    "img": "blue_car.jpg",
+    "audio": "car_blue.mp3",
+    "frase_exibicao": "organize as palavras ",
+    "opcoes": ["is", "blue", "The", "car", "red"],
+    "resposta": "The car is blue"
+  },
+  {
+    "id": 7,
+    "tipo": "ordenar_frase",
+    "pergunta_exibicao": "Traduza: Eu tenho uma maçã vermelha",
+    "img": "apple_card.jpg",
+    "audio": "have_apple.mp3",
+    "frase_exibicao": "organize as palavras ",
+    "opcoes": ["apple", "red", "I", "have", "a", "blue"],
+    "resposta": "I have a red apple"
+  },
+  {
+ "id": 8,
+    "tipo": "preencher_lacuna",
+    "pergunta_exibicao": "O uniforme da empresa é cinza:",
+    "img": "uniform_grey.jpg",
+    "frase_parte_1": "The uniform is",
+    "frase_parte_2": ".",
+    "audio": "uniform_grey.mp3",
+    "dica": "Cinza em inglês é 'grey'.",
+    "resposta": "grey"
+  },
+  {
+   "id": 9,
+    "tipo": "ordenar_frase",
+    "pergunta_exibicao": "Traduza: Eu comprei uma camisa branca",
+    "img": "white_shirt.jpg",
+    "audio": "bought_white_shirt.mp3",
+    "frase_exibicao": "organize as palavras ",
+    "opcoes": ["white", "shirt", "I", "bought", "a", "blue"],
+    "resposta": "I bought a white shirt",
+    "hint": "Em inglês, a cor (adjetivo) vem antes do objeto (camisa)."
+  },
+  {
+    "id": 10,
+    "tipo": "ordenar_frase",
+    "pergunta_exibicao": "Traduza: Eu gosto da cor verde e amarelo",
+    "img": "verde_amarelo.jpg",
+    "audio": "green_yellow.mp3",
+    "frase_exibicao": "organize as palavras ",
+    "opcoes": ["green", "the", "color", "I", "like", "blue", "yellow", "and"],
+    "resposta": "I like the colors green and yellow."
+  }
       ]
     }
   ]

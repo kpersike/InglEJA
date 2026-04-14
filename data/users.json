@@ -93,5 +93,14 @@
     "email": "testandologica@gmail.com",
     "senha": "12",
     "pontos": 0
+  },
+  {
+    "nome": "Marcel ",
+    "email": "crudelli.marcel@gmail.com",
+    "senha": "1010",
+    "pontos": 880,
+    "progresso": {
+      "saudacoes": true
+    }
   }
 ]
