@@ -11,7 +11,7 @@ function App() {
   return (
     <Router>
       <div className="app-container"> {/* Adicione essa div */}
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="main-content"> {/* Adicione essa main */}
           <Routes>
             <Route path="/" element={<Auth />} />

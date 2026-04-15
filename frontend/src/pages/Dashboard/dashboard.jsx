@@ -148,8 +148,30 @@ function Dashboard() {
     }
   }, [configuracoes.modoEscuro]);
 
+  // ... seus outros estados e hooks ...
+
+  // Efeito para tocar som ao entrar no Dashboard
+  useEffect(() => {
+    if (configuracoes.som) {
+      const audio = new Audio("/audios/sfx/entrada_mapa.mp3"); 
+      audio.volume = 0.2; // Opcional: define o volume em 50%
+      audio.play().catch(err => console.warn("Aguardando interação para tocar som."));
+    }
+  }, []); // Executa apenas no mount
+
+  // ... resto do componente ...
+
   const toggleMenu = (menu) => {
-    setMenuAberto(menuAberto === menu ? null : menu);
+    const novoEstado = menuAberto === menu ? null : menu;
+
+    // Tocar som se estiver abrindo um menu e o som estiver ligado
+    if (novoEstado !== null && configuracoes.som) {
+      const audio = new Audio("/audios/sfx/clique_menu.mp3"); // ou o seu arquivo de preferência
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log("Erro ao tocar som:", err));
+    }
+
+    setMenuAberto(novoEstado);
   };
 
   const fazerLogout = () => {
@@ -259,6 +281,14 @@ function Dashboard() {
     }
   };
 
+  const tocarSom = (arquivo) => {
+  if (configuracoes.som) {
+    const audio = new Audio(`/audios/sfx/${arquivo}`);
+    audio.volume = 0.3; // Volume mais baixo para não irritar no hover
+    audio.play().catch(() => {}); // Catch vazio para ignorar erros de autoplay
+  }
+  };
+
   return (
     <div className="dashboard-wrapper">
       <header className="dashboard-header">
@@ -296,7 +326,7 @@ function Dashboard() {
             {notificacoes.length > 0 && <span className="notif-badge"></span>}
           </button>
 
-          <button className="avatar-btn" onClick={() => toggleMenu("perfil")}>
+          <button className="avatar-btn" onClick={() => toggleMenu("perfil")} onMouseEnter={() => tocarSom("hover_mapa.mp3")}>
             {usuario.nome ? usuario.nome.charAt(0).toUpperCase() : "U"}
           </button>
 
@@ -433,7 +463,7 @@ function Dashboard() {
             className="scroll-arrow left"
             onClick={() => scrollTimeline("esquerda")}
           >
-            <span className="material-symbols-outlined">chevron_left</span>
+            <span className="material-symbols-outlined" style={{margin: 0}}>chevron_left</span>
           </button>
         )}
 
@@ -452,8 +482,10 @@ function Dashboard() {
                 className={`timeline-node ${licao.status}`}
               >
                 <div
-                  className="node-circle"
+                  className={`node-circle ${licao.status}`}
                   onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+                  // ADICIONE ESTA LINHA ABAIXO:
+                  onMouseEnter={() => licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")}
                 >
                   {licao.status === "atual" && (
                     <div className="node-badge">JOGANDO AGORA</div>
@@ -474,7 +506,7 @@ function Dashboard() {
                   </span>
                 </div>
 
-                <div className="node-content">
+                <div className="node-content" onMouseEnter={() => licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")}>
                   <h3>{licao.titulo}</h3>
                   <p>{licao.descricao}</p>
 
@@ -534,7 +566,7 @@ function Dashboard() {
             className="scroll-arrow right"
             onClick={() => scrollTimeline("direita")}
           >
-            <span className="material-symbols-outlined">chevron_right</span>
+            <span className="material-symbols-outlined" style={{margin: 0}}>chevron_right</span>
           </button>
         )}
       </div>

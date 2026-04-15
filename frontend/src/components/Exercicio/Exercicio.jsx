@@ -312,20 +312,22 @@ function Exercicio() {
                     </div>
                   </div>
                 </div>
-
-                <div className="lista-botoes-opcoes">
-                  {questaoAtual.opcoes.map((opcao, idx) => (
-                    <button
-                      key={idx}
-                      className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""}`}
-                      onClick={() => setResposta(opcao)}
-                      disabled={feedback.acertou}
-                    >
-                      <span className="numero-indicador">{idx + 1}</span>
-                      {opcao}
-                    </button>
-                  ))}
-                </div>
+                  <div className="lista-botoes-opcoes">
+                    {questaoAtual.opcoes.map((opcao, idx) => (
+                      <button
+                        key={idx}
+                        className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""}`}
+                        onClick={() => {
+                          setResposta(opcao);
+                          tocarSFX("botao_selecionar_resposta.mp3"); // Som ao selecionar a opção
+                        }}
+                        disabled={feedback.acertou}
+                      >
+                        <span className="numero-indicador">{idx + 1}</span>
+                        {opcao}
+                      </button>
+                    ))}
+                  </div>
               </div>
             )}
 
@@ -369,7 +371,7 @@ function Exercicio() {
                     <button
                       key={idx}
                       className={`card-imagem-item ${resposta === opcao.texto ? "selecionada" : ""}`}
-                      onClick={() => setResposta(opcao.texto)}
+                      onClick={() => {setResposta(opcao.texto); tocarSFX("botao_selecionar_resposta.mp3"); }}
                       disabled={feedback.acertou}
                     >
                       <div className="container-img-card">
@@ -484,7 +486,7 @@ function Exercicio() {
                 <div className="area-montagem" onClick={removerUltimaPalavra}>
                   {resposta ? (
                     resposta.split(" ").map((pal, i) => (
-                      <span key={i} className="palavra-montada">
+                      <span key={i} className="palavra-montada" onClick={() => tocarSFX("botao_deselecionar_resposta.mp3")}>
                         {pal}
                       </span>
                     ))
@@ -502,7 +504,7 @@ function Exercicio() {
                       <button
                         key={idx}
                         className={`btn-puzzle ${selecionada ? "item-escondido" : ""}`}
-                        onClick={() => adicionarPalavra(palavra)}
+                        onClick={() => {adicionarPalavra(palavra); tocarSFX("botao_selecionar_resposta.mp3"); }}
                         disabled={feedback.acertou || selecionada}
                       >
                         {palavra}
