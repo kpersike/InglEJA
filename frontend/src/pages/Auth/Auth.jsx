@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css"; // Vamos colocar seu style.css aqui
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 
 function Auth() {
   const navigate = useNavigate();
@@ -27,7 +29,8 @@ function Auth() {
   };
 
   // 4. LÓGICA DE CADASTRO
-  const fazerCadastro = async () => {
+  const fazerCadastro = async (e) => {
+    if (e) e.preventDefault(); // Impede recarregamento do formulário
     const { email, senha, confirmarSenha } = formData;
     if (!email || !senha || !confirmarSenha) {
       setFeedback({ msg: "Preencha todos os campos.", color: "blue" });
@@ -102,6 +105,38 @@ function Auth() {
     }
   };
 
+  // 6. LÓGICA DE LOGIN COM GOOGLE
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      console.log("Dados do Google decodificados:", decoded);
+
+      // Aqui você faz a ponte com o seu Backend na porta 3000
+      const response = await fetch("http://localhost:3000/api/login-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: decoded.email,
+          nome: decoded.name,
+          foto: decoded.picture
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
+        setFeedback({ msg: `Bem-vindo, ${decoded.name}!`, color: "#1cb0f6" });
+        setTimeout(() => navigate("/dashboard"), 1500);
+      } else {
+        setFeedback({ msg: "Erro ao validar conta com o servidor.", color: "red" });
+      }
+    } catch (error) {
+      console.error("Erro no Google Login:", error);
+      setFeedback({ msg: "Erro na autenticação com o Google.", color: "red" });
+    }
+  };
+
   return (
     <main className="container">
       {isLogin ? (
@@ -112,7 +147,7 @@ function Auth() {
             <p>Bem-vindo! Faça login para continuar.</p>
           </div>
 
-          <div className="form-container">
+          <form className="form-container" onSubmit={fazerLogin}>
             <div className="form-group">
               <label>E-mail:</label>
               <div className="input-container">
@@ -137,10 +172,24 @@ function Auth() {
                 />
               </div>
             </div>
-            <button onClick={fazerLogin} className="btn-primary">
+            <button type="submit" className="btn-primary">
               Logar
             </button>
-          </div>
+
+            <div className="divider">
+              <span>ou</span>
+            </div>
+
+            <div className="google-login-container">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setFeedback({ msg: "Erro no Google Auth", color: "red" })}
+                theme="filled_blue"
+                shape="pill"
+                text="signin_with"
+              />
+            </div>
+          </form>
 
           <p>
             Ainda não tem conta?{" "}
@@ -156,7 +205,7 @@ function Auth() {
             <h2>Crie sua conta</h2>
             <p>Comece agora de forma simples e rápida.</p>
           </div>
-          <div className="form-container">
+          <form className="form-container" onSubmit={fazerCadastro}>
             <div className="form-group">
               <label>Seu E-mail:</label>
               <div className="input-container">
@@ -194,10 +243,10 @@ function Auth() {
                 />
               </div>
             </div>
-            <button onClick={fazerCadastro} className="btn-sucess">
+            <button type="submit" className="btn-sucess">
               CADASTRAR
             </button>
-          </div>
+          </form>
 
           <p id="footer-links">
             Já tem uma conta?

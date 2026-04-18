@@ -98,5 +98,12 @@
     "email": "testandologica@gmail.com",
     "senha": "12",
     "pontos": 0
+  },
+  {
+    "nome": "Matheus Penteado",
+    "email": "penteado012@gmail.com",
+    "senha": "GOOGLE_AUTH",
+    "pontos": 80,
+    "progresso": {}
   }
 ]

@@ -87,7 +87,7 @@ app.post("/api/login", (req, res) => {
           email: usuario.email,
           pontos: usuario.pontos || 0,
           // IMPORTANTE: Enviar o progresso que está no JSON
-          progresso: usuario.progresso || {} 
+          progresso: usuario.progresso || {}
         },
       });
     } else {
@@ -98,12 +98,52 @@ app.post("/api/login", (req, res) => {
   }
 });
 
+// --- INÍCIO DA NOVA ROTA DO GOOGLE ---
+app.post("/api/login-google", (req, res) => {
+  try {
+    const { email, nome, foto } = req.body;
+    let usuarios = getUsers();
+
+    // 1. Verifica se o e-mail do Google já existe no seu users.json
+    let usuario = usuarios.find((u) => u && u.email === email);
+
+    // 2. Se o usuário não existir, vamos cadastrá-lo automaticamente
+    if (!usuario) {
+      usuario = {
+        nome: nome,
+        email: email,
+        senha: "GOOGLE_AUTH", // Colocamos uma senha "fictícia" para não ficar vazio
+        pontos: 0,
+        progresso: {} // Já inicializa o progresso zerado
+      };
+      usuarios.push(usuario);
+      fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+    }
+
+    // 3. Retorna o usuário exatamente no mesmo formato da sua rota de login normal
+    res.json({
+      sucesso: true,
+      usuario: {
+        nome: usuario.nome,
+        email: usuario.email,
+        pontos: usuario.pontos || 0,
+        progresso: usuario.progresso || {}
+      }
+    });
+
+  } catch (err) {
+    console.error("❌ Erro no login com Google:", err);
+    res.status(500).json({ erro: "Erro ao processar login com Google." });
+  }
+});
+// --- FIM DA NOVA ROTA DO GOOGLE ---
+
 // 1. Rota para pegar todos os dados de uma FASE específica pelo SLUG
 app.get("/api/fase/:slug", (req, res) => {
   try {
     const content = fs.readFileSync(LESSONS_PATH, "utf8");
     const db = JSON.parse(content);
-    
+
     // Procura a fase pelo slug (ex: 'saudacoes' ou 'cores')
     const fase = db.niveis.find((n) => n.slug === req.params.slug);
 
@@ -139,7 +179,7 @@ app.post("/api/validar-resposta-v2", (req, res) => {
     if (acertou) {
       let usuarios = getUsers();
       const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
-      
+
       if (userIndex !== -1) {
         // Incrementa pontos
         usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
@@ -148,13 +188,13 @@ app.post("/api/validar-resposta-v2", (req, res) => {
         if (eUltimaQuestao) {
           if (!usuarios[userIndex].progresso) usuarios[userIndex].progresso = {};
           usuarios[userIndex].progresso[slugFase] = true;
-          
+
           // Atualiza também o objeto do usuário na resposta para o front atualizar o localStorage
           console.log(`✅ Fase ${slugFase} concluída para ${usuarioEmail}`);
         }
 
         fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
-        
+
         // Retornamos os dados atualizados do usuário para o Front-end sincronizar
         return res.json({ acertou, usuarioAtualizado: usuarios[userIndex] });
       }
