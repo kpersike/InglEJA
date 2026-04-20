@@ -110,7 +110,9 @@
     "nome": "Matheus Penteado",
     "email": "matheus.pent12@gmail.com",
     "senha": "GOOGLE_AUTH",
-    "pontos": 60,
-    "progresso": {}
+    "pontos": 290,
+    "progresso": {
+      "saudacoes": true
+    }
   }
 ]

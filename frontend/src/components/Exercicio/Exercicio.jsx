@@ -80,6 +80,13 @@ function Exercicio() {
     }
   }, [indiceAtual, questoes]); // Sempre que o índice mudar, ele corre isto
 
+  // Limpa o alerta vermelho das bordas caso o usuário tente digitar ou selecionar de novo
+  useEffect(() => {
+    if (feedback.color === "red") {
+      setFeedback({ msg: "", color: "", acertou: false });
+    }
+  }, [resposta]);
+
   const questaoAtual = questoes[indiceAtual];
 
   const finalizarExercicio = async () => {
@@ -316,7 +323,7 @@ function Exercicio() {
                     {questaoAtual.opcoes.map((opcao, idx) => (
                       <button
                         key={idx}
-                        className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""}`}
+                        className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""} ${resposta === opcao && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
                         onClick={() => {
                           setResposta(opcao);
                           tocarSFX("botao_selecionar_resposta.mp3"); // Som ao selecionar a opção
@@ -370,7 +377,7 @@ function Exercicio() {
                   {questaoAtual.opcoes.map((opcao, idx) => (
                     <button
                       key={idx}
-                      className={`card-imagem-item ${resposta === opcao.texto ? "selecionada" : ""}`}
+                      className={`card-imagem-item ${resposta === opcao.texto ? "selecionada" : ""} ${resposta === opcao.texto && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
                       onClick={() => {setResposta(opcao.texto); tocarSFX("botao_selecionar_resposta.mp3"); }}
                       disabled={feedback.acertou}
                     >
@@ -438,7 +445,7 @@ function Exercicio() {
                 <div className="input-container-lacuna">
                   <input
                     type="text"
-                    className="input-lacuna"
+                    className={`input-lacuna ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
                     placeholder="Clique aqui para digitar..."
                     value={resposta}
                     onChange={(e) => setResposta(e.target.value)}
@@ -483,7 +490,7 @@ function Exercicio() {
                   />
                 </div>
 
-                <div className="area-montagem" onClick={removerUltimaPalavra}>
+                <div className={`area-montagem ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`} onClick={removerUltimaPalavra}>
                   {resposta ? (
                     resposta.split(" ").map((pal, i) => (
                       <span key={i} className="palavra-montada" onClick={() => tocarSFX("botao_deselecionar_resposta.mp3")}>
@@ -538,7 +545,7 @@ function Exercicio() {
 
             {!feedback.acertou ? (
               <button
-                className="btn-navegacao primario"
+                className={`btn-navegacao primario ${feedback.color === "red" ? "btn-erro anim-shake-erro" : ""}`}
                 onClick={finalizarExercicio}
                 disabled={!resposta.trim()}
               >
