@@ -106,6 +106,7 @@ app.post("/api/login-google", (req, res) => {
 
     // 1. Verifica se o e-mail do Google já existe no seu users.json
     let usuario = usuarios.find((u) => u && u.email === email);
+    let novoUsuario = false;
 
     // 2. Se o usuário não existir, vamos cadastrá-lo automaticamente
     if (!usuario) {
@@ -118,11 +119,13 @@ app.post("/api/login-google", (req, res) => {
       };
       usuarios.push(usuario);
       fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+      novoUsuario = true;
     }
 
     // 3. Retorna o usuário exatamente no mesmo formato da sua rota de login normal
     res.json({
       sucesso: true,
+      novoUsuario: novoUsuario,
       usuario: {
         nome: usuario.nome,
         email: usuario.email,

@@ -241,14 +241,19 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: white;
+  background: transparent;
   padding: 20px;
   display: flex;
   justify-content: center;
   gap: 20px;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-  border-top: 1px solid #eee;
+  box-shadow: none;
+  border-top: none;
   z-index: 100;
+  pointer-events: none;
+}
+
+.barra-navegacao-inferior > * {
+  pointer-events: auto;
 }
 
 .btn-navegacao {

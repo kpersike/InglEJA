@@ -27,9 +27,20 @@ function Dashboard() {
   // Salva as configurações (Som, Modo Escuro e Layout Horizontal) no LocalStorage
   const [configuracoes, setConfiguracoes] = useState(() => {
     const configSalvas = localStorage.getItem("configuracoes_ingleja");
-    return configSalvas
-      ? JSON.parse(configSalvas)
+    let config = configSalvas 
+      ? JSON.parse(configSalvas) 
       : { som: true, modoEscuro: false, layoutHorizontal: false };
+
+    // Usa sessionStorage para saber se a página acabou de ser aberta ou se é só um refresh
+    const jaEstavaNestaSessao = sessionStorage.getItem("sessao_ingleja_ativa");
+    
+    if (!jaEstavaNestaSessao) {
+      // O usuário acabou de abrir o site (nova aba/janela), forçamos o som a vir ticado
+      config.som = true;
+      sessionStorage.setItem("sessao_ingleja_ativa", "true");
+    }
+
+    return config;
   });
 
   useEffect(() => {
@@ -315,14 +326,14 @@ function Dashboard() {
             className={`icon-btn ${menuAberto === "config" ? "ativo" : ""}`}
             onClick={() => toggleMenu("config")}
           >
-            <span className="material-symbols-outlined">settings</span>
+            <span className="material-symbols-outlined anim-spin">settings</span>
           </button>
 
           <button
             className={`icon-btn ${menuAberto === "notificacoes" ? "ativo" : ""}`}
             onClick={() => toggleMenu("notificacoes")}
           >
-            <span className="material-symbols-outlined">notifications</span>
+            <span className="material-symbols-outlined anim-shake">notifications</span>
             {notificacoes.length > 0 && <span className="notif-badge"></span>}
           </button>
 
@@ -482,7 +493,7 @@ function Dashboard() {
                 className={`timeline-node ${licao.status}`}
               >
                 <div
-                  className={`node-circle ${licao.status}`}
+                  className={`node-circle ${licao.status} ${licao.iconeTema === "palette" && licao.status !== "bloqueado" ? "effect-colors" : ""}`}
                   onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
                   // ADICIONE ESTA LINHA ABAIXO:
                   onMouseEnter={() => licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")}
@@ -497,7 +508,11 @@ function Dashboard() {
                     <div className="node-badge-purple">REVISANDO</div>
                   )}
 
-                  <span className="material-symbols-outlined node-icon">
+                  <span className={`material-symbols-outlined node-icon ${
+                    licao.status !== "concluido" && licao.status !== "bloqueado" && licao.iconeTema === "waving_hand"
+                      ? "anim-wave" 
+                      : ""
+                  }`}>
                     {licao.status === "concluido"
                       ? "check_circle"
                       : licao.status === "bloqueado"

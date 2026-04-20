@@ -193,7 +193,8 @@
   height: 100%;
   background-color: #3b82f6;
   border-radius: 10px;
-  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); /* Animação mais suave */
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Animação mais suave */
 }
 
 .progress-footer {
@@ -224,6 +225,7 @@
     opacity: 0;
     transform: translateY(40px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -259,15 +261,19 @@
 .timeline-node:nth-child(1) {
   animation-delay: 0s;
 }
+
 .timeline-node:nth-child(2) {
   animation-delay: 0.1s;
 }
+
 .timeline-node:nth-child(3) {
   animation-delay: 0.2s;
 }
+
 .timeline-node:nth-child(4) {
   animation-delay: 0.3s;
 }
+
 .timeline-node:nth-child(5) {
   animation-delay: 0.4s;
 }
@@ -324,7 +330,8 @@
 
 .scroll-arrow .material-symbols-outlined {
   font-size: 24px;
-  font-weight: 600; /* Deixa a setinha mais gordinha/legível */
+  font-weight: 600;
+  /* Deixa a setinha mais gordinha/legível */
 }
 
 /* Efeito Hover (Interação moderna ao passar o mouse) */
@@ -344,6 +351,7 @@
 .scroll-arrow.left {
   left: 0px;
 }
+
 .scroll-arrow.right {
   right: 0px;
 }
@@ -355,7 +363,8 @@
   overflow-x: auto;
   /* Padding top de 20px é o que obriga a seta a ficar em 75px */
   padding: 20px 20px 40px 20px;
-  gap: 70px; /* Mais espaço para os cards respirarem */
+  gap: 70px;
+  /* Mais espaço para os cards respirarem */
   justify-content: flex-start;
   scroll-behavior: smooth;
 
@@ -377,7 +386,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  scroll-snap-align: center; /* O scroll sempre trava no centro da lição */
+  scroll-snap-align: center;
+  /* O scroll sempre trava no centro da lição */
 }
 
 /* --- A LINHA CONECTORA HORIZONTAL --- */
@@ -388,9 +398,8 @@
   top: 55px;
   left: 50%;
   bottom: auto;
-  transform: translateY(
-    -50%
-  ); /* Centraliza perfeitamente os 4px de altura no eixo de 55px */
+  transform: translateY(-50%);
+  /* Centraliza perfeitamente os 4px de altura no eixo de 55px */
   background-color: #e5e7eb;
   border-radius: 4px;
   z-index: 1;
@@ -414,7 +423,8 @@
   align-items: flex-start;
   overflow-x: auto;
   padding: 20px 20px 40px 20px;
-  gap: 70px; /* Mais espaço para os cards respirarem */
+  gap: 70px;
+  /* Mais espaço para os cards respirarem */
   justify-content: flex-start;
   scroll-behavior: smooth;
 
@@ -436,7 +446,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  scroll-snap-align: center; /* O scroll sempre trava no centro da lição */
+  scroll-snap-align: center;
+  /* O scroll sempre trava no centro da lição */
 }
 
 /* --- A LINHA CONECTORA HORIZONTAL --- */
@@ -507,6 +518,7 @@
   font-weight: 800;
   letter-spacing: 0.5px;
   transition: transform 0.3s;
+  z-index: 20;
 }
 
 /* O Badge acompanha o pulo do círculo */
@@ -520,10 +532,12 @@
   background: #3b82f6;
   box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
+
 .node-badge-green {
   background: #22c55e;
   box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
 }
+
 .node-badge-purple {
   background: #8b5cf6;
   box-shadow: 0 4px 10px rgba(139, 92, 246, 0.4);
@@ -546,7 +560,8 @@
 }
 
 .timeline-node:hover .node-content h3 {
-  color: #3b82f6; /* Ao passar o mouse, o título fica azul levemente */
+  color: #3b82f6;
+  /* Ao passar o mouse, o título fica azul levemente */
 }
 
 .node-content p {
@@ -584,9 +599,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.6);
   }
+
   70% {
     box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
   }
@@ -635,6 +652,7 @@
   border-color: #3b82f6;
   cursor: pointer;
 }
+
 .timeline-node.atual .node-icon {
   color: #3b82f6;
 }
@@ -643,9 +661,11 @@
   border-color: #22c55e;
   cursor: default;
 }
+
 .timeline-node.concluido .node-icon {
   color: #22c55e;
 }
+
 .timeline-node.concluido .node-circle:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
@@ -656,14 +676,17 @@
   cursor: default;
   border-color: #f3f4f6;
 }
+
 .timeline-node.bloqueado .node-circle:hover {
   transform: none;
   box-shadow: none;
 }
+
 .timeline-node.bloqueado .node-content h3,
 .timeline-node.bloqueado .node-content p {
   color: #9ca3af;
 }
+
 .timeline-node.bloqueado:hover .node-content h3 {
   color: #9ca3af;
 }
@@ -672,6 +695,7 @@
   border-color: #8b5cf6;
   cursor: pointer;
 }
+
 .timeline-node.revisando .node-icon {
   color: #8b5cf6;
 }
@@ -698,6 +722,7 @@
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -738,10 +763,12 @@
 .dropdown-list li:last-child {
   border-bottom: none;
 }
+
 .dropdown-list li:hover {
   background-color: #f1f5f9;
   padding-left: 24px;
 }
+
 .dropdown-list li input[type="checkbox"] {
   margin-left: auto;
   cursor: pointer;
@@ -752,6 +779,7 @@
 .notifications-list li {
   align-items: flex-start;
 }
+
 .notif-icon {
   display: flex;
   align-items: center;
@@ -762,21 +790,26 @@
   color: white;
   flex-shrink: 0;
 }
+
 .notif-icon.green {
   background-color: #22c55e;
 }
+
 .notif-icon.orange {
   background-color: #f59e0b;
 }
+
 .notif-icon .material-symbols-outlined {
   font-size: 18px;
 }
+
 .notifications-list strong {
   display: block;
   font-size: 14px;
   color: #1f2937;
   margin-bottom: 4px;
 }
+
 .notifications-list p {
   margin: 0;
   font-size: 13px;
@@ -791,17 +824,21 @@
   font-size: 14px;
   color: #374151;
 }
+
 .profile-stats p {
   margin: 4px 0;
 }
+
 .logout-item {
   color: #ef4444 !important;
   font-weight: 600;
 }
+
 .logout-item:hover {
   background-color: #fef2f2 !important;
   color: #dc2626 !important;
 }
+
 .logout-item .material-symbols-outlined {
   color: #ef4444;
 }
@@ -852,9 +889,11 @@ body.dark-mode .app-container {
   background-color: #111827 !important;
   color: #f9fafb !important;
 }
+
 body.dark-mode .dashboard-wrapper {
   color: #f9fafb;
 }
+
 body.dark-mode h1,
 body.dark-mode header,
 body.dark-mode nav {
@@ -866,11 +905,13 @@ body.dark-mode .dropdown-menu {
   border-color: #374151 !important;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
 }
+
 body.dark-mode .dropdown-header {
   background-color: #374151 !important;
   color: #f9fafb !important;
   border-bottom: 1px solid #4b5563 !important;
 }
+
 body.dark-mode .dropdown-list li,
 body.dark-mode .dropdown-list li span,
 body.dark-mode .profile-stats,
@@ -879,9 +920,11 @@ body.dark-mode .notifications-list strong {
   color: #f9fafb !important;
   border-bottom-color: #374151 !important;
 }
+
 body.dark-mode .dropdown-list li:hover {
   background-color: #4b5563 !important;
 }
+
 body.dark-mode .notifications-list p {
   color: #9ca3af !important;
 }
@@ -891,6 +934,7 @@ body.dark-mode .progress-card {
   border-color: #374151 !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
+
 body.dark-mode .progress-texts h3,
 body.dark-mode .progress-texts p,
 body.dark-mode .progress-footer,
@@ -902,6 +946,7 @@ body.dark-mode .profile-title {
 body.dark-mode .icon-btn {
   color: #d1d5db !important;
 }
+
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn.ativo {
   background-color: #374151 !important;
@@ -914,6 +959,7 @@ body.dark-mode .scroll-arrow {
   color: #f9fafb;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
+
 body.dark-mode .scroll-arrow:hover {
   background-color: #4b5563;
   border-color: #4b5563;
@@ -924,15 +970,20 @@ body.dark-mode .node-circle {
   border-color: #374151 !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
+
 body.dark-mode .node-circle:hover {
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
 }
+
 body.dark-mode .node-content h3 {
   color: #f9fafb !important;
 }
+
 body.dark-mode .timeline-node:hover .node-content h3 {
   color: #60a5fa !important;
-} /* Azul mais claro no dark mode */
+}
+
+/* Azul mais claro no dark mode */
 body.dark-mode .node-content p {
   color: #d1d5db !important;
 }
@@ -940,6 +991,7 @@ body.dark-mode .node-content p {
 body.dark-mode .timeline-line {
   background-color: #374151 !important;
 }
+
 body.dark-mode .timeline-container.horizontal .timeline-line {
   background-color: #374151 !important;
 }
@@ -948,7 +1000,88 @@ body.dark-mode .timeline-node.revisando .node-circle {
   background-color: #1f2937 !important;
   border-color: #8b5cf6 !important;
 }
+
 body.dark-mode .timeline-node.bloqueado .node-circle {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
+}
+
+/* =========================================
+   ANIMAÇÕES DOS ÍCONES (MICRO-INTERAÇÕES)
+   ========================================= */
+
+.icon-btn:hover span.anim-shake,
+.icon-btn.ativo span.anim-shake {
+  display: inline-block;
+  transform-origin: center center;
+  animation: balanco-suave 0.5s ease-in-out;
+}
+
+.icon-btn:hover span.anim-spin,
+.icon-btn.ativo span.anim-spin {
+  display: inline-block;
+  transform-origin: center center;
+  animation: girar-engrenagem 2s linear infinite;
+}
+
+/* =========================================
+   ANIMAÇÃO DA MÃOZINHA (MISSÃO 1)
+   ========================================= */
+.node-circle:hover .anim-wave {
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: aceno-suave 1s ease-in-out infinite;
+}
+
+@keyframes aceno-suave {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(25deg); }
+  50% { transform: rotate(-20deg); }
+  75% { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); } }
+
+/* =========================================
+   EFEITO DE CORES SUBINDO (MISSÃO 2 - PALETA)
+   ========================================= */
+.node-circle.effect-colors::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: conic-gradient(from 180deg, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #8b5cf6, #ef4444);
+  border-radius: 50%;
+  padding: 5px; /* Largura da borda a ser preenchida */
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+  pointer-events: none;
+}
+
+.node-circle.effect-colors:hover::before {
+  opacity: 1;
+  animation: girar-arco-iris 2s linear infinite;
+}
+
+@keyframes girar-arco-iris {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+/* Extra brace remocao */
+
+@keyframes balanco-suave {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg) scale(1.1); }
+  50% { transform: rotate(-10deg) scale(1.1); }
+  75% { transform: rotate(5deg) scale(1.1); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes girar-engrenagem {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
