@@ -127,7 +127,13 @@ function Auth() {
       if (response.ok) {
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
         setFeedback({ msg: `Bem-vindo, ${decoded.name}!`, color: "#1cb0f6" });
-        setTimeout(() => navigate("/dashboard"), 1500);
+        setTimeout(() => {
+          if (data.novoUsuario) {
+            navigate("/welcome");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 1500);
       } else {
         setFeedback({ msg: "Erro ao validar conta com o servidor.", color: "red" });
       }

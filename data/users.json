@@ -3,7 +3,7 @@
     "nome": "teste2",
     "email": "teste.2@gmail.com",
     "senha": "teste2",
-    "pontos": 590,
+    "pontos": 600,
     "progresso": {
       "saudacoes": true,
       "cores": true
@@ -103,14 +103,16 @@
     "nome": "Matheus Penteado",
     "email": "penteado012@gmail.com",
     "senha": "GOOGLE_AUTH",
-    "pontos": 80,
+    "pontos": 90,
     "progresso": {}
   },
   {
     "nome": "Matheus Penteado",
     "email": "matheus.pent12@gmail.com",
     "senha": "GOOGLE_AUTH",
-    "pontos": 40,
-    "progresso": {}
+    "pontos": 620,
+    "progresso": {
+      "saudacoes": true
+    }
   }
 ]

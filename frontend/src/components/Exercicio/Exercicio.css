@@ -241,14 +241,19 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: white;
+  background: transparent;
   padding: 20px;
   display: flex;
   justify-content: center;
   gap: 20px;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-  border-top: 1px solid #eee;
+  box-shadow: none;
+  border-top: none;
   z-index: 100;
+  pointer-events: none;
+}
+
+.barra-navegacao-inferior > * {
+  pointer-events: auto;
 }
 
 .btn-navegacao {
@@ -720,4 +725,183 @@
 @keyframes aparecerDica {
   from { opacity: 0; transform: translateY(-50%) translateX(-10px); }
   to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+/* =========================================
+   MODO ESCURO - EXERCÍCIOS
+   ========================================= */
+
+body.dark-mode .container-exercicio {
+  background-color: transparent !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .titulo-questao {
+  color: #f9fafb !important;
+}
+
+body.dark-mode .subtitulo-exercicio {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .progresso-fundo {
+  background-color: #374151 !important;
+}
+
+body.dark-mode .input-estilizado {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .container-imagem-central {
+  background: #1f2937 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .btn-opcao-item {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #d1d5db !important;
+}
+
+body.dark-mode .btn-opcao-item:hover {
+  background: #374151 !important;
+}
+
+body.dark-mode .btn-opcao-item.selecionada {
+  border-color: #3b82f6 !important;
+  background-color: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode .numero-indicador {
+  border-color: #4b5563 !important;
+  color: #9ca3af !important;
+}
+
+body.dark-mode .frase-container {
+  color: #f9fafb !important;
+}
+
+body.dark-mode .input-lacuna {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .container-audio-exibicao {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .balao-frase {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .area-montagem {
+  border-bottom-color: #374151 !important;
+}
+
+body.dark-mode .palavra-montada {
+  background: #1f2937 !important;
+  border-color: #3b82f6 !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode .btn-puzzle {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .btn-puzzle.em-uso {
+  background: #111827 !important;
+  color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark-mode .container-img-pequena {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .btn-navegacao.secundario {
+  background-color: #1f2937 !important;
+  color: #d1d5db !important;
+}
+
+body.dark-mode .btn-hint-circular {
+  background-color: #374151 !important;
+  color: #3b82f6 !important;
+}
+
+body.dark-mode .balao-dica,
+body.dark-mode .balao-hint-lateral {
+  background: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #d1d5db !important;
+}
+
+body.dark-mode .balao-hint-lateral::before {
+  border-color: transparent #1f2937 transparent transparent !important;
+}
+
+body.dark-mode .tag-palavra-ingles {
+  background-color: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode .card-imagem-item {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .card-imagem-item .legenda-card {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .card-imagem-item.selecionada {
+  border-color: #3b82f6 !important;
+  background-color: #1e3a8a !important;
+}
+
+/* =========================================
+   FEEDBACK DE ERRO VISUAL
+   ========================================= */
+
+.btn-navegacao.btn-erro {
+  background-color: #ef4444 !important;
+  box-shadow: 0 4px 0 #b91c1c !important;
+  color: white !important;
+}
+
+.btn-opcao-item.erro,
+.card-imagem-item.erro,
+.input-lacuna.erro,
+.area-montagem.erro {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+}
+
+body.dark-mode .btn-opcao-item.erro,
+body.dark-mode .card-imagem-item.erro,
+body.dark-mode .input-lacuna.erro,
+body.dark-mode .area-montagem.erro {
+  background-color: #450a0a !important; 
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+.anim-shake-erro {
+  animation: shakeErro 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shakeErro {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+  40%, 60% { transform: translate3d(6px, 0, 0); }
 }
