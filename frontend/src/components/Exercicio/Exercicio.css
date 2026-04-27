@@ -5,7 +5,7 @@
 .container-exercicio {
   background-color: white;
   padding: 20px;
-  padding-bottom: 80px; /* Isso cria o espaço para a barra não cobrir nada */
+  padding-bottom: 120px; /* Isso cria o espaço para a barra não cobrir nada */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -61,7 +61,7 @@
 
 .progresso-barra {
   height: 12px;
-  background-color: #2B8CEE;
+  background-color: #2b8cee;
   border-radius: 10px;
 }
 
@@ -70,7 +70,7 @@
   justify-content: space-between;
   margin-top: 8px;
   font-size: 0.9rem;
-  color: #2B8CEE;
+  color: #2b8cee;
 }
 
 /* =========================================
@@ -131,7 +131,7 @@
   flex-direction: column;
 }
 
-.container-audio-hint{
+.container-audio-hint {
   position: absolute;
   right: 0;
   display: flex;
@@ -139,7 +139,7 @@
   gap: 12px;
 }
 
-.container-audio-hint button{
+.container-audio-hint button {
   margin: 0 30px;
 }
 
@@ -237,19 +237,21 @@
 }
 
 .barra-navegacao-inferior {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: transparent;
-  padding: 20px;
   display: flex;
   justify-content: center;
-  gap: 20px;
-  box-shadow: none;
-  border-top: none;
+  gap: 16px;
+  width: 100%;
+  max-width: 700px; /* Trava o crescimento em telas de PC */
+  margin: 0 auto; /* Centraliza horizontalmente */
+  padding: 16px 24px;
+  position: fixed; /* Fixa no fundo */
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%); /* Garante centralização absoluta */
+  background-color: #ffffff; /* Fundo branco para não misturar com o texto atrás */
+  border-top: 2px solid #e2e8f0; /* Linha de divisão sutil */
   z-index: 100;
-  pointer-events: none;
+  border-radius: 20px 20px 0 0; /* Arredonda as bordas superiores da barra */
 }
 
 .barra-navegacao-inferior > * {
@@ -257,14 +259,16 @@
 }
 
 .btn-navegacao {
-  padding: 15px 40px;
-  border-radius: 50px;
-  font-weight: bold;
+  flex: 1;
+  max-width: 250px; /* O botão nunca passará desse tamanho */
+  padding: 14px 24px; /* Deixa o botão menos "alto" */
+  border-radius: 16px;
   font-size: 1.1rem;
-  border: none;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  min-width: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn-navegacao.primario {
@@ -312,9 +316,15 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .layout-grade-imagens {
@@ -325,7 +335,7 @@
   align-items: center;
 }
 
-.container-translate-audio{
+.container-translate-audio {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -396,12 +406,12 @@
   width: 100%;
 }
 
-.container-imagem-lacuna{
+.container-imagem-lacuna {
   display: flex;
   position: relative;
 }
 
-.container-imagem-lacuna .container-audio-hint{
+.container-imagem-lacuna .container-audio-hint {
   padding-top: 30px;
 }
 
@@ -476,7 +486,13 @@
   font-size: 0.9rem;
 }
 
-.layout-ordenar { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
+.layout-ordenar {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .container-audio-exibicao {
   background-color: hsla(210, 85%, 55%, 0.05);
@@ -489,13 +505,14 @@
   margin-bottom: 20px;
 }
 
-.btn-audio-circular, .btn-hint-circular{
+.btn-audio-circular,
+.btn-hint-circular {
   margin: 20px;
   /* margin-right: 0; */
   width: 48px;
   height: 48px;
   border-radius: 100%;
-  background-color: #2B8CEE;
+  background-color: #2b8cee;
   color: white;
   display: flex;
   justify-content: center;
@@ -503,9 +520,9 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-.btn-hint-circular{
+.btn-hint-circular {
   background-color: white;
-  color: #2B8CEE;
+  color: #2b8cee;
 }
 
 .balao-frase {
@@ -549,12 +566,12 @@
   padding: 0 20px;
   display: grid;
   /* Cria 3 colunas com tamanhos iguais (1 fração cada) */
-  grid-template-columns: repeat(3, 1fr); 
-  
+  grid-template-columns: repeat(3, 1fr);
+
   /* Mantém o espaçamento e margem que você já tinha */
   gap: 10px;
   margin-top: 20px;
-  
+
   /* Opcional: Centraliza o conteúdo se o container for maior que o grid */
   justify-content: center;
 }
@@ -570,7 +587,10 @@
   font-size: 1rem;
 }
 
-.btn-puzzle:active { transform: translateY(2px); border-bottom-width: 2px; }
+.btn-puzzle:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
 
 .btn-puzzle.em-uso {
   background: #e5e5e5;
@@ -579,21 +599,21 @@
   cursor: default;
 }
 
-.container-img-pequena{
+.container-img-pequena {
   width: 100%;
   text-align: center;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   border-radius: 24px;
   padding: 32px;
 
   display: flex;
   flex-direction: column; /* Alinha tudo em pé */
-  align-items: center;    /* Centraliza os itens horizontalmente */
-  position: relative;     /* Para o botão de áudio não fugir */
-  overflow: hidden;       /* Garante que nada saia das bordas arredondadas */
+  align-items: center; /* Centraliza os itens horizontalmente */
+  position: relative; /* Para o botão de áudio não fugir */
+  overflow: hidden; /* Garante que nada saia das bordas arredondadas */
 }
 
-.container-img-pequena img{
+.container-img-pequena img {
   border-radius: 16px;
   max-width: 100%;
   height: auto;
@@ -675,14 +695,20 @@
   font-size: 0.95rem;
   color: #555;
   max-width: 300px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   animation: surgindo 0.3s ease-out;
 }
 
 @keyframes surgindo {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Posicionamento do botão e balão */
@@ -697,15 +723,15 @@
   left: 90px; /* Empurra o balão para a direita do botão */
   top: 50%;
   transform: translateY(-50%); /* Centraliza verticalmente */
-  
+
   width: 180px;
-  background: #FFF9C4; /* Amarelo suave para o EJA */
-  border: 1px solid #FBC02D;
+  background: #fff9c4; /* Amarelo suave para o EJA */
+  border: 1px solid #fbc02d;
   padding: 10px;
   border-radius: 8px;
   font-size: 0.85rem;
-  color: #5D4037;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+  color: #5d4037;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 99;
   animation: aparecerDica 0.3s ease-out; /* Animação suave */
 }
@@ -719,12 +745,18 @@
   margin-top: -8px;
   border-width: 8px;
   border-style: solid;
-  border-color: transparent #FBC02D transparent transparent; /* Aponta para o botão */
+  border-color: transparent #fbc02d transparent transparent; /* Aponta para o botão */
 }
 
 @keyframes aparecerDica {
-  from { opacity: 0; transform: translateY(-50%) translateX(-10px); }
-  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 /* =========================================
@@ -890,18 +922,31 @@ body.dark-mode .btn-opcao-item.erro,
 body.dark-mode .card-imagem-item.erro,
 body.dark-mode .input-lacuna.erro,
 body.dark-mode .area-montagem.erro {
-  background-color: #450a0a !important; 
+  background-color: #450a0a !important;
   border-color: #ef4444 !important;
   color: #fca5a5 !important;
 }
 
 .anim-shake-erro {
-  animation: shakeErro 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  animation: shakeErro 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 @keyframes shakeErro {
-  10%, 90% { transform: translate3d(-2px, 0, 0); }
-  20%, 80% { transform: translate3d(4px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-  40%, 60% { transform: translate3d(6px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(4px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(6px, 0, 0);
+  }
 }
