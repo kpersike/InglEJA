@@ -80,12 +80,7 @@ function Exercicio() {
     }
   }, [indiceAtual, questoes]); // Sempre que o índice mudar, ele corre isto
 
-  // Limpa o alerta vermelho das bordas caso o usuário tente digitar ou selecionar de novo
-  useEffect(() => {
-    if (feedback.color === "red") {
-      setFeedback({ msg: "", color: "", acertou: false });
-    }
-  }, [resposta]);
+  // Limpa o alerta vermelho das bordas caso o usuário tente digitar ou selecionar de nov
 
   const questaoAtual = questoes[indiceAtual];
 
@@ -227,21 +222,38 @@ function Exercicio() {
 
   // Dicionário rápido de detecção de português
   const descobrirIdioma = (texto) => {
-    if (!texto) return 'en-US';
+    if (!texto) return "en-US";
     // 1. Se tem acentos/cedilha, é português com certeza
-    if (/[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(texto)) return 'pt-BR';
-    
+    if (/[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(texto)) return "pt-BR";
+
     const txtLower = texto.toLowerCase().trim();
-    
+
     // 2. Se for igual à tradução da questão atual
-    if (questaoAtual?.traducao && txtLower === questaoAtual.traducao.toLowerCase()) return 'pt-BR';
+    if (
+      questaoAtual?.traducao &&
+      txtLower === questaoAtual.traducao.toLowerCase()
+    )
+      return "pt-BR";
 
     // 3. Mini-dicionário de palavras usadas como opções incorretas frequentemente em PT
-    const armadilhasPT = ["casa", "carro", "cachorro", "gato", "homem", "mulher", "menino", "menina", "sol", "lua", "livro", "água"];
-    if (armadilhasPT.includes(txtLower)) return 'pt-BR';
+    const armadilhasPT = [
+      "casa",
+      "carro",
+      "cachorro",
+      "gato",
+      "homem",
+      "mulher",
+      "menino",
+      "menina",
+      "sol",
+      "lua",
+      "livro",
+      "água",
+    ];
+    if (armadilhasPT.includes(txtLower)) return "pt-BR";
 
     // Se não caiu em nenhuma regra, assume que é a palavra em inglês
-    return 'en-US';
+    return "en-US";
   };
 
   const falarTextoOpcao = (texto) => {
@@ -251,30 +263,44 @@ function Exercicio() {
 
     const textoLimpo = texto.replace(/[.,/#!?$%^&*;:{}=\-_`~()]/g, "").trim();
 
-    if (textoLimpo && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
-      
+    if (textoLimpo && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(textoLimpo);
       const idiomaDetectado = descobrirIdioma(textoLimpo);
-      utterance.lang = idiomaDetectado; 
-      utterance.rate = 0.9; 
+      utterance.lang = idiomaDetectado;
+      utterance.rate = 0.9;
 
       // Obtendo vozes. Os navegadores muitas vezes requerem um pequeno setup para não retornar array vazio.
       let vozes = window.speechSynthesis.getVoices();
 
       let vozEscolhida = null;
-      if (idiomaDetectado === 'pt-BR') {
-         // Para português, buscamos a voz premium do Google ou as vozes masculinas do Windows
-         vozEscolhida = vozes.find(v => v.lang === 'pt-BR' && v.name.includes('Google')) ||
-                        vozes.find(v => v.lang === 'pt-BR' && (v.name.includes('Antonio') || v.name.includes('Luciano') || v.name.includes('Daniel'))) ||
-                        vozes.find(v => v.lang.startsWith('pt'));
+      if (idiomaDetectado === "pt-BR") {
+        // Para português, buscamos a voz premium do Google ou as vozes masculinas do Windows
+        vozEscolhida =
+          vozes.find((v) => v.lang === "pt-BR" && v.name.includes("Google")) ||
+          vozes.find(
+            (v) =>
+              v.lang === "pt-BR" &&
+              (v.name.includes("Antonio") ||
+                v.name.includes("Luciano") ||
+                v.name.includes("Daniel")),
+          ) ||
+          vozes.find((v) => v.lang.startsWith("pt"));
       } else {
-         // Para Inglês
-         vozEscolhida = vozes.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
-                        vozes.find(v => v.lang === 'en-US' && (v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Mark'))) ||
-                        vozes.find(v => v.lang.startsWith('en'));
+        // Para Inglês
+        vozEscolhida =
+          vozes.find((v) => v.lang === "en-US" && v.name.includes("Google")) ||
+          vozes.find(
+            (v) =>
+              v.lang === "en-US" &&
+              (v.name.includes("David") ||
+                v.name.includes("Guy") ||
+                v.name.includes("Mark")),
+          ) ||
+          vozes.find((v) => v.lang.startsWith("en"));
       }
-      
+
       if (vozEscolhida) {
         utterance.voice = vozEscolhida;
       }
@@ -285,11 +311,11 @@ function Exercicio() {
 
   // Garante que o navegador carregue as vozes assim que possível
   useEffect(() => {
-    if ('speechSynthesis' in window) {
-       window.speechSynthesis.getVoices();
-       window.speechSynthesis.onvoiceschanged = () => {
-         window.speechSynthesis.getVoices();
-       };
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
     }
   }, []);
 
@@ -387,23 +413,23 @@ function Exercicio() {
                     </div>
                   </div>
                 </div>
-                  <div className="lista-botoes-opcoes">
-                    {questaoAtual.opcoes.map((opcao, idx) => (
-                      <button
-                        key={idx}
-                        className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""} ${resposta === opcao && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
-                        onClick={() => {
-                          setResposta(opcao);
-                          tocarSFX("botao_selecionar_resposta.mp3"); // Som ao selecionar a opção
-                          falarTextoOpcao(opcao); // Lê automaticamente a opção no idioma correto
-                        }}
-                        disabled={feedback.acertou}
-                      >
-                        <span className="numero-indicador">{idx + 1}</span>
-                        {opcao}
-                      </button>
-                    ))}
-                  </div>
+                <div className="lista-botoes-opcoes">
+                  {questaoAtual.opcoes.map((opcao, idx) => (
+                    <button
+                      key={idx}
+                      className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""} ${resposta === opcao && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
+                      onClick={() => {
+                        setResposta(opcao);
+                        tocarSFX("botao_selecionar_resposta.mp3"); // Som ao selecionar a opção
+                        falarTextoOpcao(opcao); // Lê automaticamente a opção no idioma correto
+                      }}
+                      disabled={feedback.acertou}
+                    >
+                      <span className="numero-indicador">{idx + 1}</span>
+                      {opcao}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -448,7 +474,7 @@ function Exercicio() {
                       key={idx}
                       className={`card-imagem-item ${resposta === opcao.texto ? "selecionada" : ""} ${resposta === opcao.texto && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
                       onClick={() => {
-                        setResposta(opcao.texto); 
+                        setResposta(opcao.texto);
                         tocarSFX("botao_selecionar_resposta.mp3");
                         falarTextoOpcao(opcao.texto);
                       }}
@@ -563,10 +589,19 @@ function Exercicio() {
                   />
                 </div>
 
-                <div className={`area-montagem ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`} onClick={removerUltimaPalavra}>
+                <div
+                  className={`area-montagem ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
+                  onClick={removerUltimaPalavra}
+                >
                   {resposta ? (
                     resposta.split(" ").map((pal, i) => (
-                      <span key={i} className="palavra-montada" onClick={() => tocarSFX("botao_deselecionar_resposta.mp3")}>
+                      <span
+                        key={i}
+                        className="palavra-montada"
+                        onClick={() =>
+                          tocarSFX("botao_deselecionar_resposta.mp3")
+                        }
+                      >
                         {pal}
                       </span>
                     ))
@@ -585,9 +620,9 @@ function Exercicio() {
                         key={idx}
                         className={`btn-puzzle ${selecionada ? "item-escondido" : ""}`}
                         onClick={() => {
-                          adicionarPalavra(palavra); 
+                          adicionarPalavra(palavra);
                           tocarSFX("botao_selecionar_resposta.mp3");
-                          falarTextoOpcao(palavra); 
+                          falarTextoOpcao(palavra);
                         }}
                         disabled={feedback.acertou || selecionada}
                       >
