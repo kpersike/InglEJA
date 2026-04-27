@@ -114,5 +114,18 @@
     "progresso": {
       "saudacoes": true
     }
+  },
+  {
+    "nome": "Marcel",
+    "email": "crudelli.marcel@gmail.com",
+    "senha": "1010",
+    "pontos": 2320,
+    "progresso": {
+      "saudacoes": true,
+      "cores": true,
+      "familia": true,
+      "comida": true,
+      "musica": true
+    }
   }
 ]
