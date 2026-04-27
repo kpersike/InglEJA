@@ -9,6 +9,7 @@
   top: 0;
   left: 0;
   z-index: 1000;
+  border-bottom: 2px solid #e2e8f0; /* Divisória sutil da navbar */
 }
 
 .nav-logo {
@@ -28,6 +29,20 @@
   font-weight: 800;
   font-size: 1.2rem;
   color: #1a202c; /* Adicionado: Uma cor escura para o modo claro */
+  transition: color 0.3s ease;
+}
+
+/* --- SUPORTE A DARK MODE: Garantindo leitura correta --- */
+@media (prefers-color-scheme: dark) {
+  .logo-name {
+    color: #ffffff;
+  }
+}
+
+/* Fallback caso use classe na tag body/html para gerenciar o tema */
+.dark-mode .logo-name,
+body[data-theme="dark"] .logo-name {
+  color: #ffffff;
 }
 
 .btn-logout {
@@ -38,4 +53,52 @@
   cursor: pointer;
   font-weight: 600;
   color: #ef4444; /* Vermelho para sair */
+}
+
+/* --- ESTILOS DO STATUS DE GAMIFICAÇÃO --- */
+.status-gamificacao {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #4a5568;
+}
+
+.icone-idioma {
+  color: #318ff5;
+  font-size: 1.6rem;
+}
+.icone-fogo {
+  color: #ff9600;
+  font-size: 1.6rem;
+}
+.icone-estrela {
+  color: #ffc800;
+  font-size: 1.6rem;
+}
+
+.avatar-circulo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #318ff5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.avatar-circulo:hover {
+  transform: scale(1.05);
 }

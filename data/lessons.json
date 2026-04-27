@@ -1,53 +1,245 @@
 {
   "niveis": [
-{
+    {
       "id": 1,
       "slug": "saudacoes",
       "titulo": "Nível 1: Saudações",
       "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Oi'?", "dica": "É a forma mais curta de cumprimentar.", "traducao": "Oi", "audio": "hi.mp3", "img": "aceno.jpg", "opcoes": ["Hi", "Bye", "Water", "Milk"], "resposta": "Hi" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Olá'?", "dica": "Parece com o 'Alô' do telefone.", "traducao": "Olá", "audio": "hello.mp3", "img": "ola.jpg", "opcoes": ["Hello", "Please", "Morning", "Night"], "resposta": "Hello" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como pedir 'Água'?", "dica": "Essencial para a vida!", "traducao": "Água", "audio": "water.mp3", "img": "agua.jpg", "opcoes": ["Water", "Coffee", "Juice", "Soda"], "resposta": "Water" },
-        { "id": 4, "tipo": "escolha_imagem", "pergunta_exibicao": "Qual é o 'Bom dia'?", "palavra_ingles": "GOOD MORNING", "audio": "good_morning.mp3", "traducao": "Bom dia", "opcoes": [{ "texto": "Good Morning", "img": "sunrise.jpg" }, { "texto": "Good Night", "img": "moon.jpg" }], "resposta": "Good Morning" },
-        { "id": 5, "tipo": "escolha_imagem", "pergunta_exibicao": "Escolha a 'Noite'", "palavra_ingles": "NIGHT", "audio": "night.mp3", "traducao": "Noite", "opcoes": [{ "texto": "Day", "img": "sun.jpg" }, { "texto": "Night", "img": "night_stars.jpg" }], "resposta": "Night" },
-        { "id": 7, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete a saudação", "frase_parte_1": "Good", "frase_parte_2": "", "audio": "good_afternoon.mp3", "img": "afternoon_sun.jpg", "dica": "Saudação usada após o almoço.", "traducao": "Boa tarde", "resposta": "afternoon" },
-        { "id": 8, "tipo": "ordenar_frase", "pergunta_exibicao": "Ordene a palavra", "audio": "hello.mp3", "frase_exibicao": "Olá!", "img": "aceno.jpg", "opcoes": ["Hello", "!"], "traducao": "Olá", "resposta": "Hello !" },
-        { "id": 9, "tipo": "ordenar_frase", "pergunta_exibicao": "Como se diz 'Bom dia'?", "audio": "good_morning.mp3", "frase_exibicao": "Bom dia", "img": "sunrise.jpg", "opcoes": ["Morning", "Good", "Night"], "traducao": "Bom dia", "resposta": "Good Morning" },
-        { "id": 10, "tipo": "preencher_lacuna", "pergunta_exibicao": "Apresentação", "frase_parte_1": "", "frase_parte_2": ", my name is...", "audio": "hello_my_name_is.mp3", "img": "ola.jpg", "dica": "A palavra para 'Olá'.", "traducao": "Olá, meu nome é...", "resposta": "Hello" }
+        {
+          "id": 1,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "Como se diz 'Oi'?",
+          "dica": "É a forma mais curta de cumprimentar.",
+          "traducao": "Oi",
+          "audio": "hi.mp3",
+          "img": "aceno.jpg",
+          "opcoes": ["Hi", "Bye", "Water", "Milk"],
+          "resposta": "Hi"
+        },
+        {
+          "id": 2,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "Como se diz 'Olá'?",
+          "dica": "Parece com o 'Alô' do telefone.",
+          "traducao": "Olá",
+          "audio": "hello.mp3",
+          "img": "ola.jpg",
+          "opcoes": ["Hello", "Please", "Morning", "Night"],
+          "resposta": "Hello"
+        },
+        {
+          "id": 3,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "Como pedir 'Água'?",
+          "dica": "Essencial para a vida!",
+          "traducao": "Água",
+          "audio": "water.mp3",
+          "img": "agua.jpg",
+          "opcoes": ["Water", "Coffee", "Juice", "Soda"],
+          "resposta": "Water"
+        },
+        {
+          "id": 4,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Qual é o 'Bom dia'?",
+          "palavra_ingles": "GOOD MORNING",
+          "audio": "good_morning.mp3",
+          "traducao": "Bom dia",
+          "opcoes": [
+            { "texto": "Good Morning", "img": "sunrise.jpg" },
+            { "texto": "Good Night", "img": "moon.jpg" }
+          ],
+          "resposta": "Good Morning"
+        },
+        {
+          "id": 5,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha a 'Noite'",
+          "palavra_ingles": "NIGHT",
+          "audio": "night.mp3",
+          "traducao": "Noite",
+          "opcoes": [
+            { "texto": "Day", "img": "sun.jpg" },
+            { "texto": "Night", "img": "night_stars.jpg" }
+          ],
+          "resposta": "Night"
+        },
+        {
+          "id": 7,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Complete a saudação",
+          "frase_parte_1": "Good",
+          "frase_parte_2": "",
+          "audio": "good_afternoon.mp3",
+          "img": "afternoon_sun.jpg",
+          "dica": "Saudação usada após o almoço.",
+          "traducao": "Boa tarde",
+          "resposta": "afternoon"
+        },
+        {
+          "id": 8,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Ordene a palavra",
+          "audio": "hello.mp3",
+          "frase_exibicao": "Olá!",
+          "img": "aceno.jpg",
+          "opcoes": ["Hello", "!"],
+          "traducao": "Olá",
+          "resposta": "Hello !"
+        },
+        {
+          "id": 9,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Como se diz 'Bom dia'?",
+          "audio": "good_morning.mp3",
+          "frase_exibicao": "Bom dia",
+          "img": "sunrise.jpg",
+          "opcoes": ["Morning", "Good", "Night"],
+          "traducao": "Bom dia",
+          "resposta": "Good Morning"
+        },
+        {
+          "id": 10,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Apresentação",
+          "frase_parte_1": "",
+          "frase_parte_2": ", my name is...",
+          "audio": "hello_my_name_is.mp3",
+          "img": "ola.jpg",
+          "dica": "A palavra para 'Olá'.",
+          "traducao": "Olá, meu nome é...",
+          "resposta": "Hello"
+        }
       ]
     },
-  {
+    {
       "id": 2,
       "slug": "cores",
       "titulo": "Nível 2: Cores",
       "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Amarelo'?", "dica": "Cor do sol.", "traducao": "Amarelo", "audio": "yellow.mp3", "img": "yellow.jpg", "opcoes": ["Yellow", "Red", "Blue", "Green"], "resposta": "Yellow" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Verde'?", "dica": "Cor das árvores e grama.", "traducao": "Verde", "audio": "green.mp3", "img": "green.jpg", "opcoes": ["Pink", "Green", "Black", "White"], "resposta": "Green" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Preto'?", "dica": "Cor da noite.", "traducao": "Preto", "audio": "black.mp3", "img": "black.jpg", "opcoes": ["White", "Black", "Brown", "Grey"], "resposta": "Black" },
-        { "id": 4, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Branco'?", "dica": "Cor das nuvens.", "traducao": "Branco", "audio": "white.mp3", "img": "white.jpg", "opcoes": ["Purple", "White", "Red", "Blue"], "resposta": "White" },
-        { "id": 5, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Rosa'?", "dica": "Muitas flores têm essa cor.", "traducao": "Rosa", "audio": "pink.mp3", "img": "pink.jpg", "opcoes": ["Pink", "Orange", "Yellow", "Green"], "resposta": "Pink" },
-        { "id": 6, "tipo": "escolha_imagem", "pergunta_exibicao": "Qual é a cor 'RED'?", "palavra_ingles": "RED", "audio": "red.mp3", "traducao": "Vermelho", "opcoes": [{ "texto": "Vermelho", "img": "red.jpg" }, { "texto": "Azul", "img": "blue.jpg" }], "resposta": "Vermelho" },
-        { "id": 7, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete a cor", "frase_parte_1": "The sky is", "frase_parte_2": "", "audio": "blue.mp3", "img": "sky.jpg", "dica": "O céu é azul.", "traducao": "O céu é azul", "resposta": "blue" },
-        { "id": 8, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete a cor", "frase_parte_1": "The grass is", "frase_parte_2": "", "audio": "green.mp3", "img": "grass.jpg", "dica": "A grama é verde.", "traducao": "A grama é verde", "resposta": "green" },
-        { "id": 9, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Eu gosto de azul", "audio": "i_like_blue.mp3", "frase_exibicao": "Eu gosto de azul", "img": "blue.jpg", "opcoes": ["blue", "I", "like"], "traducao": "Eu gosto de azul", "resposta": "I like blue" },
-        { "id": 10, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Uma maçã vermelha", "audio": "a_red_apple.mp3", "frase_exibicao": "Uma maçã vermelha", "img": "apple_card.jpg", "opcoes": ["apple", "red", "A"], "traducao": "Uma maçã vermelha", "resposta": "A red apple" }
+        {
+          "id": 1,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "O que é isto?",
+          "dica": "É uma fruta vermelha muito comum.",
+          "subtitulo": "Selecione a palavra correspondente",
+          "audio": "red_apple.mp3",
+          "img": "red_apple.jpg",
+          "opcoes": ["Banana", "Apple", "Orange", "Grape"],
+          "resposta": "Apple"
+        },
+        {
+          "id": 2,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha a imagem correta",
+          "palavra_ingles": "APPLE",
+          "audio": "red_apple.mp3",
+          "traducao": "Maçã",
+          "opcoes": [
+            { "texto": "Maçã", "img": "apple_card.jpg" },
+            { "texto": "Casa", "img": "house_card.jpg" },
+            { "texto": "Carro", "img": "car_card.jpg" },
+            { "texto": "Cachorro", "img": "dog_card.jpg" }
+          ],
+          "resposta": "Maçã"
+        },
+        {
+          "id": 3,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Where do you live?",
+          "frase_parte_1": "I live",
+          "frase_parte_2": "Brazil",
+          "audio": "live_in_brazil.mp3",
+          "img": "brazil_map.jpg",
+          "dica": "Pense na preposição usada para países.",
+          "resposta": "in"
+        },
+        {
+          "id": 4,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Traduza esta frase",
+          "audio": "the_cat_is_on_the_mat.mp3",
+          "frase_exibicao": "The cat is on the mat.",
+          "img": "cat_mat.jpg",
+          "opcoes": ["is", "on", "mat", "dog", "the", "under", "cat", "The"],
+          "resposta": "The cat is on the mat"
+        }
       ]
     },
+
     {
       "id": 3,
       "slug": "familia",
       "titulo": "Nível 3: Família",
       "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Irmão'?", "dica": "Pense em 'Brother'.", "traducao": "Irmão", "audio": "brother.mp3", "img": "brother.jpg", "opcoes": ["Sister", "Brother", "Father", "Mother"], "resposta": "Brother" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Irmã'?", "dica": "Começa com S.", "traducao": "Irmã", "audio": "sister.mp3", "img": "sister.jpg", "opcoes": ["Sister", "Brother", "Son", "Daughter"], "resposta": "Sister" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Filho'?", "dica": "Palavra curta: Son.", "traducao": "Filho", "audio": "son.mp3", "img": "son.jpg", "opcoes": ["Son", "Sun", "Boy", "Girl"], "resposta": "Son" },
-        { "id": 4, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Filha'?", "dica": "Palavra longa: Daughter.", "traducao": "Filha", "audio": "daughter.mp3", "img": "daughter.jpg", "opcoes": ["Daughter", "Sister", "Mother", "Woman"], "resposta": "Daughter" },
-        { "id": 5, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Bebê'?", "dica": "Quase igual ao português.", "traducao": "Bebê", "audio": "baby.mp3", "img": "baby.jpg", "opcoes": ["Kid", "Baby", "Man", "Woman"], "resposta": "Baby" },
-        { "id": 6, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Avô'?", "dica": "Grandfather.", "traducao": "Avô", "audio": "grandfather.mp3", "img": "grandfather.jpg", "opcoes": ["Grandmother", "Grandfather", "Father", "Uncle"], "resposta": "Grandfather" },
-        { "id": 7, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Avó'?", "dica": "Grandmother.", "traducao": "Avó", "audio": "grandmother.mp3", "img": "grandmother.jpg", "opcoes": ["Grandmother", "Grandfather", "Mother", "Aunt"], "resposta": "Grandmother" },
-        { "id": 8, "tipo": "preencher_lacuna", "pergunta_exibicao": "Meu pai é alto", "frase_parte_1": "My", "frase_parte_2": "is tall", "audio": "father.mp3", "img": "tall_man.jpg", "dica": "My father.", "traducao": "Meu pai é alto", "resposta": "father" },
-        { "id": 9, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Minha família", "audio": "my_family.mp3", "frase_exibicao": "Minha família", "img": "family.jpg", "opcoes": ["family", "My"], "traducao": "Minha família", "resposta": "My family" },
-        { "id": 10, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Eu tenho um irmão", "audio": "i_have_a_brother.mp3", "frase_exibicao": "Eu tenho um irmão", "img": "brother.jpg", "opcoes": ["brother", "a", "have", "I"], "traducao": "Eu tenho um irmão", "resposta": "I have a brother" }
+        {
+          "id": 1,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "Como se diz 'Mãe'?",
+          "dica": "Começa com a letra M.",
+          "subtitulo": "Selecione a palavra correspondente",
+          "audio": "mother.mp3",
+          "img": "mother.jpg",
+          "opcoes": ["Father", "Mother", "Brother", "Sister"],
+          "resposta": "Mother"
+        },
+        {
+          "id": 2,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Complete a frase",
+          "frase_parte_1": "She",
+          "frase_parte_2": "my mother.",
+          "audio": "she_is_my_mother.mp3",
+          "img": "mother.1.jpg",
+          "dica": "Qual verbo 'to be' usamos para 'She' (Ela)?",
+          "resposta": "is"
+        },
+        {
+          "id": 3,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha a imagem que descreva um 'Pai'",
+          "palavra_ingles": "FATHER",
+          "audio": "father.mp3",
+          "traducao": "Pai",
+          "opcoes": [
+            { "texto": "Father", "img": "father_card.jpg" },
+            { "texto": "Sister", "img": "sister_card.jpg" }
+          ],
+          "resposta": "Father"
+        },
+        {
+          "id": 4,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Traduza esta frase",
+          "audio": "he_is_my_father.mp3",
+          "frase_exibicao": "Ele é meu pai.",
+          "img": "father.1.jpg",
+          "opcoes": ["He", "is", "my", "father", "are", "mother"],
+          "traducao": "Ele é meu pai.",
+          "resposta": "He is my father"
+        },
+        {
+          "id": 5,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Irmãos no plural",
+          "frase_parte_1": "They",
+          "frase_parte_2": "my brothers.",
+          "audio": "they_are_my_brothers.mp3",
+          "img": "brothers.jpg",
+          "dica": "Qual verbo 'to be' usamos no plural para 'They' (Eles)?",
+          "resposta": "are"
+        },
+        {
+          "id": 6,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Falando de si mesmo",
+          "frase_parte_1": "I",
+          "frase_parte_2": "a brother.",
+          "audio": "i_am_a_brother.mp3",
+          "img": "brother_solo.jpg",
+          "dica": "Qual verbo 'to be' acompanha exclusivamente o 'I' (Eu)?",
+          "resposta": "am"
+        }
       ]
     },
     {
@@ -55,33 +247,74 @@
       "slug": "comida",
       "titulo": "Nível 4: Comida",
       "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Pão'?", "dica": "Bread.", "traducao": "Pão", "audio": "bread.mp3", "img": "bread.jpg", "opcoes": ["Milk", "Bread", "Cheese", "Butter"], "resposta": "Bread" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Leite'?", "dica": "Milk.", "traducao": "Leite", "audio": "milk.mp3", "img": "milk.jpg", "opcoes": ["Water", "Coffee", "Milk", "Tea"], "resposta": "Milk" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Café'?", "dica": "Coffee.", "traducao": "Café", "audio": "coffee.mp3", "img": "coffee.jpg", "opcoes": ["Soda", "Juice", "Coffee", "Beer"], "resposta": "Coffee" },
-        { "id": 4, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Maçã'?", "dica": "Apple.", "traducao": "Maçã", "audio": "apple.mp3", "img": "apple_card.jpg", "opcoes": ["Orange", "Banana", "Apple", "Grape"], "resposta": "Apple" },
-        { "id": 5, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Arroz'?", "dica": "Rice.", "traducao": "Arroz", "audio": "rice.mp3", "img": "rice.jpg", "opcoes": ["Rice", "Beans", "Pasta", "Meat"], "resposta": "Rice" },
-        { "id": 6, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Feijão'?", "dica": "Beans.", "traducao": "Feijão", "audio": "beans.mp3", "img": "beans.jpg", "opcoes": ["Rice", "Beans", "Salad", "Soup"], "resposta": "Beans" },
-        { "id": 7, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Carne'?", "dica": "Meat.", "traducao": "Carne", "audio": "meat.mp3", "img": "meat.jpg", "opcoes": ["Fish", "Chicken", "Meat", "Egg"], "resposta": "Meat" },
-        { "id": 8, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete", "frase_parte_1": "I drink", "frase_parte_2": "every day", "audio": "water.mp3", "img": "drinking_water.jpg", "dica": "Eu bebo água todo dia.", "traducao": "Eu bebo água todo dia", "resposta": "water" },
-        { "id": 9, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Eu gosto de café", "audio": "i_like_coffee.mp3", "frase_exibicao": "Eu gosto de café", "img": "coffee.jpg", "opcoes": ["coffee", "like", "I"], "traducao": "Eu gosto de café", "resposta": "I like coffee" },
-        { "id": 10, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: O pão está quente", "audio": "the_bread_is_hot.mp3", "frase_exibicao": "O pão está quente", "img": "hot_bread.jpg", "opcoes": ["hot", "is", "bread", "The"], "traducao": "O pão está quente", "resposta": "The bread is hot" }
-      ]
-    },
-    {
-      "id": 5,
-      "slug": "musica",
-      "titulo": "Nível 5: Música",
-      "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Violão'? em inglês", "dica": "Guitar.", "traducao": "Violão", "audio": "guitar.mp3", "img": "guitar.jpg", "opcoes": ["Drums", "Piano", "Guitar", "Flute"], "resposta": "Guitar" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Bateria'? em inglês", "dica": "Drums.", "traducao": "Bateria", "audio": "drums.mp3", "img": "drums.jpg", "opcoes": ["Violin", "Drums", "Saxophone", "Bass"], "resposta": "Drums" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Cantor'? em inglês", "dica": "Singer", "traducao": "Cantor", "audio": "singer.mp3", "img": "singer.jpg", "opcoes": ["Dancer", "singer", "writer", "player"], "resposta": "Singer" },
-        { "id": 4, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete", "frase_parte_1": "She plays the", "frase_parte_2": "very well", "audio": "piano.mp3", "img": "piano.jpg", "dica": "Ela toca piano muito bem.", "traducao": "Ela toca piano muito bem", "resposta": "piano" },
-        { "id": 5, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Eu amo música", "audio": "i_love_music.mp3", "frase_exibicao": "Eu amo música", "img": "music_love.jpg", "opcoes": ["music", "love", "I"], "traducao": "Eu amo música", "resposta": "I love music" },
-        { "id": 6, "tipo": "escolha_palavra", "pergunta_exibicao": "como se diz 'Concerto'? em inglês", "dica": "Um show ao vivo.", "traducao": "Show/Concerto", "audio": "concert.mp3", "img": "concert.jpg", "opcoes": ["Cinema", "Concert", "Party", "Mall"], "resposta": "Concert" },
-        { "id": 7, "tipo": "preencher_lacuna", "pergunta_exibicao": "Qual o verbo?", "frase_parte_1": "I want to", "audio": "sing.mp3", "img": "sing.jpg", "dica": "Eu quero cantar.", "traducao": "Eu quero cantar uma música", "resposta": "sing" },
-        { "id": 8, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Você toca violão?", "audio": "do_you_play_guitar.mp3", "frase_exibicao": "Você toca guitarra?", "img": "guitar.jpg", "opcoes": ["play", "you", "Do", "guitar", "?"], "traducao": "Você toca guitarra?", "resposta": "Do you play guitar ?" },
-        { "id": 9, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'alto'em inglês?", "dica": "loud.", "traducao": "Alto (volume)", "audio": "loud.mp3", "img": "loud.jpg", "opcoes": ["Quiet", "Loud", "Soft", "Slow"], "resposta": "Loud" },
-        { "id": 10, "tipo": "ordenar_frase", "pergunta_exibicao": "Traduza: Esta é minha música favorita", "audio": "favorite_song.mp3", "frase_exibicao": "Esta é minha música favorita", "img": "music_love.jpg", "opcoes": ["song", "is", "favorite", "my", "This"], "traducao": "Esta é minha música favorita", "resposta": "This is my favorite song" }
+        {
+          "id": 1,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "Como se diz 'Café'?",
+          "dica": "Uma das bebidas mais tradicionais do Brasil.",
+          "subtitulo": "Selecione a palavra correspondente",
+          "audio": "coffee.mp3",
+          "img": "coffee.jpg",
+          "opcoes": ["Water", "Coffee", "Tea", "Juice"],
+          "resposta": "Coffee"
+        },
+        {
+          "id": 2,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Escolha o 'Pão'",
+          "palavra_ingles": "BREAD",
+          "audio": "bread.mp3",
+          "traducao": "Pão",
+          "opcoes": [
+            { "texto": "Bread", "img": "bread_card.jpg" },
+            { "texto": "Apple", "img": "apple_card1.jpg" }
+          ],
+          "resposta": "Bread"
+        },
+        {
+          "id": 3,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Descrevendo algo no singular",
+          "frase_parte_1": "The coffee",
+          "frase_parte_2": "hot.",
+          "audio": "the_coffee_is_hot.mp3",
+          "img": "hot_coffee.jpg",
+          "dica": "Para coisas e objetos no singular (It), qual forma do verbo 'to be' usamos?",
+          "resposta": "is"
+        },
+        {
+          "id": 4,
+          "tipo": "preencher_lacuna",
+          "pergunta_exibicao": "Descrevendo algo no plural",
+          "frase_parte_1": "The apples",
+          "frase_parte_2": "red.",
+          "audio": "the_apples_are_red.mp3",
+          "img": "red_apples.jpg",
+          "dica": "Para o plural (Elas/They), o verbo 'to be' muda. Qual é o correto?",
+          "resposta": "are"
+        },
+        {
+          "id": 5,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Expressando uma necessidade",
+          "audio": "i_am_hungry.mp3",
+          "frase_exibicao": "Eu estou com fome.",
+          "img": "hungry.jpg",
+          "opcoes": ["I", "am", "hungry", "is", "are"],
+          "traducao": "Eu estou com fome.",
+          "resposta": "I am hungry"
+        },
+        {
+          "id": 6,
+          "tipo": "ordenar_frase",
+          "pergunta_exibicao": "Apresentando um alimento",
+          "audio": "this_is_bread.mp3",
+          "frase_exibicao": "Isto é pão.",
+          "img": "bread_solo.jpg",
+          "opcoes": ["This", "is", "bread", "am", "are"],
+          "traducao": "Isto é pão.",
+          "resposta": "This is bread"
+        }
       ]
     }
   ]
