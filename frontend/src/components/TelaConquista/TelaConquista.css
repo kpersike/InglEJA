@@ -43,6 +43,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
+  animation: float-trofeu 4s ease-in-out infinite;
 }
 
 .md-trophy-circle {
@@ -56,6 +57,27 @@
   /* Efeito de brilho azul suave ao redor */
   box-shadow: 0 0 30px rgba(26, 115, 232, 0.3);
   border: solid 8px white;
+
+  position: relative; 
+  overflow: hidden;
+}
+
+/* NOVO: Camada de Brilho (Pseudo-elemento) */
+.md-trophy-circle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%; /* Começa escondido à esquerda */
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%, /* Brilho branco semi-transparente */
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg); /* Inclina o brilho para ficar na diagonal */
+  animation: shimmer-trofeu 3s infinite; /* Executa a animação a cada 3 segundos */
 }
 
 .md-trophy-icon {
@@ -115,10 +137,14 @@
   margin-bottom: 15px;
 }
 
-/* Ícones dos stats */
-.md-icon-star { color: #1a73e8; font-size: 3rem; }
-.md-icon-clock { color: #1a73e8; font-size: 1rem; }
-.md-icon-lightning { color: #1a73e8; font-size: 1rem; }
+#material-symbols-outlined-star, #material-symbols-outlined-timer, #material-symbols-outlined-bolt { color: #1a73e8; transition: all 0.3s ease; display: inline-block; }
+#pontos-ganhos:hover #material-symbols-outlined-star, #combo-atual:hover #material-symbols-outlined-bolt{ 
+    color: rgb(228, 228, 1);
+}
+
+#tempo-total:hover #material-symbols-outlined-timer{
+  color: #8b5cf6;
+}
 
 /* Valor principal (XP, tempo, combo) */
 .md-stat-value {
@@ -244,4 +270,21 @@ body.dark-mode .md-btn-mapa {
 body.dark-mode .md-btn-continuar {
   background-color: #3b82f6 !important;
   color: white !important;
+}
+
+/* =========================================
+   NOVAS ANIMAÇÕES
+   ========================================= */
+
+/* Faz o brilho atravessar o círculo */
+@keyframes shimmer-trofeu {
+  0% { left: -150%; }
+  40% { left: 150%; } /* Passa rápido pelo ícone */
+  100% { left: 150%; } /* Pausa antes de brilhar novamente */
+}
+
+/* Faz o ícone flutuar suavemente */
+@keyframes float-trofeu {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }

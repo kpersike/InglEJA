@@ -305,7 +305,7 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar /> {/* A nova barra gamificada fica no topo de tudo */}
+      {/* <Navbar /> A nova barra gamificada fica no topo de tudo */}
       <div className="dashboard-wrapper">
         <header className="dashboard-header">
           <div className="header-left">
@@ -491,7 +491,10 @@ function Dashboard() {
           {configuracoes.layoutHorizontal && licoes.length > 2 && (
             <button
               className="scroll-arrow left"
-              onClick={() => scrollTimeline("esquerda")}
+              onClick={() => {
+                scrollTimeline("esquerda");
+                tocarSom("clique_menu.mp3");
+              }}
             >
               <span className="material-symbols-outlined" style={{ margin: 0 }}>
                 chevron_left
@@ -613,7 +616,10 @@ function Dashboard() {
           {configuracoes.layoutHorizontal && licoes.length > 2 && (
             <button
               className="scroll-arrow right"
-              onClick={() => scrollTimeline("direita")}
+              onClick={() => {
+                scrollTimeline("direita");
+                tocarSom("clique_menu.mp3"); 
+              }}
             >
               <span className="material-symbols-outlined" style={{ margin: 0 }}>
                 chevron_right
