@@ -365,18 +365,39 @@
   flex-direction: row;
   align-items: flex-start;
   overflow-x: auto;
-  padding: 20px 20px 40px 20px;
+  /* Aumentamos o padding lateral para 100px para o efeito de fade ter espaço */
+  padding: 20px 100px 40px 100px; 
   gap: 70px;
-  /* Mais espaço para os cards respirarem */
   justify-content: flex-start;
   scroll-behavior: smooth;
-
-  /* Efeito Magnético do Carrossel */
   scroll-snap-type: x mandatory;
-  scroll-padding-left: 20px;
+
+  /* --- A MÁSCARA MÁGICA AQUI --- */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 15%,
+    black 85%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 15%,
+    black 85%,
+    transparent
+  );
 
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.scroll-arrow.left {
+  left: -10px; /* Puxa um pouco mais para fora do fade */
+}
+
+.scroll-arrow.right {
+  right: -10px; /* Puxa um pouco mais para fora do fade */
 }
 
 .timeline-container.horizontal::-webkit-scrollbar {
@@ -798,6 +819,7 @@
   border-radius: 6px;
   margin-left: auto;
   transition: all 0.2s;
+  width: 50%;
 }
 
 .btn-limpar:hover {

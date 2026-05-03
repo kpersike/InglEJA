@@ -10,9 +10,9 @@ import "./App.css";
 function App() {
   return (
     <Router>
-      <div className="app-container"> {/* Adicione essa div */}
+      <div className="app-container">
         {/* <Navbar /> */}
-        <main className="main-content"> {/* Adicione essa main */}
+        <main className="main-content">
           <Routes>
             <Route path="/" element={<Auth />} />
             <Route path="/welcome" element={<Welcome />} /> 

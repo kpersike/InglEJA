@@ -63,6 +63,26 @@ function Exercicio() {
     carregarFase();
   }, [slug, navigate]);
 
+  const obterDadosProximaFase = () => {
+    // 1. Simule aqui o carregamento do seu JSON (ou use a variável onde você guarda as lições)
+    // Se você carrega as lições da API, use o array que vem do backend.
+    const niveis = [
+      { "id": 1, "slug": "saudacoes", "titulo": "Nível 1" },
+      { "id": 2, "slug": "cores", "titulo": "Nível 2" },
+      { "id": 3, "slug": "familia", "titulo": "Nível 3" },
+      { "id": 4, "slug": "comida", "titulo": "Nível 4" },
+      { "id": 5, "slug": "musica", "titulo": "Nível 5" }
+    ];
+
+    // 2. Encontra a posição da fase atual (slug vem do useParams)
+    const indiceAtual = niveis.findIndex(n => n.slug === slug);
+
+    // 3. Pega a próxima fase se existir
+    return niveis[indiceAtual + 1] || null;
+  };
+
+  const proximaFase = obterDadosProximaFase();
+
   // Dentro do componente Exercicio
   useEffect(() => {
     // 1. Verificamos se a questão atual existe e tem áudio
@@ -335,6 +355,8 @@ function Exercicio() {
           tempoTotal={tempoFinal}
           comboAtual={maxCombo}
           tituloNivel={tituloNivel}
+          proximoSlug={proximaFase?.slug} 
+          proximoTitulo={proximaFase ? `Nível ${proximaFase.id}` : "Fim"}
         />
       ) : (
         <>
@@ -599,7 +621,7 @@ function Exercicio() {
                         key={i}
                         className="palavra-montada"
                         onClick={() =>
-                          tocarSFX("botao_deselecionar_resposta.mp3")
+                          tocarSFX("botao_desselecionar_resposta.mp3")
                         }
                       >
                         {pal}
