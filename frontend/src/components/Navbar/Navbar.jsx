@@ -1,35 +1,49 @@
 import React from "react";
-import "./Navbar.css";
 
 const Navbar = () => {
   return (
-    <nav className="main-navbar">
-      <div className="nav-logo">
-        <div className="logo-dot"></div>
-        <span className="logo-name">InglEJA</span>
+    <nav className="w-full bg-white dark:bg-gray-900 flex items-center justify-between py-4 px-8 md:px-16 sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
+      {/* Lado Esquerdo: Logo */}
+      <div className="flex items-center gap-3">
+        <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
+        <span className="font-extrabold text-xl text-gray-900 dark:text-white tracking-tight transition-colors">
+          InglEJA
+        </span>
       </div>
 
-      <div className="status-gamificacao">
-        <div className="status-item idioma" title="Inglês">
-          <span className="material-symbols-outlined icone-idioma">
+      {/* Lado Direito: Status de Gamificação */}
+      <div className="hidden md:flex items-center gap-6">
+        <div
+          className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 font-bold"
+          title="Idioma"
+        >
+          <span className="material-symbols-outlined text-blue-500 text-[26px]">
             language
           </span>
         </div>
 
-        <div className="status-item ofensiva" title="Ofensiva">
-          <span className="material-symbols-outlined icone-fogo">
+        <div
+          className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 font-bold"
+          title="Ofensiva"
+        >
+          <span className="material-symbols-outlined text-orange-500 text-[26px]">
             local_fire_department
           </span>
-          <span className="valor">5</span>
+          <span>5</span>
         </div>
 
-        <div className="status-item xp" title="Experiência Total">
-          <span className="material-symbols-outlined icone-estrela">stars</span>
-          <span className="valor">420</span>
+        <div
+          className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 font-bold"
+          title="Experiência Total"
+        >
+          <span className="material-symbols-outlined text-yellow-400 text-[26px]">
+            stars
+          </span>
+          <span>420</span>
         </div>
 
-        <div className="status-item perfil">
-          <div className="avatar-circulo">F</div>
+        <div className="w-10 h-10 rounded-full bg-blue-500 text-white font-bold text-[15px] flex items-center justify-center shadow-sm ml-2">
+          F
         </div>
       </div>
     </nav>

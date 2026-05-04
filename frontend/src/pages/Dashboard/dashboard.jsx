@@ -1,122 +1,97 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
-import "./Dashboard.css";
+import "./dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const timelineRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const [menuAberto, setMenuAberto] = useState(null);
+
+  // Estado para controlar a revisão
+  const [faseEmRevisao, setFaseEmRevisao] = useState(
+    () => localStorage.getItem("fase_em_revisao") || null,
+  );
 
   const [usuario] = useState(() => {
     const dadosSalvos = localStorage.getItem("usuarioLogado");
-    return dadosSalvos
-      ? JSON.parse(dadosSalvos)
-      : {
-          email: "visitante@teste.com",
-          nome: "Aluno",
-          nivel: 1,
-          titulo: "Iniciante",
-        };
+    return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", nivel: 4 };
   });
 
-  const [loading] = useState(false);
-  const [menuAberto, setMenuAberto] = useState(null);
-
-  // Referências para fechar o menu e para o scroll do carrossel
-  const menuRef = useRef(null);
-  const timelineRef = useRef(null);
-
-  // Salva as configurações (Som, Modo Escuro e Layout Horizontal) no LocalStorage
   const [configuracoes, setConfiguracoes] = useState(() => {
     const configSalvas = localStorage.getItem("configuracoes_ingleja");
-    let config = configSalvas
-      ? JSON.parse(configSalvas)
-      : { som: true, modoEscuro: false, layoutHorizontal: false };
-
-    // Usa sessionStorage para saber se a página acabou de ser aberta ou se é só um refresh
-    const jaEstavaNestaSessao = sessionStorage.getItem("sessao_ingleja_ativa");
-
-    if (!jaEstavaNestaSessao) {
-      // O usuário acabou de abrir o site (nova aba/janela), forçamos o som a vir ticado
-      config.som = true;
-      sessionStorage.setItem("sessao_ingleja_ativa", "true");
+    if (configSalvas) {
+      const parsed = JSON.parse(configSalvas);
+      if (parsed.layoutHorizontal === undefined) parsed.layoutHorizontal = true;
+      return parsed;
     }
-
-    return config;
+    return { som: true, modoEscuro: false, layoutHorizontal: true };
   });
 
-  useEffect(() => {
-    localStorage.setItem(
-      "configuracoes_ingleja",
-      JSON.stringify(configuracoes),
-    );
-  }, [configuracoes]);
-
-  // Inicializa lendo do localStorage, se não tiver nada, inicia vazio
   const [notificacoes, setNotificacoes] = useState(() => {
     const salvas = localStorage.getItem("notificacoes_ingleja");
     return salvas ? JSON.parse(salvas) : [];
   });
 
-  // Sempre que a lista de notificações mudar, salva no localStorage
-  useEffect(() => {
-    localStorage.setItem("notificacoes_ingleja", JSON.stringify(notificacoes));
-  }, [notificacoes]);
-
-  // Crie um estado para a revisão persistir enquanto o usuário navega
-  const [, setFaseEmRevisao] = useState(() => {
-    return localStorage.getItem("fase_em_revisao") || null;
-  });
-
-  const [licoes, setLicoes] = useState(() => {
+  // Substituindo useState+useEffect por useMemo
+  const licoes = useMemo(() => {
     const progressoDoBanco = usuario.progresso || {};
-
     const fasesBase = [
       {
         id: 1,
         slug: "saudacoes",
-        titulo: "Nível 1: Saudações",
+        titulo: "Saudações Básicas",
         iconeTema: "waving_hand",
-        descricao: "Saudações básicas.",
+        descricao:
+          "Aprenda a iniciar conversas e cumprimentar pessoas no dia a dia.",
+        tempo: "15 min",
       },
       {
         id: 2,
         slug: "cores",
-        titulo: "Nível 2: Cores",
+        titulo: "Cores e Descrições",
         iconeTema: "palette",
-        descricao: "Cores e descrições.",
+        descricao:
+          "Explore o vocabulário visual e aprenda a descrever o mundo ao seu redor.",
+        tempo: "20 min",
       },
       {
         id: 3,
         slug: "familia",
-        titulo: "Nível 3: Família",
+        titulo: "Membros da Família",
         iconeTema: "family_restroom",
-        descricao: "Membros da família.",
+        descricao:
+          "Saiba como apresentar seus parentes e falar sobre sua árvore genealógica.",
+        tempo: "25 min",
       },
       {
         id: 4,
         slug: "comida",
-        titulo: "Nível 4: Comida",
+        titulo: "Alimentos e Bebidas",
         iconeTema: "restaurant",
-        descricao: "Alimentos e restaurantes.",
+        descricao:
+          "Domine o vocabulário essencial para ir a restaurantes e fazer compras.",
+        tempo: "30 min",
       },
       {
         id: 5,
         slug: "musica",
-        titulo: "Nível 5: Música",
+        titulo: "Ritmos e Cultura",
         iconeTema: "music_note",
-        descricao: "Ritmos e instrumentos.",
+        descricao:
+          "Conheça instrumentos musicais e expressões culturais em inglês.",
+        tempo: "20 min",
       },
     ];
-
-    // Recupera qual fase estava sendo revisada (salvo no passo anterior)
-    const slugSendoRevisado = localStorage.getItem("fase_em_revisao");
 
     return fasesBase.map((fase, index) => {
       const concluida = progressoDoBanco[fase.slug] === true;
       let status = "bloqueado";
 
-      if (fase.slug === slugSendoRevisado) {
-        status = "revisando"; // Prioridade visual para revisão
+      if (fase.slug === faseEmRevisao) {
+        status = "revisando";
       } else if (concluida) {
         status = "concluido";
       } else {
@@ -126,27 +101,49 @@ function Dashboard() {
       }
       return { ...fase, status };
     });
-  });
+  }, [usuario.progresso, faseEmRevisao]);
 
-  // --- CÁLCULOS DE PROGRESSO ---
+  // A lição ativa prioriza a que está sendo revisada
+  const licaoAtual =
+    licoes.find((l) => l.status === "revisando") ||
+    licoes.find((l) => l.status === "atual") ||
+    licoes[licoes.length - 1];
+
+  // Progresso conta as concluídas E as em revisão, para não frustrar o usuário
   const missoesConcluidas = licoes.filter(
-    (l) => l.status === "concluido",
+    (l) => l.status === "concluido" || l.status === "revisando",
   ).length;
   const totalMissoes = licoes.length;
   const porcentagemProgresso =
     totalMissoes === 0
       ? 0
       : Math.round((missoesConcluidas / totalMissoes) * 100);
-  const xpAcumulado = missoesConcluidas * 250;
 
-  // Lógica de filtro removida: Agora usamos 'licoes' diretamente para que
-  // todos os níveis (mesmo bloqueados) apareçam no carrossel.
+  // --- EFEITOS E FUNÇÕES DE ÁUDIO E MENUS ---
+
+  // Função centralizada para tocar sons
+  const tocarSom = (arquivo, volume = 0.3) => {
+    if (configuracoes.som) {
+      const audio = new Audio(`/audios/sfx/${arquivo}`);
+      audio.volume = volume;
+      audio.play().catch(() => {}); // catch silencia erros se o navegador bloquear o autoplay
+    }
+  };
+
+  // Efeito ao entrar no Dashboard
+  useEffect(() => {
+    if (configuracoes.som && !sessionStorage.getItem("sessao_ingleja_ativa")) {
+      const audio = new Audio("/audios/sfx/entrada_mapa.mp3");
+      audio.volume = 0.2;
+      audio.play().catch(() => {});
+      sessionStorage.setItem("sessao_ingleja_ativa", "true");
+    }
+  }, [configuracoes.som]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (menuRef.current && !menuRef.current.contains(event.target))
         setMenuAberto(null);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -154,38 +151,41 @@ function Dashboard() {
 
   useEffect(() => {
     if (configuracoes.modoEscuro) {
-      document.body.classList.add("dark-mode");
+      document.documentElement.classList.add("dark");
     } else {
-      document.body.classList.remove("dark-mode");
+      document.documentElement.classList.remove("dark");
     }
-  }, [configuracoes.modoEscuro]);
+    localStorage.setItem(
+      "configuracoes_ingleja",
+      JSON.stringify(configuracoes),
+    );
+  }, [configuracoes]);
 
-  // ... seus outros estados e hooks ...
-
-  // Efeito para tocar som ao entrar no Dashboard
   useEffect(() => {
-    if (configuracoes.som) {
-      const audio = new Audio("/audios/sfx/entrada_mapa.mp3");
-      audio.volume = 0.2; // Opcional: define o volume em 50%
-      audio
-        .play()
-        .catch(() => console.warn("Aguardando interação para tocar som."));
-    }
-  }, [configuracoes.som]); // Executa apenas no mount
+    localStorage.setItem("notificacoes_ingleja", JSON.stringify(notificacoes));
+  }, [notificacoes]);
 
-  // ... resto do componente ...
+  const dispararNotificacao = (titulo, desc) => {
+    const novaNotificacao = { id: Date.now(), titulo, desc };
+    setNotificacoes((prev) => [novaNotificacao, ...prev]);
+  };
 
+  // Toggle do Menu com som
   const toggleMenu = (menu) => {
-    const novoEstado = menuAberto === menu ? null : menu;
+    if (menuAberto !== menu) tocarSom("clique_menu.mp3", 0.5);
+    setMenuAberto(menuAberto === menu ? null : menu);
+  };
 
-    // Tocar som se estiver abrindo um menu e o som estiver ligado
-    if (novoEstado !== null && configuracoes.som) {
-      const audio = new Audio("/audios/sfx/clique_menu.mp3"); // ou o seu arquivo de preferência
-      audio.volume = 0.5;
-      audio.play().catch((err) => console.log("Erro ao tocar som:", err));
-    }
-
-    setMenuAberto(novoEstado);
+  // Toggle de Configurações com som especial ao ativar o botão de som
+  const toggleConfig = (chave) => {
+    setConfiguracoes((prev) => {
+      const novoEstado = !prev[chave];
+      if (chave === "som" && novoEstado === true) {
+        const audio = new Audio("/audios/sfx/acerto.mp3");
+        audio.play().catch(() => {});
+      }
+      return { ...prev, [chave]: novoEstado };
+    });
   };
 
   const fazerLogout = () => {
@@ -193,101 +193,30 @@ function Dashboard() {
     navigate("/");
   };
 
-  const toggleConfig = (chave) => {
-    setConfiguracoes((prev) => {
-      const novoEstado = !prev[chave];
-
-      if (chave === "som" && novoEstado === true) {
-        const audio = new Audio("/audios/sfx/acerto.mp3");
-        audio.play().catch((err) => console.log("Erro ao tocar áudio:", err));
-      }
-
-      return { ...prev, [chave]: novoEstado };
-    });
-  };
-
-  const limparNotificacoes = () => {
-    setNotificacoes([]);
-  };
-
-  const handleNotificacaoClick = (slug) => {
-    if (slug) {
-      setMenuAberto(null);
-      setTimeout(() => {
-        const elementoLicao = document.getElementById(`licao-${slug}`);
-        if (elementoLicao) {
-          elementoLicao.scrollIntoView({
-            behavior: "smooth",
-            block: configuracoes.layoutHorizontal ? "nearest" : "center",
-          });
-          elementoLicao.style.transition = "transform 0.3s";
-          elementoLicao.style.transform = "scale(1.05)";
-          setTimeout(() => (elementoLicao.style.transform = "scale(1)"), 400);
-        }
-      }, 50);
-    }
-  };
-
-  const dispararNotificacao = (
-    titulo,
-    desc,
-    icone = "info",
-    tipo = "info",
-    acaoSlug = null,
-  ) => {
-    const novaNotificacao = {
-      id: Date.now(),
-      titulo,
-      desc,
-      icone,
-      tipo,
-      acaoSlug,
-    };
-    setNotificacoes((prev) => [novaNotificacao, ...prev]);
-  };
-
-  // --- NAVEGAÇÃO ---
   const handleCliqueCirculo = (slug, status) => {
     if (status === "bloqueado") return;
     navigate(`/exercicio/${slug}`);
   };
 
-  const handleRevisarBotao = (slug) => {
+  const handleRevisarBotao = (slug, tituloLicao) => {
     localStorage.setItem("fase_em_revisao", slug);
     setFaseEmRevisao(slug);
-
-    setLicoes((prev) =>
-      prev.map((l) => {
-        if (l.slug === slug) return { ...l, status: "revisando" };
-        return l;
-      }),
-    );
-
-    dispararNotificacao(
-      "Modo Revisão",
-      `Você ativou a revisão da missão: ${slug}`,
-      "history",
-      "info",
-      slug,
-    );
+    dispararNotificacao("Modo Revisão", `Você está revisando: ${tituloLicao}`);
   };
 
-  const handleCancelarRevisao = (slug) => {
+  const handleCancelarRevisao = (e) => {
+    e.stopPropagation();
     localStorage.removeItem("fase_em_revisao");
     setFaseEmRevisao(null);
-
-    setLicoes((prev) =>
-      prev.map((l) => {
-        if (l.slug === slug) return { ...l, status: "concluido" };
-        return l;
-      }),
+    dispararNotificacao(
+      "Revisão Concluída",
+      `Revisão encerrada. Continue sua jornada!`,
     );
   };
 
-  // Função para mover o carrossel horizontalmente nas setas
   const scrollTimeline = (direcao) => {
-    if (timelineRef.current) {
-      const scrollAmount = 320; // Quantidade de pixels que a tela desliza por clique
+    if (timelineRef.current && configuracoes.layoutHorizontal) {
+      const scrollAmount = 300;
       timelineRef.current.scrollBy({
         left: direcao === "esquerda" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -295,34 +224,31 @@ function Dashboard() {
     }
   };
 
-  const tocarSom = (arquivo) => {
-    if (configuracoes.som) {
-      const audio = new Audio(`/audios/sfx/${arquivo}`);
-      audio.volume = 0.3; // Volume mais baixo para não irritar no hover
-      audio.play().catch(() => {}); // Catch vazio para ignorar erros de autoplay
-    }
-  };
-
   return (
-    <>
-      {/* <Navbar /> A nova barra gamificada fica no topo de tudo */}
-      <div className="dashboard-wrapper">
-        <header className="dashboard-header">
-          <div className="header-left">
-            <span className="material-symbols-outlined icon-blue">map</span>
-            <h2>Missões de Inglês</h2>
+    <div className="min-h-screen bg-transparent transition-colors duration-300">
+      <Navbar />
+
+      <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-10 flex flex-col">
+        {/* CABEÇALHO DO DASHBOARD */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center w-full mb-10 pl-2 gap-6">
+          <div className="w-full md:w-auto text-left">
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1 transition-colors text-left">
+              Fundamentos de Inglês
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-[15px] font-medium m-0 transition-colors text-left">
+              Domine as habilidades essenciais para se comunicar no dia a dia.
+            </p>
           </div>
 
           <div
-            className="header-right"
+            className="flex items-center gap-2 relative w-full md:w-auto justify-end"
             ref={menuRef}
-            style={{ position: "relative" }}
           >
-            <div className="profile-info">
-              <span className="profile-level">
+            <div className="hidden md:flex flex-col items-end mr-4">
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 NÍVEL {missoesConcluidas + 1}
               </span>
-              <span className="profile-title">
+              <span className="text-[13px] font-bold text-gray-700 dark:text-gray-200">
                 {porcentagemProgresso === 100
                   ? "Mestre de Inglês"
                   : "Explorador Aprendiz"}
@@ -330,65 +256,95 @@ function Dashboard() {
             </div>
 
             <button
-              className={`icon-btn ${menuAberto === "config" ? "ativo" : ""}`}
+              className={`w-11 h-11 rounded-full text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-blue-500" : ""}`}
               onClick={() => toggleMenu("config")}
             >
-              <span className="material-symbols-outlined anim-spin">
+              <span
+                className={`material-symbols-outlined text-[24px] ${menuAberto === "config" ? "anim-spin" : ""}`}
+              >
                 settings
               </span>
             </button>
 
             <button
-              className={`icon-btn ${menuAberto === "notificacoes" ? "ativo" : ""}`}
+              className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-blue-500" : ""}`}
               onClick={() => toggleMenu("notificacoes")}
             >
-              <span className="material-symbols-outlined anim-shake">
+              <span
+                className={`material-symbols-outlined text-[24px] ${menuAberto === "notificacoes" ? "anim-shake" : ""}`}
+              >
                 notifications
               </span>
-              {notificacoes.length > 0 && <span className="notif-badge"></span>}
+              {notificacoes.length > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+              )}
             </button>
 
             <button
-              className="avatar-btn"
+              className="w-11 h-11 rounded-full bg-blue-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2"
               onClick={() => toggleMenu("perfil")}
-              onMouseEnter={() => tocarSom("hover_mapa.mp3")}
             >
               {usuario.nome ? usuario.nome.charAt(0).toUpperCase() : "U"}
             </button>
 
+            {/* DROPDOWNS */}
             {menuAberto === "config" && (
-              <div className="dropdown-menu">
-                <div className="dropdown-header">Configurações</div>
-                <ul className="dropdown-list">
-                  <li onClick={() => toggleConfig("som")}>
-                    <span className="material-symbols-outlined">volume_up</span>
-                    Efeitos Sonoros
+              <div className="absolute top-14 right-0 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
+                <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 text-left">
+                  Configurações
+                </div>
+                <ul className="py-2 m-0 list-none">
+                  <li
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => toggleConfig("som")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">
+                        volume_up
+                      </span>{" "}
+                      Som
+                    </div>
                     <input
                       type="checkbox"
                       checked={configuracoes.som}
                       readOnly
+                      className="accent-blue-500 pointer-events-none"
                     />
                   </li>
-                  <li onClick={() => toggleConfig("modoEscuro")}>
-                    <span className="material-symbols-outlined">dark_mode</span>
-                    Modo Escuro
+                  <li
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => toggleConfig("modoEscuro")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">
+                        dark_mode
+                      </span>{" "}
+                      Tema Escuro
+                    </div>
                     <input
                       type="checkbox"
                       checked={configuracoes.modoEscuro}
                       readOnly
+                      className="accent-blue-500 pointer-events-none"
                     />
                   </li>
-                  <li onClick={() => toggleConfig("layoutHorizontal")}>
-                    <span className="material-symbols-outlined">
-                      {configuracoes.layoutHorizontal
-                        ? "view_column"
-                        : "view_stream"}
-                    </span>
-                    Visão Horizontal
+                  <li
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => toggleConfig("layoutHorizontal")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {configuracoes.layoutHorizontal
+                          ? "view_column"
+                          : "view_stream"}
+                      </span>{" "}
+                      Visão Horizontal
+                    </div>
                     <input
                       type="checkbox"
-                      checked={configuracoes.layoutHorizontal || false}
+                      checked={configuracoes.layoutHorizontal}
                       readOnly
+                      className="accent-blue-500 pointer-events-none"
                     />
                   </li>
                 </ul>
@@ -396,56 +352,61 @@ function Dashboard() {
             )}
 
             {menuAberto === "notificacoes" && (
-              <div className="dropdown-menu">
-                <div className="dropdown-header">
+              <div className="absolute top-14 right-0 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
+                <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                   Notificações
                   {notificacoes.length > 0 && (
-                    <button onClick={limparNotificacoes} className="btn-limpar">
+                    <button
+                      onClick={() => setNotificacoes([])}
+                      className="text-xs text-blue-500 hover:underline border-none bg-transparent cursor-pointer"
+                    >
                       Limpar
                     </button>
                   )}
                 </div>
-                <ul className="dropdown-list notifications-list">
+                <ul className="py-2 max-h-60 overflow-y-auto m-0 list-none text-left">
                   {notificacoes.length > 0 ? (
                     notificacoes.map((n) => (
                       <li
                         key={n.id}
-                        onClick={() => handleNotificacaoClick(n.acaoSlug)}
-                        style={{ cursor: n.acaoSlug ? "pointer" : "default" }}
+                        className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 cursor-pointer transition-colors"
                       >
-                        <div className={`notif-icon ${n.tipo}`}>
-                          <span className="material-symbols-outlined">
-                            {n.icone}
-                          </span>
-                        </div>
-                        <div>
-                          <strong>{n.titulo}</strong>
-                          <p>{n.desc}</p>
-                        </div>
+                        <strong className="block text-[13px] text-gray-800 dark:text-gray-200 mb-1">
+                          {n.titulo}
+                        </strong>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 m-0 leading-tight">
+                          {n.desc}
+                        </p>
                       </li>
                     ))
                   ) : (
-                    <li className="notif-vazia">Nenhuma novidade por aqui.</li>
+                    <li className="px-5 py-4 text-sm text-gray-400 dark:text-gray-500 text-center">
+                      Nenhuma novidade.
+                    </li>
                   )}
                 </ul>
               </div>
             )}
 
             {menuAberto === "perfil" && (
-              <div className="dropdown-menu profile-menu">
-                <div className="dropdown-header">Meu Perfil</div>
-                <div className="profile-stats">
-                  <p>
-                    <strong>Nome:</strong> {usuario.nome}
+              <div className="absolute top-14 right-0 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 text-left">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white m-0">
+                    {usuario.nome}
                   </p>
-                  <p>
-                    <strong>XP Total:</strong> {xpAcumulado}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 m-0">
+                    Nível {usuario.nivel || missoesConcluidas + 1}
                   </p>
                 </div>
-                <ul className="dropdown-list">
-                  <li className="logout-item" onClick={fazerLogout}>
-                    <span className="material-symbols-outlined">logout</span>{" "}
-                    Sair do InglEJA
+                <ul className="py-2 m-0 list-none">
+                  <li
+                    className="px-5 py-2.5 text-sm text-red-500 font-semibold flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition-colors text-left"
+                    onClick={fazerLogout}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      logout
+                    </span>{" "}
+                    Sair
                   </li>
                 </ul>
               </div>
@@ -453,182 +414,303 @@ function Dashboard() {
           </div>
         </header>
 
-        <section className="progress-card">
-          <div className="progress-header">
-            <div className="progress-texts">
-              <h3>Seu Progresso Geral</h3>
-              <p>
-                {porcentagemProgresso === 100
-                  ? "Parabéns! Você completou tudo!"
-                  : "Continue assim! Você está dominando o idioma."}
-              </p>
+        {/* CARD DE PROGRESSO GERAL */}
+        <section className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-8 mb-16 shadow-sm border border-gray-100 dark:border-gray-800 w-full transition-colors duration-300">
+          <div className="w-full">
+            <div className="flex justify-between items-end mb-3">
+              <div className="text-left">
+                <h3 className="text-[17px] font-bold text-gray-900 dark:text-white mb-1 transition-colors">
+                  Seu Progresso Geral
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm m-0 transition-colors">
+                  Continue assim! Você está dominando o idioma.
+                </p>
+              </div>
+              <h2 className="text-3xl font-extrabold text-blue-500 m-0">
+                {porcentagemProgresso}%
+              </h2>
             </div>
-            <h2 className="progress-percentage">{porcentagemProgresso}%</h2>
-          </div>
-          <div className="progress-bar-bg">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${porcentagemProgresso}%` }}
-            ></div>
-          </div>
-          <div className="progress-footer">
-            <span>
-              {missoesConcluidas} de {totalMissoes} missões concluídas
-            </span>
-            <span className="streak-badge">
-              <span className="material-symbols-outlined streak-icon">
-                local_fire_department
-              </span>
-              Série de 5 dias!
-            </span>
+            <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4 transition-colors">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${porcentagemProgresso}%` }}
+              ></div>
+            </div>
+            <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider transition-colors text-left">
+              {missoesConcluidas} DE {totalMissoes} MISSÕES CONCLUÍDAS
+            </div>
           </div>
         </section>
 
-        {/* Container wrapper que exibe as setas apenas se for modo horizontal */}
-        <div
-          className={`timeline-wrapper ${configuracoes.layoutHorizontal ? "horizontal-mode" : ""}`}
-        >
-          {configuracoes.layoutHorizontal && licoes.length > 2 && (
+        {/* TRILHA DINÂMICA */}
+        <div className="relative w-full mb-16 group">
+          {configuracoes.layoutHorizontal && (
             <button
-              className="scroll-arrow left"
-              onClick={() => {
-                scrollTimeline("esquerda");
-                tocarSom("clique_menu.mp3");
-              }}
+              className="absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all"
+              onClick={() => scrollTimeline("esquerda")}
             >
-              <span className="material-symbols-outlined" style={{ margin: 0 }}>
+              <span className="material-symbols-outlined text-[28px]">
                 chevron_left
               </span>
             </button>
           )}
 
           <main
-            className={`timeline-container ${configuracoes.layoutHorizontal ? "horizontal" : ""}`}
+            className={`relative w-full py-10 ${
+              configuracoes.layoutHorizontal
+                ? "flex flex-row items-start overflow-x-auto hide-scrollbar scroll-smooth" // px-10 foi removido daqui!
+                : "flex flex-col items-center gap-16"
+            }`}
             ref={timelineRef}
+            style={
+              configuracoes.layoutHorizontal
+                ? { scrollSnapType: "x mandatory" }
+                : {}
+            }
           >
-            {loading ? (
-              <p>Carregando mapa...</p>
-            ) : (
-              // AQUI ESTÁ A CORREÇÃO: Usando 'licoes' direto para renderizar TUDO, inclusive os bloqueados
-              licoes.map((licao, index) => (
+            {licoes.map((licao, index) => (
+              <div
+                key={licao.id}
+                className={`flex flex-col items-center relative shrink-0 ${
+                  configuracoes.layoutHorizontal
+                    ? "w-[250px]"
+                    : "w-full max-w-[350px]"
+                }`}
+                style={
+                  configuracoes.layoutHorizontal
+                    ? { scrollSnapAlign: "center" }
+                    : {}
+                }
+              >
+                {/* LINHA DE CONEXÃO (Pontilhada Refinada) - CORRIGIDA AQUI */}
+                {/* LINHA DE CONEXÃO (Gradiente com Máscara de Pontos) */}
+                {index !== licoes.length - 1 && (
+                  <div
+                    className={`absolute z-0 transition-all duration-700 ${
+                      configuracoes.layoutHorizontal
+                        ? "top-[43px] left-[50%] w-full h-[4px]"
+                        : "top-[43px] left-[50%] h-[calc(100%+64px)] w-[4px] -translate-x-1/2"
+                    }`}
+                    style={{
+                      // A mágica acontece aqui: criamos uma imagem de fundo (fundo linear)
+                      // e mascaramos ela com bolinhas para formar a linha pontilhada moderna.
+                      background:
+                        licao.status === "concluido" ||
+                        licao.status === "revisando"
+                          ? "linear-gradient(to right, #3b82f6 0%, #93c5fd 100%)" // Azul escuro para claro
+                          : licao.status === "atual"
+                            ? "linear-gradient(to right, #3b82f6 0%, transparent 100%)" // Azul sumindo em direção à lição bloqueada
+                            : "#e5e7eb", // Cinza estático para lições totalmente futuras
+
+                      // Máscara SVG que corta o fundo gradiente em bolinhas
+                      WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='12' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='black'/%3E%3C/svg%3E")`,
+                      WebkitMaskRepeat: configuracoes.layoutHorizontal
+                        ? "repeat-x"
+                        : "repeat-y",
+                      maskImage: `url("data:image/svg+xml,%3Csvg width='12' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='black'/%3E%3C/svg%3E")`,
+                      maskRepeat: configuracoes.layoutHorizontal
+                        ? "repeat-x"
+                        : "repeat-y",
+                    }}
+                  ></div>
+                )}
+
+                {/* CÍRCULO DA LIÇÃO (Estilo Soft/Neumórfico) */}
                 <div
-                  key={licao.id}
-                  id={`licao-${licao.slug}`}
-                  className={`timeline-node ${licao.status}`}
+                  onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+                  onMouseEnter={() =>
+                    licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
+                  }
+                  className={`
+                    relative flex items-center justify-center rounded-full transition-all duration-500 z-10
+                    ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed"}
+                    ${
+                      licao.status === "atual" || licao.status === "revisando"
+                        ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-blue-50 dark:border-gray-800"
+                        : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
+                    }
+                  `}
                 >
-                  <div
-                    className={`node-circle ${licao.status} ${licao.iconeTema === "palette" && licao.status !== "bloqueado" ? "effect-colors" : ""}`}
-                    onClick={() =>
-                      handleCliqueCirculo(licao.slug, licao.status)
-                    }
-                    // ADICIONE ESTA LINHA ABAIXO:
-                    onMouseEnter={() =>
-                      licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
-                    }
+                  <span
+                    className={`
+                    material-symbols-outlined transition-colors duration-300
+                    ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-blue-500 dark:text-blue-400" : "text-[36px]"}
+                    ${licao.status === "concluido" ? "text-blue-600 dark:text-blue-500" : ""}
+                    ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
+                    ${licao.iconeTema === "waving_hand" && licao.status !== "bloqueado" ? "anim-wave" : ""}
+                  `}
                   >
-                    {licao.status === "atual" && (
-                      <div className="node-badge">JOGANDO AGORA</div>
-                    )}
-                    {licao.status === "concluido" && (
-                      <div className="node-badge-green">CONCLUÍDO</div>
-                    )}
-                    {licao.status === "revisando" && (
-                      <div className="node-badge-purple">REVISANDO</div>
-                    )}
-
-                    <span
-                      className={`material-symbols-outlined node-icon ${
-                        licao.status !== "concluido" &&
-                        licao.status !== "bloqueado" &&
-                        licao.iconeTema === "waving_hand"
-                          ? "anim-wave"
-                          : ""
-                      }`}
-                    >
-                      {licao.status === "concluido"
-                        ? "check_circle"
-                        : licao.status === "bloqueado"
-                          ? "lock"
-                          : licao.iconeTema}
-                    </span>
-                  </div>
-
-                  <div
-                    className="node-content"
-                    onMouseEnter={() =>
-                      licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
-                    }
-                  >
-                    <h3>{licao.titulo}</h3>
-                    <p>{licao.descricao}</p>
-
-                    {licao.status === "atual" && (
-                      <button
-                        className="btn-start"
-                        onClick={() => navigate(`/exercicio/${licao.slug}`)}
-                      >
-                        Continuar Missão
-                      </button>
-                    )}
-
-                    {licao.status === "concluido" && (
-                      <button
-                        className="btn-review"
-                        onClick={() => handleRevisarBotao(licao.slug)}
-                      >
-                        Revisar Nível
-                      </button>
-                    )}
-
-                    {licao.status === "revisando" && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        <button
-                          className="btn-start-review"
-                          onClick={() => navigate(`/exercicio/${licao.slug}`)}
-                        >
-                          Continuar Revisão
-                        </button>
-                        <button
-                          className="btn-review"
-                          style={{ color: "#6b7280" }}
-                          onClick={() => handleCancelarRevisao(licao.slug)}
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {/* A linha se estende sempre, exceto após a última lição do array */}
-                  {index !== licoes.length - 1 && (
-                    <div className="timeline-line"></div>
-                  )}
+                    {licao.status === "concluido"
+                      ? "check"
+                      : licao.status === "bloqueado"
+                        ? "lock"
+                        : licao.iconeTema}
+                  </span>
                 </div>
-              ))
-            )}
+
+                {/* TEXTOS DA LIÇÃO (Tipografia Refinada) */}
+                <div
+                  className={`
+                  mt-8 text-center flex flex-col items-center px-4 py-3 z-10 w-full
+                  ${!configuracoes.layoutHorizontal ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 dark:border-gray-800 mt-6" : ""}
+                `}
+                >
+                  <span
+                    className={`text-[12px] font-bold mb-1.5 transition-colors uppercase tracking-widest ${
+                      licao.status === "atual" || licao.status === "revisando"
+                        ? "text-blue-500 dark:text-blue-400"
+                        : "text-gray-400 dark:text-gray-500"
+                    }`}
+                  >
+                    Lição {index + 1}
+                  </span>
+
+                  <h3
+                    className={`text-[16px] font-extrabold m-0 mb-2 leading-tight transition-colors ${
+                      licao.status === "atual" || licao.status === "revisando"
+                        ? "text-slate-800 dark:text-white"
+                        : "text-slate-600 dark:text-gray-300"
+                    }`}
+                  >
+                    {licao.titulo}
+                  </h3>
+
+                  <span
+                    className={`text-[13px] font-semibold transition-colors
+                    ${licao.status === "atual" || licao.status === "concluido" ? "text-blue-600 dark:text-blue-500" : ""}
+                    ${licao.status === "revisando" ? "text-purple-600 dark:text-purple-400" : ""}
+                    ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
+                  `}
+                  >
+                    {licao.status === "atual"
+                      ? "Em Progresso"
+                      : licao.status === "revisando"
+                        ? "Revisando"
+                        : licao.status === "concluido"
+                          ? "Concluída"
+                          : "Bloqueada"}
+                  </span>
+
+                  {licao.status === "concluido" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRevisarBotao(licao.slug, licao.titulo);
+                      }}
+                      className="mt-3 text-[12px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
+                    >
+                      Revisar Lição
+                    </button>
+                  )}
+
+                  {/* 👇👇👇 COLE O NOVO CÓDIGO EXATAMENTE AQUI 👇👇👇 */}
+                  {licao.status === "revisando" && (
+                    <button
+                      onClick={(e) => handleCancelarRevisao(e)}
+                      className="mt-3 text-[12px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
+                    >
+                      Cancelar Revisão
+                    </button>
+                  )}
+                  {/* 👆👆👆 ATÉ AQUI 👆👆👆 */}
+                </div>
+              </div>
+            ))}
           </main>
 
-          {configuracoes.layoutHorizontal && licoes.length > 2 && (
+          {configuracoes.layoutHorizontal && (
             <button
-              className="scroll-arrow right"
-              onClick={() => {
-                scrollTimeline("direita");
-                tocarSom("clique_menu.mp3"); 
-              }}
+              className="absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all"
+              onClick={() => scrollTimeline("direita")}
             >
-              <span className="material-symbols-outlined" style={{ margin: 0 }}>
+              <span className="material-symbols-outlined text-[28px]">
                 chevron_right
               </span>
             </button>
           )}
         </div>
+
+        {/* CARD INFERIOR DA LIÇÃO ATIVA */}
+        <section className="mt-auto w-full bg-white dark:bg-gray-900 rounded-xl shadow-[0_4px_25px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-gray-100 dark:border-gray-800 p-7 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors duration-300">
+          <div className="flex-1 text-left">
+            <h4 className="text-[14px] font-bold text-gray-900 dark:text-white mb-1.5 transition-colors">
+              Sobre esta lição
+            </h4>
+            <p className="text-gray-500 dark:text-gray-400 text-[13.5px] leading-relaxed max-w-2xl m-0 transition-colors">
+              {licaoAtual.descricao}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-8 md:border-l md:border-gray-100 dark:md:border-gray-800 md:pl-8 w-full md:w-auto justify-between md:justify-end mt-4 md:mt-0 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 transition-colors">
+                <span className="material-symbols-outlined text-[20px]">
+                  schedule
+                </span>
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest transition-colors">
+                  Tempo Estimado
+                </span>
+                <span className="text-[14px] font-bold text-gray-900 dark:text-white transition-colors">
+                  {licaoAtual.tempo}
+                </span>
+              </div>
+            </div>
+
+            {/* BOTÕES DINÂMICOS BASEADOS NO STATUS */}
+            <div className="flex items-center gap-3">
+              {licaoAtual.status === "concluido" && (
+                <button
+                  onClick={() =>
+                    handleRevisarBotao(licaoAtual.slug, licaoAtual.titulo)
+                  }
+                  className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-[14px] border-none cursor-pointer"
+                >
+                  Revisar Nível
+                </button>
+              )}
+
+              {licaoAtual.status === "revisando" && (
+                <>
+                  <button
+                    onClick={(e) => handleCancelarRevisao(e)}
+                    className="bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-semibold py-2.5 px-3 transition-colors text-[14px] border-none cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleCliqueCirculo(licaoAtual.slug, licaoAtual.status)
+                    }
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer"
+                  >
+                    Continuar Revisão
+                    <span className="material-symbols-outlined text-lg">
+                      chevron_right
+                    </span>
+                  </button>
+                </>
+              )}
+
+              {licaoAtual.status === "atual" && (
+                <button
+                  onClick={() =>
+                    handleCliqueCirculo(licaoAtual.slug, licaoAtual.status)
+                  }
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer"
+                >
+                  Continuar Lição
+                  <span className="material-symbols-outlined text-lg">
+                    chevron_right
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
       </div>
-    </> /* <-- O FECHAMENTO DO FRAGMENTO ENTRA AQUI! */
+    </div>
   );
 }
 
