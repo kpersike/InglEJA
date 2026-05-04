@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Auth.css"; // Vamos colocar seu style.css aqui
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 
 function Auth() {
   const navigate = useNavigate();
-
-  // 1. ESTADOS (Substituem o document.getElementById)
-  const [isLogin, setIsLogin] = useState(true); // Controla se mostra Login ou Cadastro
+  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -17,28 +14,24 @@ function Auth() {
   });
   const [feedback, setFeedback] = useState({ msg: "", color: "" });
 
-  // 2. FUNÇÃO PARA ALTERNAR TELA
   const alternarTela = () => {
     setIsLogin(!isLogin);
     setFeedback({ msg: "", color: "" });
   };
 
-  // 3. ATUALIZAR CAMPOS (Facilita pegar o que o usuário digita)
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // 4. LÓGICA DE CADASTRO
   const fazerCadastro = async (e) => {
-    if (e) e.preventDefault(); // Impede recarregamento do formulário
+    if (e) e.preventDefault();
     const { email, senha, confirmarSenha } = formData;
     if (!email || !senha || !confirmarSenha) {
-      setFeedback({ msg: "Preencha todos os campos.", color: "blue" });
+      setFeedback({ msg: "Preencha todos os campos.", color: "text-blue-500" });
       return;
     }
-
     if (senha !== confirmarSenha) {
-      setFeedback({ msg: "As senhas não coincidem!", color: "red" });
+      setFeedback({ msg: "As senhas não coincidem!", color: "text-red-500" });
       return;
     }
 
@@ -46,34 +39,32 @@ function Auth() {
       const response = await fetch("http://localhost:3000/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: "Aluno InglEJA", // Enviamos isso para o servidor não dar erro 400
-          email: email,
-          senha: senha,
-        }),
+        body: JSON.stringify({ nome: "Aluno InglEJA", email, senha }),
       });
-
-      const data = await response.json();
-
       if (response.ok) {
-        localStorage.setItem("emailUsuario", email);
-        setFeedback({ msg: "Conta criada com sucesso!", color: "#58cc02" });
-        // setTimeout(alternarTela, 2000);
-        setTimeout(() => {
-          navigate("/welcome");
-        }, 1500);
+        setFeedback({
+          msg: "Conta criada com sucesso!",
+          color: "text-green-500",
+        });
+        setTimeout(() => navigate("/welcome"), 1500);
       } else {
-        setFeedback({ msg: data.erro || "Erro ao cadastrar.", color: "red" });
+        const data = await response.json();
+        setFeedback({
+          msg: data.erro || "Erro ao cadastrar.",
+          color: "text-red-500",
+        });
       }
     } catch (error) {
-      console.error("Erro na requisição:", error); // Agora a variável está sendo usada!
-      setFeedback({ msg: "Erro de conexão com o servidor.", color: "red" });
+      console.error("Erro no cadastro:", error);
+      setFeedback({
+        msg: "Erro ao conectar com servidor.",
+        color: "text-red-500",
+      });
     }
   };
 
-  // 5. LÓGICA DE LOGIN
   const fazerLogin = async (e) => {
-    if (e) e.preventDefault(); // <--- ISSO impede a página de atualizar!
+    if (e) e.preventDefault();
     const { email, senha } = formData;
     try {
       const response = await fetch("http://localhost:3000/api/login", {
@@ -82,191 +73,160 @@ function Auth() {
         body: JSON.stringify({ email, senha }),
       });
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
         setFeedback({
           msg: `Bem-vindo, ${data.usuario.nome}!`,
-          color: "#1cb0f6",
+          color: "text-blue-500",
         });
-        // No lugar de window.location.href = '/dashboard'
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
+        setTimeout(() => navigate("/dashboard"), 1500);
       } else {
         setFeedback({
           msg: data.erro || "E-mail ou senha incorretos.",
-          color: "red",
+          color: "text-red-500",
         });
       }
     } catch (error) {
-      console.error("Erro capturado:", error); // <-- Isso avisa ao ESLint que a variável está sendo usada!
-      setFeedback({ msg: "Erro de conexão.", color: "red" });
+      console.error("Erro no login:", error);
+      setFeedback({ msg: "Erro de conexão.", color: "text-red-500" });
     }
   };
 
-  // 6. LÓGICA DE LOGIN COM GOOGLE
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
-      console.log("Dados do Google decodificados:", decoded);
-
-      // Aqui você faz a ponte com o seu Backend na porta 3000
       const response = await fetch("http://localhost:3000/api/login-google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: decoded.email,
           nome: decoded.name,
-          foto: decoded.picture
+          foto: decoded.picture,
         }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-        setFeedback({ msg: `Bem-vindo, ${decoded.name}!`, color: "#1cb0f6" });
-        setTimeout(() => {
-          if (data.novoUsuario) {
-            navigate("/welcome");
-          } else {
-            navigate("/dashboard");
-          }
-        }, 1500);
-      } else {
-        setFeedback({ msg: "Erro ao validar conta com o servidor.", color: "red" });
+        navigate(data.novoUsuario ? "/welcome" : "/dashboard");
       }
     } catch (error) {
-      console.error("Erro no Google Login:", error);
-      setFeedback({ msg: "Erro na autenticação com o Google.", color: "red" });
+      console.error("Erro na autenticação Google:", error);
+      setFeedback({
+        msg: "Erro na autenticação Google.",
+        color: "text-red-500",
+      });
     }
   };
 
   return (
-    <main className="container">
-      {isLogin ? (
-        /* ÁREA DE LOGIN */
-        <section id="login-area">
-          <div className="form-title">
-            <h2>Entrar</h2>
-            <p>Bem-vindo! Faça login para continuar.</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8 md:p-10">
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
+            <span className="font-black text-3xl text-gray-900 dark:text-white tracking-tighter">
+              InglEJA
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold dark:text-white">
+            {isLogin ? "Entrar" : "Crie sua conta"}
+          </h2>
+        </div>
+
+        <form
+          onSubmit={isLogin ? fazerLogin : fazerCadastro}
+          className="space-y-5"
+        >
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+              E-mail
+            </label>
+            <input
+              type="email"
+              id="email"
+              onChange={handleChange}
+              required
+              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+              placeholder="exemplo@gmail.com"
+            />
           </div>
 
-          <form className="form-container" onSubmit={fazerLogin}>
-            <div className="form-group">
-              <label>E-mail:</label>
-              <div className="input-container">
-                <span className="material-symbols-outlined">mail</span>
-                <input
-                  type="email"
-                  id="email"
-                  onChange={handleChange}
-                  placeholder="exemplo@gmail.com"
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Senha:</label>
-              <div className="input-container">
-                <span className="material-symbols-outlined">lock</span>
-                <input
-                  type="password"
-                  id="senha"
-                  onChange={handleChange}
-                  placeholder="Digite sua senha"
-                />
-              </div>
-            </div>
-            <button type="submit" className="btn-primary">
-              Logar
-            </button>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+              Senha
+            </label>
+            <input
+              type="password"
+              id="senha"
+              onChange={handleChange}
+              required
+              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
 
-            <div className="divider">
-              <span>ou</span>
-            </div>
-
-            <div className="google-login-container">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setFeedback({ msg: "Erro no Google Auth", color: "red" })}
-                theme="filled_blue"
-                shape="pill"
-                text="signin_with"
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+                Confirmar Senha
+              </label>
+              <input
+                type="password"
+                id="confirmarSenha"
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+                placeholder="••••••••"
               />
             </div>
-          </form>
+          )}
 
-          <p>
-            Ainda não tem conta?{" "}
-            <span className="link" onClick={alternarTela}>
-              Clique aqui para criar uma
-            </span>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all mt-2"
+          >
+            {isLogin ? "LOGAR" : "CADASTRAR"}
+          </button>
+        </form>
+
+        {feedback.msg && (
+          <p className={`mt-4 text-center text-sm font-bold ${feedback.color}`}>
+            {feedback.msg}
           </p>
-        </section>
-      ) : (
-        /* ÁREA DE CADASTRO */
-        <section id="cadastro-area">
-          <div className="form-title">
-            <h2>Crie sua conta</h2>
-            <p>Comece agora de forma simples e rápida.</p>
+        )}
+
+        <div className="flex items-center gap-4 my-8">
+          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            ou
+          </span>
+          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+        </div>
+
+        <div className="flex justify-center w-full">
+          <div className="w-[300px]">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() =>
+                setFeedback({ msg: "Erro Google", color: "text-red-500" })
+              }
+              theme="filled_blue"
+              shape="pill"
+            />
           </div>
-          <form className="form-container" onSubmit={fazerCadastro}>
-            <div className="form-group">
-              <label>Seu E-mail:</label>
-              <div className="input-container">
-                <span className="material-symbols-outlined">mail</span>
-                <input
-                  type="email"
-                  id="email"
-                  onChange={handleChange}
-                  placeholder="Seu melhor e-mail"
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Senha:</label>
-              <div className="input-container">
-                <span className="material-symbols-outlined">lock</span>
-                <input
-                  type="password"
-                  id="senha"
-                  onChange={handleChange}
-                  placeholder="Crie uma senha forte"
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Confirmar senha:</label>
-              <div className="input-container">
-                <span className="material-symbols-outlined">verified_user</span>
-                <input
-                  type="password"
-                  id="confirmarSenha"
-                  onChange={handleChange}
-                  placeholder="Repita sua senha"
-                  required
-                />
-              </div>
-            </div>
-            <button type="submit" className="btn-sucess">
-              CADASTRAR
-            </button>
-          </form>
+        </div>
 
-          <p id="footer-links">
-            Já tem uma conta?
-            <span className="link" onClick={alternarTela}>
-              Entrar aqui
-            </span>
-          </p>
-        </section>
-      )}
-
-      <div id="mensagem-feedback" style={{ color: feedback.color }}>
-        {feedback.msg}
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
+          {isLogin ? "Ainda não tem uma conta?" : "Já possui cadastro?"}
+          <button
+            onClick={alternarTela}
+            className="ml-2 text-blue-600 dark:text-blue-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+          >
+            {isLogin ? "Crie uma aqui" : "Entre aqui"}
+          </button>
+        </p>
       </div>
-    </main>
+    </div>
   );
 }
 
