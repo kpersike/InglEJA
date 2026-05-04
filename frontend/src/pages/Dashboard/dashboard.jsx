@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import Navbar from "../../components/Navbar/Navbar";
 import "./dashboard.css";
 
@@ -34,6 +36,81 @@ function Dashboard() {
     const salvas = localStorage.getItem("notificacoes_ingleja");
     return salvas ? JSON.parse(salvas) : [];
   });
+
+  useEffect(() => {
+    // Verifica se o usuário já fez o tour antes
+    const tutorialVisto = localStorage.getItem("tutorial_ingleja_visto");
+    let driverObj = null;
+
+    if (!tutorialVisto) {
+      driverObj = driver({
+        showProgress: true,
+        animate: true,
+        nextBtnText: "Próximo &rarr;",
+        prevBtnText: "&larr; Anterior",
+        doneBtnText: "Começar!",
+        allowClose: true, // Permite fechar clicando fora
+        // Quando o usuário termina ou clica em fechar/pular, salvamos no localStorage
+        onDestroyStarted: () => {
+          if (!driverObj.hasNextStep() || confirm("Deseja pular o tutorial?")) {
+            localStorage.setItem("tutorial_ingleja_visto", "true");
+            driverObj.destroy();
+          }
+        },
+        steps: [
+          {
+            popover: {
+              title: "🚀 Bem-vindo ao InglEJA!",
+              description:
+                "Vamos fazer um tour rápido pela sua nova plataforma de estudos? Prometo que é jogo rápido!",
+            },
+          },
+          {
+            element: "#tour-progresso",
+            popover: {
+              title: "Seu Progresso",
+              description:
+                "Aqui você acompanha o seu nível atual e o quanto falta para dominar o módulo.",
+              side: "bottom",
+              align: "start",
+            },
+          },
+          {
+            element: "#tour-trilha",
+            popover: {
+              title: "Trilha de Lições",
+              description:
+                "Este é o seu mapa. Clique nas lições azuis para aprender coisas novas ou revise lições já concluídas.",
+              side: "top",
+              align: "center",
+            },
+          },
+          {
+            element: "#tour-menu",
+            popover: {
+              title: "Ajustes e Avisos",
+              description:
+                "No menu superior, você pode ativar/desativar sons,alterar entre modo escuro e claro, alterar orientação de visualização de grid e visualizar suas notificações.",
+              side: "bottom",
+              align: "end",
+            },
+          },
+        ],
+      });
+
+      // Um tempo um pouco maior garante que a tela foi totalmente renderizada antes do tour iniciar
+      setTimeout(() => {
+        driverObj.drive();
+      }, 800);
+    }
+
+    // Função de limpeza para evitar bugs no React Strict Mode
+    return () => {
+      if (driverObj) {
+        driverObj.destroy();
+      }
+    };
+  }, []);
 
   // Substituindo useState+useEffect por useMemo
   const licoes = useMemo(() => {
@@ -241,6 +318,7 @@ function Dashboard() {
           </div>
 
           <div
+            id="tour-menu" // <--- ID ADICIONADO AQUI
             className="flex items-center gap-2 relative w-full md:w-auto justify-end"
             ref={menuRef}
           >
@@ -415,7 +493,10 @@ function Dashboard() {
         </header>
 
         {/* CARD DE PROGRESSO GERAL */}
-        <section className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-8 mb-16 shadow-sm border border-gray-100 dark:border-gray-800 w-full transition-colors duration-300">
+        <section
+          id="tour-progresso" // <--- ID ADICIONADO AQUI
+          className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-8 mb-16 shadow-sm border border-gray-100 dark:border-gray-800 w-full transition-colors duration-300"
+        >
           <div className="w-full">
             <div className="flex justify-between items-end mb-3">
               <div className="text-left">
@@ -443,7 +524,10 @@ function Dashboard() {
         </section>
 
         {/* TRILHA DINÂMICA */}
-        <div className="relative w-full mb-16 group">
+        <div
+          id="tour-trilha" // <--- ID ADICIONADO AQUI
+          className="relative w-full mb-16 group"
+        >
           {configuracoes.layoutHorizontal && (
             <button
               className="absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all"
@@ -482,8 +566,7 @@ function Dashboard() {
                     : {}
                 }
               >
-                {/* LINHA DE CONEXÃO (Pontilhada Refinada) - CORRIGIDA AQUI */}
-                {/* LINHA DE CONEXÃO (Gradiente com Máscara de Pontos) */}
+                {/* LINHA DE CONEXÃO (Pontilhada Refinada) */}
                 {index !== licoes.length - 1 && (
                   <div
                     className={`absolute z-0 transition-all duration-700 ${
@@ -492,8 +575,6 @@ function Dashboard() {
                         : "top-[43px] left-[50%] h-[calc(100%+64px)] w-[4px] -translate-x-1/2"
                     }`}
                     style={{
-                      // A mágica acontece aqui: criamos uma imagem de fundo (fundo linear)
-                      // e mascaramos ela com bolinhas para formar a linha pontilhada moderna.
                       background:
                         licao.status === "concluido" ||
                         licao.status === "revisando"
@@ -502,7 +583,6 @@ function Dashboard() {
                             ? "linear-gradient(to right, #3b82f6 0%, transparent 100%)" // Azul sumindo em direção à lição bloqueada
                             : "#e5e7eb", // Cinza estático para lições totalmente futuras
 
-                      // Máscara SVG que corta o fundo gradiente em bolinhas
                       WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='12' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='black'/%3E%3C/svg%3E")`,
                       WebkitMaskRepeat: configuracoes.layoutHorizontal
                         ? "repeat-x"
@@ -603,7 +683,6 @@ function Dashboard() {
                     </button>
                   )}
 
-                  {/* 👇👇👇 COLE O NOVO CÓDIGO EXATAMENTE AQUI 👇👇👇 */}
                   {licao.status === "revisando" && (
                     <button
                       onClick={(e) => handleCancelarRevisao(e)}
@@ -612,7 +691,6 @@ function Dashboard() {
                       Cancelar Revisão
                     </button>
                   )}
-                  {/* 👆👆👆 ATÉ AQUI 👆👆👆 */}
                 </div>
               </div>
             ))}
