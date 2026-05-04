@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 
 const TelaConquista = ({
@@ -34,13 +35,18 @@ const TelaConquista = ({
 
   useEffect(() => {
     // Configuração do disparo de confetes
-    const duration = 5 * 1000; // 3 segundos de duração
+    const duration = 5 * 1000; // 5 segundos de duração
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 10000,
+    };
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
-    const interval = setInterval(function() {
+    const interval = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -48,10 +54,18 @@ const TelaConquista = ({
       }
 
       const particleCount = 50 * (timeLeft / duration);
-      
+
       // Dispara dois jatos laterais
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
     }, 250);
 
     return () => clearInterval(interval); // Limpa o intervalo se o usuário sair da tela
@@ -61,10 +75,9 @@ const TelaConquista = ({
     if (proximoSlug) {
       // Navega para http://localhost:5173/exercicio/[slug-da-vez]
       navigate(`/exercicio/${proximoSlug}`);
-
       window.location.reload();
     } else {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   };
 
@@ -186,10 +199,7 @@ const TelaConquista = ({
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           {proximoSlug && (
             <button
-              onClick={() => {
-                navigate(`/exercicio/${proximoSlug}`);
-                window.location.reload();
-              }}
+              onClick={irParaProximo}
               className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(249,115,22,0.35)] transition-all hover:-translate-y-1 active:scale-95"
             >
               Ir para o Nível {proximoNivelId}

@@ -134,16 +134,30 @@ function Exercicio() {
         const audio = new Audio("/audios/sfx/erro.mp3");
         audio.volume = 0.5;
         audio.play().catch(() => {});
-        setErrosCometidos((prev) => {
-          if (!prev.includes(perguntaAtualIndex))
-            return [...prev, perguntaAtualIndex];
-          return prev;
-        });
+
+        // Só adiciona na lista de erros se estiver na fase normal
+        if (fase === "normal") {
+          setErrosCometidos((prev) => {
+            if (!prev.includes(perguntaAtualIndex))
+              return [...prev, perguntaAtualIndex];
+            return prev;
+          });
+        }
       }
       return;
     }
 
-    // Avançar
+    // Avançar / Tentar Novamente
+    if (fase === "revisao" && statusResposta === "errada") {
+      // Limpa os campos para o usuário tentar novamente na mesma pergunta
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+      return;
+    }
+
+    // Limpeza padrão para avançar de pergunta
     setOpcaoSelecionada(null);
     setTextoDigitado("");
     setPalavrasSelecionadas([]);
@@ -160,6 +174,7 @@ function Exercicio() {
         }
       }
     } else if (fase === "revisao") {
+      // Se chegou aqui na revisão, é porque acertou, então avança
       if (indiceFila < errosCometidos.length - 1) {
         setIndiceFila((prev) => prev + 1);
       } else {
@@ -475,7 +490,7 @@ function Exercicio() {
         </div>
       </div>
 
-      {/* BARRA DE AÇÕES INFERIOR */}
+      {/* BARRA DE AÇÕES INFERIOR - ALINHADA COM O CARD (max-w-4xl) */}
       <div
         className={`fixed bottom-0 left-0 w-full px-4 py-4 md:py-6 flex justify-center z-50 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)]
           ${statusResposta === "correta" ? "bg-green-50 dark:bg-green-900/30 border-t border-green-200 dark:border-green-800" : ""}
@@ -483,7 +498,7 @@ function Exercicio() {
           ${statusResposta === "pendente" ? "bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800" : ""}
         `}
       >
-        <div className="w-full max-w-5xl flex justify-between items-center gap-4">
+        <div className="w-full max-w-4xl flex justify-between items-center gap-4">
           <button
             onClick={() => navigate("/dashboard")}
             className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
@@ -529,9 +544,17 @@ function Exercicio() {
                     : "bg-orange-500 hover:bg-orange-600 text-white shadow-[0_8px_20px_rgba(249,115,22,0.3)] active:scale-95 cursor-pointer"
             }`}
           >
-            {statusResposta === "pendente" ? "Verificar resposta" : "Continuar"}
+            {statusResposta === "pendente"
+              ? "Verificar resposta"
+              : statusResposta === "errada" && fase === "revisao"
+                ? "Tentar novamente"
+                : "Continuar"}
             <span className="material-symbols-outlined text-[24px]">
-              {statusResposta === "pendente" ? "done" : "arrow_forward"}
+              {statusResposta === "pendente"
+                ? "done"
+                : statusResposta === "errada" && fase === "revisao"
+                  ? "replay"
+                  : "arrow_forward"}
             </span>
           </button>
         </div>
