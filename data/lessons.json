@@ -5,15 +5,7 @@
       "slug": "saudacoes",
       "titulo": "Nível 1: Saudações",
       "questoes": [
-        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Oi'?", "dica": "É a forma mais curta de cumprimentar.", "traducao": "Oi", "audio": "hi.mp3", "img": "aceno.jpg", "opcoes": ["Hi", "Bye", "Water", "Milk"], "resposta": "Hi" },
-        { "id": 2, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Olá'?", "dica": "Parece com o 'Alô' do telefone.", "traducao": "Olá", "audio": "hello.mp3", "img": "ola.jpg", "opcoes": ["Hello", "Please", "Morning", "Night"], "resposta": "Hello" },
-        { "id": 3, "tipo": "escolha_palavra", "pergunta_exibicao": "Como pedir 'Água'?", "dica": "Essencial para a vida!", "traducao": "Água", "audio": "water.mp3", "img": "agua.jpg", "opcoes": ["Water", "Coffee", "Juice", "Soda"], "resposta": "Water" },
-        { "id": 4, "tipo": "escolha_imagem", "pergunta_exibicao": "Qual é o 'Bom dia'?", "palavra_ingles": "GOOD MORNING", "audio": "good_morning.mp3", "traducao": "Bom dia", "opcoes": [{ "texto": "Good Morning", "img": "sunrise.jpg" }, { "texto": "Good Night", "img": "moon.jpg" }], "resposta": "Good Morning" },
-        { "id": 5, "tipo": "escolha_imagem", "pergunta_exibicao": "Escolha a 'Noite'", "palavra_ingles": "NIGHT", "audio": "night.mp3", "traducao": "Noite", "opcoes": [{ "texto": "Day", "img": "sun.jpg" }, { "texto": "Night", "img": "night_stars.jpg" }], "resposta": "Night" },
-        { "id": 7, "tipo": "preencher_lacuna", "pergunta_exibicao": "Complete a saudação", "frase_parte_1": "Good", "frase_parte_2": "", "audio": "good_afternoon.mp3", "img": "afternoon_sun.jpg", "dica": "Saudação usada após o almoço.", "traducao": "Boa tarde", "resposta": "afternoon" },
-        { "id": 8, "tipo": "ordenar_frase", "pergunta_exibicao": "Ordene a palavra", "audio": "hello.mp3", "frase_exibicao": "Olá!", "img": "aceno.jpg", "opcoes": ["Hello", "!"], "traducao": "Olá", "resposta": "Hello !" },
-        { "id": 9, "tipo": "ordenar_frase", "pergunta_exibicao": "Como se diz 'Bom dia'?", "audio": "good_morning.mp3", "frase_exibicao": "Bom dia", "img": "sunrise.jpg", "opcoes": ["Morning", "Good", "Night"], "traducao": "Bom dia", "resposta": "Good Morning" },
-        { "id": 10, "tipo": "preencher_lacuna", "pergunta_exibicao": "Apresentação", "frase_parte_1": "", "frase_parte_2": ", my name is...", "audio": "hello_my_name_is.mp3", "img": "ola.jpg", "dica": "A palavra para 'Olá'.", "traducao": "Olá, meu nome é...", "resposta": "Hello" }
+        { "id": 1, "tipo": "escolha_palavra", "pergunta_exibicao": "Como se diz 'Oi'?", "dica": "É a forma mais curta de cumprimentar.", "traducao": "Oi", "audio": "hi.mp3", "img": "aceno.jpg", "opcoes": ["Hi", "Bye", "Water", "Milk"], "resposta": "Hi" }
       ]
     },
   {

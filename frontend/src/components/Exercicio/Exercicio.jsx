@@ -382,58 +382,71 @@ function Exercicio() {
           <div className="area-pergunta">
             <audio ref={audioRef} key={`audio-${indiceAtual}`} />
 
-            <h2 className="titulo-questao">
-              {questaoAtual.pergunta_exibicao ||
-                (questaoAtual.tipo === "audio_input"
-                  ? "Ouvir e Escrever"
-                  : "Traduza")}
-            </h2>
-            {questaoAtual.subtitulo && (
-              <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>
-            )}
+              {questaoAtual.tipo !== "escolha_palavra" && (
+                <>
+                  <h2 className="titulo-questao">
+                    {questaoAtual.pergunta_exibicao ||
+                      (questaoAtual.tipo === "audio_input"
+                        ? "Ouvir e Escrever"
+                        : "Traduza")}
+                  </h2>
+                  {questaoAtual.subtitulo && (
+                    <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>
+                  )}
+                </>
+              )}
 
             {/* Layout 1: Imagem + Opções de Clique */}
             {questaoAtual.tipo === "escolha_palavra" && (
               <div className="layout-multipla-escolha">
                 <div className="container-imagem-central">
+                  <div className="questao-hint-container">
+                      <h2 className="titulo-questao">
+                        {questaoAtual.pergunta_exibicao ||
+                          (questaoAtual.tipo === "audio_input"
+                            ? "Ouvir e Escrever"
+                            : "Traduza")}
+                      </h2>
+
+                      <div className="container-audio-hint">
+                        <button
+                          className="btn-audio-circular"
+                          onClick={() => audioRef.current.play()}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ margin: "0" }}
+                          >
+                            volume_up
+                          </span>
+                        </button>
+                        <div className="wrapper-hint-relativo">
+                          <button
+                            className={`btn-hint-circular ${mostrarDica ? "ativo" : ""}`}
+                            onClick={() => setMostrarDica(!mostrarDica)}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ margin: "0" }}
+                            >
+                              lightbulb
+                            </span>
+                          </button>
+
+                          {mostrarDica && (
+                            <div className="balao-hint-lateral">
+                              {questaoAtual.dica}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                  </div>
                   <img
                     src={`http://localhost:3000/images/${questaoAtual.img}`}
                     alt="Exercício"
                     className="img-pergunta-principal"
                   />
-
-                  <div className="container-audio-hint">
-                    <button
-                      className="btn-audio-circular"
-                      onClick={() => audioRef.current.play()}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ margin: "0" }}
-                      >
-                        volume_up
-                      </span>
-                    </button>
-                    <div className="wrapper-hint-relativo">
-                      <button
-                        className={`btn-hint-circular ${mostrarDica ? "ativo" : ""}`}
-                        onClick={() => setMostrarDica(!mostrarDica)}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ margin: "0" }}
-                        >
-                          lightbulb
-                        </span>
-                      </button>
-
-                      {mostrarDica && (
-                        <div className="balao-hint-lateral">
-                          {questaoAtual.dica}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
                 <div className="lista-botoes-opcoes">
                   {questaoAtual.opcoes.map((opcao, idx) => (
