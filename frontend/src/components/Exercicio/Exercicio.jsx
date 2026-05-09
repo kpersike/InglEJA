@@ -382,7 +382,7 @@ function Exercicio() {
           <div className="area-pergunta">
             <audio ref={audioRef} key={`audio-${indiceAtual}`} />
 
-              {questaoAtual.tipo !== "escolha_palavra" && (
+              {questaoAtual.tipo !== "escolha_palavra" && questaoAtual.tipo !== "ordenar_frase" && (
                 <>
                   <h2 className="titulo-questao">
                     {questaoAtual.pergunta_exibicao ||
@@ -600,29 +600,40 @@ function Exercicio() {
             {/* --- LAYOUT 5: PREENCHER COM BLOCOS --- */}
             {questaoAtual.tipo === "ordenar_frase" && (
               <div className="layout-ordenar">
-                <div className="container-audio-exibicao">
-                  <button
-                    className="btn-audio-circular"
-                    onClick={() => audioRef.current.play()}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ margin: "0" }}
-                    >
-                      volume_up
-                    </span>
-                  </button>
-                  <div className="balao-frase">
-                    {questaoAtual.frase_exibicao}
-                  </div>
-                </div>
 
-                <div className="container-img-pequena">
-                  <img
-                    src={`${API_BASE}/images/${questaoAtual.img}`}
-                    alt="Cena"
-                  />
-                </div>
+                  <div className="area-pergunta-ordenar">
+                    <div className="area-questao-audio">
+                      <h2 className="titulo-questao">
+                        {questaoAtual.pergunta_exibicao ||
+                          (questaoAtual.tipo === "audio_input"
+                            ? "Ouvir e Escrever"
+                            : "Traduza")}
+                      </h2>
+                      <div className="container-audio-exibicao">
+                        <button
+                          className="btn-audio-circular"
+                          onClick={() => audioRef.current.play()}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ margin: "0" }}
+                          >
+                            volume_up
+                          </span>
+                        </button>
+                        <div className="balao-frase">
+                          {questaoAtual.frase_exibicao}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="container-img-pequena">
+                      <img
+                        src={`${API_BASE}/images/${questaoAtual.img}`}
+                        alt="Cena"
+                      />
+                    </div>
+                  </div>
 
                 <div
                   className={`area-montagem ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`}

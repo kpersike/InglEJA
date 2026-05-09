@@ -21,6 +21,16 @@
   /* padding: 20px 0; */
 }
 
+.area-pergunta-ordenar {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.area-pergunta-ordenar .container-img-pequena img {
+  max-height: 150px;
+}
+
 /* Títulos */
 .titulo-questao {
   font-size: 1.8rem;
@@ -440,7 +450,7 @@
 }
 
 .container-imagem-lacuna img {
-  max-width: 400px;
+  max-width: 280px;
   height: auto;
   border-radius: 20px;
   margin-bottom: 20px;
@@ -517,6 +527,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px 0;
 }
 
 .layout-ordenar .btn-audio-circular, .layout-ordenar .balao-frase{
@@ -528,7 +539,7 @@
   border-radius: 24px;
   border: solid 2px hsla(210, 85%, 55%, 0.2);
   display: flex;
-  width: 100%;
+  width: max-content;
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
