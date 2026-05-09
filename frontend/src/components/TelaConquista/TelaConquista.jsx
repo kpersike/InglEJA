@@ -1,21 +1,52 @@
-import React, { useEffect } from 'react';
-import confetti from 'canvas-confetti'; // Importa a biblioteca
-import { useNavigate } from 'react-router-dom';
-import "./TelaConquista.css";
+import React, { useEffect, useState } from "react";
+import confetti from "canvas-confetti";
+import { useNavigate } from "react-router-dom";
 
-// Adicionando valores padrão para as estatísticas para simular a imagem
-const TelaConquista = ({ xpGanhos, tempoTotal, comboAtual, tituloNivel, proximoSlug, proximoTitulo }) => {
+const TelaConquista = ({
+  xpGanhos = 40,
+  tempoTotal = "0:22",
+  comboAtual = 4,
+  tituloNivel = "Nível",
+  proximoNivelId = 2,
+  proximoSlug = null,
+}) => {
   const navigate = useNavigate();
+  const [mostrarConfetes, setMostrarConfetes] = useState(true);
+
+  // CORREÇÃO: Usamos o useState com uma função de inicialização "lazy" (preguiçosa).
+  // O React aceita o Math.random() aqui porque isso garante que só vai rodar 1 vez na montagem!
+  const [confetes] = useState(() => {
+    const colors = ["#f97316", "#3b82f6", "#fbbf24", "#f43f5e", "#a855f7"];
+    return [...Array(50)].map(() => ({
+      color: colors[Math.floor(Math.random() * colors.length)],
+      left: Math.random() * 100,
+      delay: Math.random() * 1.5,
+      duration: 2.5 + Math.random() * 3,
+      size: 8 + Math.random() * 8,
+      isCircle: Math.random() > 0.5,
+    }));
+  });
+
+  // Desliga os confetes após 6 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => setMostrarConfetes(false), 6000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Configuração do disparo de confetes
-    const duration = 5 * 1000; // 3 segundos de duração
+    const duration = 5 * 1000; // 5 segundos de duração
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 10000,
+    };
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
-    const interval = setInterval(function() {
+    const interval = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -23,10 +54,18 @@ const TelaConquista = ({ xpGanhos, tempoTotal, comboAtual, tituloNivel, proximoS
       }
 
       const particleCount = 50 * (timeLeft / duration);
-      
+
       // Dispara dois jatos laterais
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
     }, 250);
 
     return () => clearInterval(interval); // Limpa o intervalo se o usuário sair da tela
@@ -36,78 +75,148 @@ const TelaConquista = ({ xpGanhos, tempoTotal, comboAtual, tituloNivel, proximoS
     if (proximoSlug) {
       // Navega para http://localhost:5173/exercicio/[slug-da-vez]
       navigate(`/exercicio/${proximoSlug}`);
-
       window.location.reload();
     } else {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   };
 
   return (
-    <div className="md-tela-conquista-overlay">
-      <div className="md-card-conquista">
-        
-        {/* Ícone de Troféu no Círculo Azul */}
-        <div className="md-trophy-wrapper">
-          <div className="md-trophy-circle">
-            <span class="material-symbols-outlined" style={{color: "white", fontSize: "5em"}}>trophy</span>
-          </div>
+    <div className="fixed inset-0 w-full h-full bg-slate-50/90 dark:bg-gray-950/95 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 transition-colors duration-300 overflow-hidden">
+      <style>
+        {`
+          @keyframes spinY {
+            0% { transform: perspective(1000px) rotateY(0deg); }
+            100% { transform: perspective(1000px) rotateY(360deg); }
+          }
+          .trophy-spin {
+            animation: spinY 4s linear infinite;
+          }
+          @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(1); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
+          }
+          @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+        `}
+      </style>
+
+      {/* RENDERIZAÇÃO DOS CONFETES GERADOS NO STATE */}
+      {mostrarConfetes && (
+        <div className="absolute inset-0 pointer-events-none z-0">
+          {confetes.map((confete, i) => (
+            <div
+              key={i}
+              className="absolute opacity-0"
+              style={{
+                left: `${confete.left}%`,
+                top: "-5%",
+                width: `${confete.size}px`,
+                height: `${confete.size}px`,
+                backgroundColor: confete.color,
+                borderRadius: confete.isCircle ? "50%" : "3px",
+                animation: `fall ${confete.duration}s linear ${confete.delay}s forwards`,
+              }}
+            />
+          ))}
         </div>
+      )}
 
-        {/* Textos Principais */}
-        <h1 className="md-parabens-title">Parabéns!</h1>
-        <p className="md-concluiu-subtitle">Você concluiu o {tituloNivel}!</p>
-        
-        {/* Container das Estatísticas */}
-        <div className="md-stats-container">
-          
-          {/* Pontos Ganhos */}
-          <div id="pontos-ganhos" className="md-stat-box">
-            <div className="md-stat-header">
-              <span id="material-symbols-outlined-star" class="material-symbols-outlined">star</span>
-              <span>PONTOS GANHOS</span>
-            </div>
-            <strong className="md-stat-value">+{xpGanhos} XP</strong>
-            <span className="md-stat-badge md-stat-recorde">↗ +15% Recorde</span>
-          </div>
+      {/* CARD PRINCIPAL */}
+      <div className="bg-white dark:bg-gray-900 w-full max-w-2xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center transition-colors relative z-10 animate-[scaleIn_0.4s_ease-out]">
+        <div className="mb-8 relative">
+          <div className="absolute inset-0 bg-orange-400 blur-[35px] opacity-40 rounded-full animate-pulse"></div>
 
-          {/* Tempo Total */}
-          <div id="tempo-total" className="md-stat-box">
-            <div className="md-stat-header">
-              <span id="material-symbols-outlined-timer" class="material-symbols-outlined">timer</span>
-              <span>TEMPO TOTAL</span>
-            </div>
-            <strong className="md-stat-value">{tempoTotal}</strong>
-            <span className="md-stat-detail">Média do nível</span>
-          </div>
-
-          {/* Combo Atual */}
-          <div id="combo-atual" className="md-stat-box">
-            <div className="md-stat-header">
-              <span id="material-symbols-outlined-bolt" class="material-symbols-outlined">bolt</span>
-              <span>COMBO ATUAL</span>
-            </div>
-            <strong className="md-stat-value">x{comboAtual}</strong>
-            <span className="md-stat-detail">Sequência perfeita</span>
-          </div>
-
-        </div>
-
-        {/* Botões de Ação */}
-        <div className="md-action-buttons">
-          <button className="md-btn-continuar" onClick={irParaProximo}>
-            <span className="material-symbols-outlined">
-              {proximoSlug ? "play_arrow" : "celebration"}
+          <div className="relative w-32 h-32 bg-gradient-to-tr from-orange-500 to-amber-400 rounded-full flex justify-center items-center shadow-[0_0_40px_rgba(249,115,22,0.4)] border-8 border-white dark:border-gray-900 transition-colors trophy-spin">
+            <span className="material-symbols-outlined text-white text-[4.5rem]">
+              trophy
             </span>
-            {proximoSlug ? `Continuar para o ${proximoTitulo}` : "Concluir Jornada"}
-          </button>
-          
-          <button className="md-btn-mapa" onClick={() => navigate('/dashboard')}>
-            <span class="material-symbols-outlined">map</span>
-            Voltar ao Mapa
-          </button>
+          </div>
         </div>
 
+        <h1 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">
+          Vitória!
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mb-10">
+          Você dominou{" "}
+          <strong className="text-orange-500 dark:text-orange-400">
+            {tituloNivel}
+          </strong>
+        </p>
+
+        {/* ESTATÍSTICAS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-12">
+          <div className="bg-orange-50/60 dark:bg-orange-900/10 p-6 rounded-[1.5rem] border border-orange-100 dark:border-orange-900/30 flex flex-col items-center transition-colors hover:-translate-y-1 duration-300">
+            <div className="flex flex-col items-center gap-2 text-orange-600 dark:text-orange-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
+              <span className="material-symbols-outlined text-[28px] drop-shadow-sm">
+                star
+              </span>
+              Experiência
+            </div>
+            <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
+              +{xpGanhos}
+            </strong>
+            <span className="text-[11px] font-bold text-orange-600 bg-orange-100/80 dark:bg-orange-900/40 dark:text-orange-400 px-3 py-1 rounded-full">
+              XP Ganho
+            </span>
+          </div>
+
+          <div className="bg-blue-50/60 dark:bg-blue-900/10 p-6 rounded-[1.5rem] border border-blue-100 dark:border-blue-900/30 flex flex-col items-center transition-colors hover:-translate-y-1 duration-300">
+            <div className="flex flex-col items-center gap-2 text-blue-600 dark:text-blue-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
+              <span className="material-symbols-outlined text-[28px] drop-shadow-sm">
+                timer
+              </span>
+              Tempo
+            </div>
+            <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
+              {tempoTotal}
+            </strong>
+            <span className="text-[11px] font-bold text-blue-600 bg-blue-100/80 dark:bg-blue-900/40 dark:text-blue-400 px-3 py-1 rounded-full">
+              Minutos
+            </span>
+          </div>
+
+          <div className="bg-rose-50/60 dark:bg-rose-900/10 p-6 rounded-[1.5rem] border border-rose-100 dark:border-rose-900/30 flex flex-col items-center transition-colors hover:-translate-y-1 duration-300">
+            <div className="flex flex-col items-center gap-2 text-rose-600 dark:text-rose-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
+              <span className="material-symbols-outlined text-[28px] drop-shadow-sm">
+                local_fire_department
+              </span>
+              Combo
+            </div>
+            <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
+              x{comboAtual}
+            </strong>
+            <span className="text-[11px] font-bold text-rose-600 bg-rose-100/80 dark:bg-rose-900/40 dark:text-rose-400 px-3 py-1 rounded-full">
+              Sequência
+            </span>
+          </div>
+        </div>
+
+        {/* BOTÕES */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
+          {proximoSlug && (
+            <button
+              onClick={irParaProximo}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(249,115,22,0.35)] transition-all hover:-translate-y-1 active:scale-95"
+            >
+              Ir para o Nível {proximoNivelId}
+              <span className="material-symbols-outlined text-[26px]">
+                fast_forward
+              </span>
+            </button>
+          )}
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            Voltar ao Mapa
+            <span className="material-symbols-outlined text-[24px]">map</span>
+          </button>
+        </div>
       </div>
     </div>
   );
