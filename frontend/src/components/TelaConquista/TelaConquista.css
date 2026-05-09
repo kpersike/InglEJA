@@ -28,7 +28,7 @@
   background: white;
   width: 90%;
   max-width: 800px; /* Largura para comportar os 3 stats lado a lado */
-  padding: 60px 40px;
+  padding: 40px 40px;
   border-radius: 20px;
   text-align: center;
   /* Uma sombra suave, mais sutil que a anterior */
@@ -47,8 +47,8 @@
 }
 
 .md-trophy-circle {
-  width: 150px;
-  height: 150px;
+  width: 130px;
+  height: 130px;
   background-color: #1a73e8; /* Azul escuro do botão e ícone */
   border-radius: 50%;
   display: flex;
@@ -88,16 +88,16 @@
 /* Títulos */
 .md-parabens-title {
   color: #212121;
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 5px;
 }
 
 .md-concluiu-subtitle {
   color: #1a73e8;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 /* Container de Estatísticas */
@@ -105,7 +105,7 @@
   display: flex;
   justify-content: center;
   gap: 20px; /* Espaço entre os cards */
-  margin-bottom: 60px;
+  margin-bottom: 40px;
   width: 100%;
 }
 
@@ -114,7 +114,7 @@
   flex: 1; /* Divide o espaço igualmente */
   max-width: 200px;
   background-color: white;
-  padding: 25px 15px;
+  padding: 20px 10px;
   border-radius: 16px;
   border: 1px solid #e0e6ed; /* Borda cinza clara da imagem */
   display: flex;
@@ -148,7 +148,7 @@
 
 /* Valor principal (XP, tempo, combo) */
 .md-stat-value {
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: #212121;
   font-weight: 800;
   margin-bottom: 10px;

@@ -4,8 +4,8 @@
 
 .container-exercicio {
   background-color: white;
-  padding: 20px;
-  padding-bottom: 120px; /* Isso cria o espaço para a barra não cobrir nada */
+  padding: 10px 20px;
+  /* padding-bottom: 120px; Isso cria o espaço para a barra não cobrir nada */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -13,19 +13,19 @@
 }
 
 .area-pergunta {
-  flex-grow: 1;
+  /* flex-grow: 1; */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 0;
+  /* padding: 20px 0; */
 }
 
 /* Títulos */
 .titulo-questao {
   font-size: 1.8rem;
   color: #3c3c3c;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .subtitulo-exercicio {
@@ -121,6 +121,7 @@
 .container-imagem-central {
   /* max-width: 488px; */
   margin: 40px auto;
+  margin-top: 0;
   background: white;
   padding: 30px;
   border-radius: 20px;
@@ -150,7 +151,7 @@
 }
 
 .img-pergunta-principal {
-  /* max-height: 160px; */
+  max-height: 160px;
   width: 250px;
   border-radius: 10px;
 }
@@ -255,13 +256,14 @@
   width: 100%;
   max-width: 700px; /* Trava o crescimento em telas de PC */
   margin: 0 auto; /* Centraliza horizontalmente */
-  padding: 16px 24px;
+  /* padding: 16px 24px; */
+  padding-bottom: 16px;
   position: fixed; /* Fixa no fundo */
   bottom: 0;
   left: 50%;
   transform: translateX(-50%); /* Garante centralização absoluta */
-  background-color: #ffffff; /* Fundo branco para não misturar com o texto atrás */
-  border-top: 2px solid #e2e8f0; /* Linha de divisão sutil */
+  /* background-color: #ffffff; Fundo branco para não misturar com o texto atrás */
+  /* border-top: 2px solid #e2e8f0; Linha de divisão sutil */
   z-index: 100;
   border-radius: 20px 20px 0 0; /* Arredonda as bordas superiores da barra */
 }
@@ -347,12 +349,17 @@
   align-items: center;
 }
 
+.layout-grade-imagens .btn-audio-circular{
+  margin: 0;
+}
+
 .container-translate-audio {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  gap: 20px;
 }
 
 .tag-palavra-ingles {
@@ -372,7 +379,7 @@
 .grade-cards {
   display: grid;
   grid-template-columns: 1fr 1fr; /* 2 colunas */
-  gap: 20px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -381,7 +388,7 @@
   border: 2px solid #e5e5e5;
   border-bottom: 5px solid #e5e5e5;
   border-radius: 20px;
-  padding: 15px;
+  /* padding: 15px; */
   cursor: pointer;
   transition: all 0.1s;
   display: flex;
@@ -389,15 +396,20 @@
   align-items: center;
 }
 
+.grade-cards button{
+  padding: 5px;
+}
+
 .card-imagem-item img {
-  width: 100%;
-  max-height: 150px;
+  /* width: 100%; */
+  max-width: 200px;
+  max-height: 115px;
   object-fit: cover;
   border-radius: 15px;
 }
 
 .legenda-card {
-  margin-top: 10px;
+  /* margin-top: 10px; */
   font-weight: bold;
   color: #4b4b4b;
   font-size: 1.1rem;
@@ -441,10 +453,11 @@
   justify-content: center;
   align-items: baseline;
   gap: 12px;
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #3c3c3c;
-  margin: 30px 0;
+  /* margin: 30px 0; */
+  margin-bottom: 20px;
 }
 
 .lacuna-vazia {
@@ -504,6 +517,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.layout-ordenar .btn-audio-circular, .layout-ordenar .balao-frase{
+  margin: 10px;
 }
 
 .container-audio-exibicao {
@@ -616,11 +633,11 @@
 }
 
 .container-img-pequena {
-  width: 100%;
+  /* width: 100%; */
   text-align: center;
   background-color: #f8fafc;
   border-radius: 24px;
-  padding: 32px;
+  padding: 20px;
 
   display: flex;
   flex-direction: column; /* Alinha tudo em pé */
@@ -632,7 +649,8 @@
 .container-img-pequena img {
   border-radius: 16px;
   max-width: 100%;
-  height: auto;
+  /* height: auto; */
+  max-height: 200px;
   display: block;
   margin: 0 auto;
 }
