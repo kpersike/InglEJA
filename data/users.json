@@ -141,5 +141,11 @@
       "comida": true,
       "musica": true
     }
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "teste@hotmail.com",
+    "senha": "123",
+    "pontos": 0
   }
 ]
