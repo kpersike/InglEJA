@@ -3,16 +3,24 @@
     "nome": "teste2",
     "email": "teste.2@gmail.com",
     "senha": "teste2",
-    "pontos": 620,
+    "pontos": 1090,
     "progresso": {
       "saudacoes": true,
-      "cores": true
+      "cores": true,
+      "familia": true,
+      "comida": true
     }
   },
   {
     "nome": "teste3",
     "email": "teste.3@gmail.com",
-    "senha": "teste3"
+    "senha": "teste3",
+    "pontos": 190,
+    "progresso": {
+      "saudacoes": true,
+      "cores": true,
+      "familia": true
+    }
   },
   {
     "nome": "fdsf",
@@ -113,7 +121,7 @@
     "nome": "Matheus Penteado",
     "email": "matheus.pent12@gmail.com",
     "senha": "GOOGLE_AUTH",
-    "pontos": 1280,
+    "pontos": 1370,
     "progresso": {
       "saudacoes": true,
       "cores": true,
@@ -133,5 +141,17 @@
       "comida": true,
       "musica": true
     }
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "teste@hotmail.com",
+    "senha": "123",
+    "pontos": 0
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "fernando@teste.com",
+    "senha": "321",
+    "pontos": 0
   }
 ]

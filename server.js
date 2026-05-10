@@ -1,7 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const cors = require("cors"); //permissao para o react pegar os dados do servidor
+const cors = require("cors");
 
 const app = express();
 
@@ -11,14 +11,11 @@ const DATA_PATH = path.join(__dirname, "data", "users.json");
 const LESSONS_PATH = path.join(__dirname, "data", "lessons.json");
 
 // Middlewares
-app.use(cors()); // Habilita o React (porta 5173) a falar com o Node (porta 3000)
-app.use(express.json()); // Permite que o servidor entenda JSON enviado pelo React
-// app.use(express.static("public"));
+app.use(cors());
+app.use(express.json());
 
 // --- 🚨 AJUSTE DE ROTA DEFINITIVO 🚨 ---
-// 1. Tenta o caminho mais provável (Saindo de backend e entrando em frontend/public)
 const publicPath = path.resolve(__dirname, "frontend", "public");
-
 app.use(express.static(publicPath));
 
 // Função de leitura de usuários
@@ -35,7 +32,7 @@ const getUsers = () => {
   }
 };
 
-// Rota de Cadastro
+// Rota de Cadastro (Alunos)
 app.post("/api/cadastro", (req, res) => {
   try {
     const { nome, email, senha } = req.body;
@@ -62,7 +59,7 @@ app.post("/api/cadastro", (req, res) => {
 app.put("/api/atualizar-nome", (req, res) => {
   const { email, novoNome } = req.body;
   let usuarios = getUsers();
-  const index = usuarios.findIndex(u => u.email === email);
+  const index = usuarios.findIndex((u) => u.email === email);
 
   if (index !== -1) {
     usuarios[index].nome = novoNome;
@@ -72,12 +69,14 @@ app.put("/api/atualizar-nome", (req, res) => {
   res.status(404).json({ erro: "Usuário não encontrado" });
 });
 
-// Rota de Login
+// Rota de Login (Alunos)
 app.post("/api/login", (req, res) => {
   try {
     const { email, senha } = req.body;
     const usuarios = getUsers();
-    const usuario = usuarios.find(u => u.email === email && u.senha === senha);
+    const usuario = usuarios.find(
+      (u) => u.email === email && u.senha === senha,
+    );
 
     if (usuario) {
       res.json({
@@ -86,8 +85,7 @@ app.post("/api/login", (req, res) => {
           nome: usuario.nome,
           email: usuario.email,
           pontos: usuario.pontos || 0,
-          // IMPORTANTE: Enviar o progresso que está no JSON
-          progresso: usuario.progresso || {}
+          progresso: usuario.progresso || {},
         },
       });
     } else {
@@ -104,25 +102,22 @@ app.post("/api/login-google", (req, res) => {
     const { email, nome, foto } = req.body;
     let usuarios = getUsers();
 
-    // 1. Verifica se o e-mail do Google já existe no seu users.json
     let usuario = usuarios.find((u) => u && u.email === email);
     let novoUsuario = false;
 
-    // 2. Se o usuário não existir, vamos cadastrá-lo automaticamente
     if (!usuario) {
       usuario = {
         nome: nome,
         email: email,
-        senha: "GOOGLE_AUTH", // Colocamos uma senha "fictícia" para não ficar vazio
+        senha: "GOOGLE_AUTH",
         pontos: 0,
-        progresso: {} // Já inicializa o progresso zerado
+        progresso: {},
       };
       usuarios.push(usuario);
       fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
       novoUsuario = true;
     }
 
-    // 3. Retorna o usuário exatamente no mesmo formato da sua rota de login normal
     res.json({
       sucesso: true,
       novoUsuario: novoUsuario,
@@ -130,33 +125,31 @@ app.post("/api/login-google", (req, res) => {
         nome: usuario.nome,
         email: usuario.email,
         pontos: usuario.pontos || 0,
-        progresso: usuario.progresso || {}
-      }
+        progresso: usuario.progresso || {},
+      },
     });
-
   } catch (err) {
     console.error("❌ Erro no login com Google:", err);
     res.status(500).json({ erro: "Erro ao processar login com Google." });
   }
 });
-// --- FIM DA NOVA ROTA DO GOOGLE ---
 
-// 1. Rota para pegar todos os dados de uma FASE específica pelo SLUG
+// Rota para pegar todos os dados de uma FASE específica pelo SLUG
 app.get("/api/fase/:slug", (req, res) => {
   try {
     const content = fs.readFileSync(LESSONS_PATH, "utf8");
     const db = JSON.parse(content);
 
-    // Procura a fase pelo slug (ex: 'saudacoes' ou 'cores')
     const fase = db.niveis.find((n) => n.slug === req.params.slug);
 
     if (fase) {
-      // Removemos a resposta correta para o aluno não ver no F12/Inspect
-      const questoesSeguras = fase.questoes.map(({ respostaCorreta, ...resto }) => resto);
+      const questoesSeguras = fase.questoes.map(
+        ({ respostaCorreta, ...resto }) => resto,
+      );
       res.json({
         titulo: fase.titulo,
         slug: fase.slug,
-        questoes: questoesSeguras
+        questoes: questoesSeguras,
       });
     } else {
       res.status(404).json({ erro: "Fase não encontrada" });
@@ -168,37 +161,42 @@ app.get("/api/fase/:slug", (req, res) => {
 
 app.post("/api/validar-resposta-v2", (req, res) => {
   try {
-    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
+    const {
+      usuarioEmail,
+      slugFase,
+      questaoId,
+      respostaUsuario,
+      eUltimaQuestao,
+    } = req.body;
 
     const db = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
-    const fase = db.niveis.find(n => n.slug === slugFase);
+    const fase = db.niveis.find((n) => n.slug === slugFase);
     if (!fase) return res.status(404).json({ erro: "Fase não encontrada" });
 
-    const questao = fase.questoes.find(q => q.id == questaoId);
-    if (!questao) return res.status(404).json({ erro: "Questão não encontrada" });
+    const questao = fase.questoes.find((q) => q.id == questaoId);
+    if (!questao)
+      return res.status(404).json({ erro: "Questão não encontrada" });
 
-    const acertou = respostaUsuario?.toLowerCase().trim() === questao.resposta?.toLowerCase().trim();
+    const acertou =
+      respostaUsuario?.toLowerCase().trim() ===
+      questao.resposta?.toLowerCase().trim();
 
     if (acertou) {
       let usuarios = getUsers();
       const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
 
       if (userIndex !== -1) {
-        // Incrementa pontos
-        usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
+        usuarios[userIndex].pontos =
+          (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
 
-        // SE FOR A ÚLTIMA QUESTÃO, MARCA COMO CONCLUÍDO NO BANCO
         if (eUltimaQuestao) {
-          if (!usuarios[userIndex].progresso) usuarios[userIndex].progresso = {};
+          if (!usuarios[userIndex].progresso)
+            usuarios[userIndex].progresso = {};
           usuarios[userIndex].progresso[slugFase] = true;
-
-          // Atualiza também o objeto do usuário na resposta para o front atualizar o localStorage
           console.log(`✅ Fase ${slugFase} concluída para ${usuarioEmail}`);
         }
 
         fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
-
-        // Retornamos os dados atualizados do usuário para o Front-end sincronizar
         return res.json({ acertou, usuarioAtualizado: usuarios[userIndex] });
       }
     }
@@ -207,6 +205,61 @@ app.post("/api/validar-resposta-v2", (req, res) => {
   } catch (err) {
     console.error("❌ ERRO NO SERVIDOR:", err);
     res.status(500).json({ erro: "Erro interno" });
+  }
+});
+
+// ==========================================
+// 🚨 ROTAS DO ADMINISTRADOR 🚨
+// ==========================================
+
+// 1. Rota de Login exclusiva para o Administrador
+app.post("/api/admin/login", (req, res) => {
+  const { email, senha } = req.body;
+
+  // Credenciais fixas de Admin
+  const ADMIN_EMAIL = "admin@ingleja.com";
+  const ADMIN_SENHA = "admin";
+
+  if (email === ADMIN_EMAIL && senha === ADMIN_SENHA) {
+    res.json({ sucesso: true, token: "admin_token_autorizado" });
+  } else {
+    res.status(401).json({ erro: "Acesso negado. Credenciais inválidas." });
+  }
+});
+
+// 2. Rota para o Admin carregar TODAS as lições
+app.get("/api/admin/licoes", (req, res) => {
+  try {
+    if (!fs.existsSync(LESSONS_PATH)) {
+      return res
+        .status(404)
+        .json({ erro: "Arquivo de lições não encontrado." });
+    }
+    const content = fs.readFileSync(LESSONS_PATH, "utf8");
+    const db = JSON.parse(content);
+    res.json(db);
+  } catch (err) {
+    console.error("❌ Erro ao carregar lições para o admin:", err);
+    res.status(500).json({ erro: "Erro ao carregar lições" });
+  }
+});
+
+// 3. Rota para o Admin SALVAR as alterações (Substitui o JSON atual)
+app.put("/api/admin/licoes", (req, res) => {
+  try {
+    const novosDados = req.body;
+
+    if (!novosDados || !novosDados.niveis) {
+      return res.status(400).json({ erro: "Formato de dados inválido." });
+    }
+
+    fs.writeFileSync(LESSONS_PATH, JSON.stringify(novosDados, null, 2));
+    console.log("✅ Lições atualizadas pelo Administrador!");
+
+    res.json({ sucesso: true, mensagem: "Lições salvas com sucesso!" });
+  } catch (err) {
+    console.error("❌ Erro ao salvar lições:", err);
+    res.status(500).json({ erro: "Erro ao salvar as lições" });
   }
 });
 

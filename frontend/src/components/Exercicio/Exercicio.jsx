@@ -1,734 +1,564 @@
-// Fora da função Exercicio
-const API_BASE =
-  window.location.hostname === "localhost" ? "http://localhost:3000" : ""; // Em produção, ele usará a rota relativa do próprio servidor
-
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // Importamos useParams
+import React, { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import dadosLicoes from "../../../../data/lessons.json";
+import Navbar from "../Navbar/Navbar";
 import TelaConquista from "../TelaConquista/TelaConquista";
-import "./Exercicio.css";
 
 function Exercicio() {
+  const { slug } = useParams();
   const navigate = useNavigate();
-  const { slug } = useParams(); // Pega o nome da fase da URL
-  const audioRef = useRef(null);
 
-  // ESTADOS
-  const [questoes, setQuestoes] = useState([]); // Array com as 10 questões
-  const [indiceAtual, setIndiceAtual] = useState(0); // Controla qual questão estamos vendo
-  const [tituloNivel, setTituloNivel] = useState("");
-  const [resposta, setResposta] = useState("");
-  const [mostrarDica, setMostrarDica] = useState(false);
-  const [mostrarTraducao, setMostrarTraducao] = useState(false);
-  const [feedback, setFeedback] = useState({
-    msg: "",
-    color: "",
-    acertou: false,
-  });
-  const [usuario] = useState(() => {
-    const dadosSalvos = localStorage.getItem("usuarioLogado");
-    return dadosSalvos ? JSON.parse(dadosSalvos) : null;
-  });
-  const [loading, setLoading] = useState(true);
-  const [faseConcluida, setFaseConcluida] = useState(false);
+  // ==========================================
+  // ESTADOS DO FLUXO DA LIÇÃO E GAMIFICAÇÃO
+  // ==========================================
+  const [fase, setFase] = useState("normal"); // "normal" | "chamada_erros" | "revisao" | "conquista"
+  const [indiceFila, setIndiceFila] = useState(0);
+  const [errosCometidos, setErrosCometidos] = useState([]);
 
-  const [startTime] = useState(() => Date.now());
-  const [pontos, setPontos] = useState(0);
-  const [, setCombo] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
-  const [tempoFinal, setTempoFinal] = useState("");
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState(null);
+  const [textoDigitado, setTextoDigitado] = useState("");
+  const [palavrasSelecionadas, setPalavrasSelecionadas] = useState([]);
 
-  useEffect(() => {
-    const dadosUsuario = JSON.parse(localStorage.getItem("usuarioLogado"));
-    if (!dadosUsuario) {
-      navigate("/dashboard");
-      return;
-    }
-    // Trazemos a função PARA DENTRO do useEffect
-    const carregarFase = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/api/fase/${slug}`);
-        const data = await response.json();
+  // Estado para o Drag and Drop
+  const [draggedWord, setDraggedWord] = useState(null);
 
-        if (data.questoes) {
-          setQuestoes(data.questoes);
-          setTituloNivel(data.titulo || slug.toUpperCase());
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error("Erro ao carregar fase:", err);
-        setLoading(false);
-      }
-    };
+  const [statusResposta, setStatusResposta] = useState("pendente");
 
-    carregarFase();
-  }, [slug, navigate]);
+  // ==========================================
+  // CARREGAMENTO DOS DADOS DINÂMICOS
+  // ==========================================
+  const licao = useMemo(() => {
+    if (!dadosLicoes || !dadosLicoes.niveis) return null;
+    return dadosLicoes.niveis.find((m) => m.slug === slug);
+  }, [slug]);
 
-  const obterDadosProximaFase = () => {
-    // 1. Simule aqui o carregamento do seu JSON (ou use a variável onde você guarda as lições)
-    // Se você carrega as lições da API, use o array que vem do backend.
-    const niveis = [
-      { "id": 1, "slug": "saudacoes", "titulo": "Nível 1" },
-      { "id": 2, "slug": "cores", "titulo": "Nível 2" },
-      { "id": 3, "slug": "familia", "titulo": "Nível 3" },
-      { "id": 4, "slug": "comida", "titulo": "Nível 4" },
-      { "id": 5, "slug": "musica", "titulo": "Nível 5" }
-    ];
+  const dadosProximaLicao = useMemo(() => {
+    if (!dadosLicoes || !dadosLicoes.niveis || !licao) return null;
+    const currentIndex = dadosLicoes.niveis.findIndex((n) => n.slug === slug);
+    return dadosLicoes.niveis[currentIndex + 1] || null;
+  }, [slug, licao]);
 
-    // 2. Encontra a posição da fase atual (slug vem do useParams)
-    const indiceAtual = niveis.findIndex(n => n.slug === slug);
-
-    // 3. Pega a próxima fase se existir
-    return niveis[indiceAtual + 1] || null;
-  };
-
-  const proximaFase = obterDadosProximaFase();
-
-  // Dentro do componente Exercicio
-  useEffect(() => {
-    // 1. Verificamos se a questão atual existe e tem áudio
-    const questaoAt = questoes[indiceAtual];
-
-    if (questaoAt && questaoAt.audio) {
-      const novoAudioUrl = `${API_BASE}/audios/${questaoAt.audio}`;
-
-      if (audioRef.current) {
-        // 2. Atualizamos o src e carregamos o novo ficheiro
-        audioRef.current.src = novoAudioUrl;
-        audioRef.current.load();
-        console.log("Áudio atualizado para:", questaoAt.audio);
-      }
-    }
-  }, [indiceAtual, questoes]); // Sempre que o índice mudar, ele corre isto
-
-  // Limpa o alerta vermelho das bordas caso o usuário tente digitar ou selecionar de nov
-
-  const questaoAtual = questoes[indiceAtual];
-
-  const finalizarExercicio = async () => {
-    if (!resposta.trim()) return;
-
-    const questaoAtual = questoes[indiceAtual];
-    const eUltima = indiceAtual === questoes.length - 1;
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/validar-resposta-v2",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            usuarioEmail: usuario.email,
-            slugFase: slug,
-            questaoId: questaoAtual.id,
-            respostaUsuario: resposta,
-            eUltimaQuestao: eUltima,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (data.acertou) {
-        tocarSFX("acerto.mp3");
-
-        setPontos((prev) => prev + 10);
-        setCombo((prev) => {
-          const novoCombo = prev + 1;
-          if (novoCombo > maxCombo) setMaxCombo(novoCombo);
-          return novoCombo;
-        });
-
-        setFeedback({
-          msg: "Incrível! Você acertou!",
-          color: "green",
-          acertou: true,
-        });
-
-        // --- BLOCO COM A LÓGICA DE SALVAR O USUÁRIO E A NOTIFICAÇÃO ---
-        if (eUltima && data.usuarioAtualizado) {
-          localStorage.removeItem("fase_em_revisao");
-          localStorage.setItem(
-            "usuarioLogado",
-            JSON.stringify(data.usuarioAtualizado),
-          );
-
-          // Cria a notificação de conclusão
-          const notificacoesAntigas = JSON.parse(
-            localStorage.getItem("notificacoes_ingleja") || "[]",
-          );
-          const novaNotificacao = {
-            id: new Date().getTime(),
-            titulo: "Missão Concluída!",
-            desc: `Você finalizou a missão "${tituloNivel}" com sucesso. Mais ${pontos + 10} XP pra conta!`,
-            icone: "emoji_events",
-            tipo: "sucesso",
-            acaoSlug: slug, // ADICIONADO PARA ROLAGEM FUNCIONAR NA NOTIFICAÇÃO DE CONCLUSÃO!
-          };
-
-          localStorage.setItem(
-            "notificacoes_ingleja",
-            JSON.stringify([novaNotificacao, ...notificacoesAntigas]),
-          );
-        }
-      } else {
-        tocarSFX("erro.mp3");
-        setFeedback({
-          msg: "Ops! Resposta incorreta. Tente novamente!",
-          color: "red",
-          acertou: false,
-        });
-      }
-    } catch (err) {
-      console.error("Erro ao validar:", err);
-    }
-  };
-
-  const proximaQuestao = () => {
-    // Se ainda não chegou na última, avança
-    if (indiceAtual < questoes.length - 1) {
-      setIndiceAtual((prev) => prev + 1);
-      setResposta("");
-      setFeedback({ msg: "", color: "", acertou: false });
-      setMostrarDica(false);
-      setMostrarTraducao(false);
-    } else {
-      // Cálculo do Tempo Total
-      const endTime = Date.now();
-      const totalSegundos = Math.floor((endTime - startTime) / 1000);
-      const minutos = Math.floor(totalSegundos / 60);
-      const segundos = totalSegundos % 60;
-      const tempoFormatado = `${minutos}:${segundos < 10 ? "0" : ""}${segundos}`;
-
-      setTempoFinal(tempoFormatado);
-
-      // Se já está na última questão e clicou em Próximo/Finalizar
-      setFaseConcluida(true);
-    }
-  };
-
-  // Função para adicionar palavra à frase
-  const adicionarPalavra = (palavra) => {
-    if (feedback.acertou) return;
-
-    const palavrasAtuais = resposta.split(" ");
-    if (palavrasAtuais.includes(palavra)) {
-      return;
-    }
-
-    const novaFrase = resposta ? `${resposta} ${palavra}` : palavra;
-    setResposta(novaFrase);
-  };
-
-  // Função para remover a ÚLTIMA palavra (caso o aluno erre)
-  const removerUltimaPalavra = () => {
-    if (feedback.acertou) return;
-    const palavras = resposta.split(" ");
-    palavras.pop();
-    setResposta(palavras.join(" "));
-  };
-
-  const tocarSFX = (arquivo) => {
-    // Lê a configuração salva no Dashboard
-    const configTexto = localStorage.getItem("configuracoes_ingleja");
-    const config = configTexto ? JSON.parse(configTexto) : { som: true };
-
-    // Trava de segurança: Se o som estiver desativado (false), aborta a função aqui!
-    if (config.som === false) return;
-
-    const audio = new Audio(`${API_BASE}/audios/sfx/${arquivo}`);
-    audio.volume = 0.4;
-    audio.play().catch((err) => console.log("Erro ao tocar:", err));
-  };
-
-  // Dicionário rápido de detecção de português
-  const descobrirIdioma = (texto) => {
-    if (!texto) return "en-US";
-    // 1. Se tem acentos/cedilha, é português com certeza
-    if (/[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(texto)) return "pt-BR";
-
-    const txtLower = texto.toLowerCase().trim();
-
-    // 2. Se for igual à tradução da questão atual
-    if (
-      questaoAtual?.traducao &&
-      txtLower === questaoAtual.traducao.toLowerCase()
-    )
-      return "pt-BR";
-
-    // 3. Mini-dicionário de palavras usadas como opções incorretas frequentemente em PT
-    const armadilhasPT = [
-      "casa",
-      "carro",
-      "cachorro",
-      "gato",
-      "homem",
-      "mulher",
-      "menino",
-      "menina",
-      "sol",
-      "lua",
-      "livro",
-      "água",
-    ];
-    if (armadilhasPT.includes(txtLower)) return "pt-BR";
-
-    // Se não caiu em nenhuma regra, assume que é a palavra em inglês
-    return "en-US";
-  };
-
-  const falarTextoOpcao = (texto) => {
-    const configTexto = localStorage.getItem("configuracoes_ingleja");
-    const config = configTexto ? JSON.parse(configTexto) : { som: true };
-    if (config.som === false) return;
-
-    const textoLimpo = texto.replace(/[.,/#!?$%^&*;:{}=\-_`~()]/g, "").trim();
-
-    if (textoLimpo && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(textoLimpo);
-      const idiomaDetectado = descobrirIdioma(textoLimpo);
-      utterance.lang = idiomaDetectado;
-      utterance.rate = 0.9;
-
-      // Obtendo vozes. Os navegadores muitas vezes requerem um pequeno setup para não retornar array vazio.
-      let vozes = window.speechSynthesis.getVoices();
-
-      let vozEscolhida = null;
-      if (idiomaDetectado === "pt-BR") {
-        // Para português, buscamos a voz premium do Google ou as vozes masculinas do Windows
-        vozEscolhida =
-          vozes.find((v) => v.lang === "pt-BR" && v.name.includes("Google")) ||
-          vozes.find(
-            (v) =>
-              v.lang === "pt-BR" &&
-              (v.name.includes("Antonio") ||
-                v.name.includes("Luciano") ||
-                v.name.includes("Daniel")),
-          ) ||
-          vozes.find((v) => v.lang.startsWith("pt"));
-      } else {
-        // Para Inglês
-        vozEscolhida =
-          vozes.find((v) => v.lang === "en-US" && v.name.includes("Google")) ||
-          vozes.find(
-            (v) =>
-              v.lang === "en-US" &&
-              (v.name.includes("David") ||
-                v.name.includes("Guy") ||
-                v.name.includes("Mark")),
-          ) ||
-          vozes.find((v) => v.lang.startsWith("en"));
-      }
-
-      if (vozEscolhida) {
-        utterance.voice = vozEscolhida;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // Garante que o navegador carregue as vozes assim que possível
-  useEffect(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
-  }, []);
-
-  if (loading)
-    return <div className="container-exercicio">Carregando fase...</div>;
-  if (!questaoAtual)
+  if (!licao) {
     return (
-      <div className="container-exercicio">Nenhuma questão encontrada.</div>
+      <div className="min-h-screen flex items-center justify-center dark:bg-gray-950 dark:text-white font-bold">
+        Carregando missão... (ou lição não encontrada)
+      </div>
     );
+  }
 
+  const perguntaAtualIndex =
+    fase === "revisao" ? errosCometidos[indiceFila] : indiceFila;
+  const questao = licao.questoes[perguntaAtualIndex];
+  const isInputText =
+    questao.tipo !== "ordenar_frase" &&
+    (!questao.opcoes || questao.opcoes.length === 0);
+
+  const nivelFormatado = licao.titulo.split(":")[0];
+  const tituloFormatado = licao.titulo.split(":")[1]?.trim() || licao.titulo;
+  const progressoTotal =
+    fase === "revisao"
+      ? (indiceFila / errosCometidos.length) * 100
+      : (indiceFila / licao.questoes.length) * 100;
+
+  // ==========================================
+  // AÇÕES: ORDENAR FRASE (Tap & Drag)
+  // ==========================================
+  const handleAddPalavra = (texto, originalIndex) => {
+    setPalavrasSelecionadas((prev) => [...prev, { texto, originalIndex }]);
+  };
+
+  const handleRemovePalavra = (indexInSelected) => {
+    setPalavrasSelecionadas((prev) =>
+      prev.filter((_, i) => i !== indexInSelected),
+    );
+  };
+
+  const onDragStart = (e, texto, originalIndex) => {
+    setDraggedWord({ texto, originalIndex });
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    if (draggedWord && statusResposta === "pendente") {
+      const jaExiste = palavrasSelecionadas.some(
+        (p) => p.originalIndex === draggedWord.originalIndex,
+      );
+      if (!jaExiste) {
+        handleAddPalavra(draggedWord.texto, draggedWord.originalIndex);
+      }
+      setDraggedWord(null);
+    }
+  };
+
+  // ==========================================
+  // LÓGICA DE VALIDAÇÃO E ÁUDIO
+  // ==========================================
+  const tocarAudio = () => {
+    if (questao && questao.audio) {
+      const audio = new Audio(`/audios/${questao.audio}`);
+      audio.play().catch(() => {});
+    }
+  };
+
+  const verificarResposta = () => {
+    if (statusResposta === "pendente") {
+      let acertou = false;
+
+      if (questao.tipo === "ordenar_frase") {
+        const fraseMontada = palavrasSelecionadas.map((p) => p.texto).join(" ");
+        acertou = fraseMontada.trim() === questao.resposta.trim();
+      } else if (isInputText) {
+        acertou =
+          textoDigitado.trim().toLowerCase() ===
+          questao.resposta.trim().toLowerCase();
+      } else {
+        const opcaoEscolhida = questao.opcoes[opcaoSelecionada];
+        const textoEscolhido =
+          typeof opcaoEscolhida === "string"
+            ? opcaoEscolhida
+            : opcaoEscolhida.texto;
+        acertou = textoEscolhido === questao.resposta;
+      }
+
+      if (acertou) {
+        setStatusResposta("correta");
+        const audio = new Audio("/audios/sfx/acerto.mp3");
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } else {
+        setStatusResposta("errada");
+        const audio = new Audio("/audios/sfx/erro.mp3");
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+
+        // Só adiciona na lista de erros se estiver na fase normal
+        if (fase === "normal") {
+          setErrosCometidos((prev) => {
+            if (!prev.includes(perguntaAtualIndex))
+              return [...prev, perguntaAtualIndex];
+            return prev;
+          });
+        }
+      }
+      return;
+    }
+
+    // Avançar / Tentar Novamente
+    if (fase === "revisao" && statusResposta === "errada") {
+      // Limpa os campos para o usuário tentar novamente na mesma pergunta
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+      return;
+    }
+
+    // Limpeza padrão para avançar de pergunta
+    setOpcaoSelecionada(null);
+    setTextoDigitado("");
+    setPalavrasSelecionadas([]);
+    setStatusResposta("pendente");
+
+    if (fase === "normal") {
+      if (indiceFila < licao.questoes.length - 1) {
+        setIndiceFila((prev) => prev + 1);
+      } else {
+        if (errosCometidos.length > 0) {
+          setFase("chamada_erros");
+        } else {
+          finalizarLicao();
+        }
+      }
+    } else if (fase === "revisao") {
+      // Se chegou aqui na revisão, é porque acertou, então avança
+      if (indiceFila < errosCometidos.length - 1) {
+        setIndiceFila((prev) => prev + 1);
+      } else {
+        finalizarLicao();
+      }
+    }
+  };
+
+  const finalizarLicao = () => {
+    const audioWin = new Audio("/audios/sfx/vitoria.mp3");
+    audioWin.play().catch(() => {});
+    setFase("conquista");
+  };
+
+  let isVerificarDisabled = statusResposta === "pendente";
+  if (isVerificarDisabled) {
+    if (questao.tipo === "ordenar_frase")
+      isVerificarDisabled = palavrasSelecionadas.length === 0;
+    else if (isInputText) isVerificarDisabled = textoDigitado.trim() === "";
+    else isVerificarDisabled = opcaoSelecionada === null;
+  }
+
+  // ==========================================
+  // RENDERIZAÇÃO: TELA FINAL DE CONQUISTA
+  // ==========================================
+  if (fase === "conquista") {
+    const acertosPerfeitos = licao.questoes.length - errosCometidos.length;
+
+    return (
+      <TelaConquista
+        tituloNivel={licao.titulo}
+        nivelAtual={licao.id}
+        proximoNivelId={dadosProximaLicao ? dadosProximaLicao.id : null}
+        proximoSlug={dadosProximaLicao ? dadosProximaLicao.slug : null}
+        xpGanhos={40 + acertosPerfeitos * 5}
+        comboAtual={acertosPerfeitos}
+      />
+    );
+  }
+
+  // ==========================================
+  // RENDERIZAÇÃO: CHAMADA PARA CORREÇÃO
+  // ==========================================
+  if (fase === "chamada_erros") {
+    return (
+      <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-[fadeIn_0.5s_ease-out]">
+          <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
+            <span className="material-symbols-outlined text-[48px]">
+              replay
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white mb-4 tracking-tight">
+            Prática leva à perfeição!
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl mb-12 max-w-lg">
+            Você cometeu{" "}
+            <strong>
+              {errosCometidos.length} erro{errosCometidos.length > 1 ? "s" : ""}
+            </strong>
+            . Vamos revisá-los agora!
+          </p>
+          <button
+            onClick={() => {
+              setFase("revisao");
+              setIndiceFila(0);
+            }}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-lg py-5 px-12 rounded-2xl shadow-[0_8px_25px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95"
+          >
+            Revisar meus erros
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // TELA PRINCIPAL (EXERCÍCIO)
+  // ==========================================
   return (
-    <div className="container-exercicio">
-      {faseConcluida ? (
-        <TelaConquista
-          questoesTotais={questoes.length}
-          xpGanhos={pontos}
-          tempoTotal={tempoFinal}
-          comboAtual={maxCombo}
-          tituloNivel={tituloNivel}
-          proximoSlug={proximaFase?.slug} 
-          proximoTitulo={proximaFase ? `Nível ${proximaFase.id}` : "Fim"}
-        />
-      ) : (
-        <>
-          <div className="progresso-container">
-            <div className="progresso-texto">
-              <span style={{ color: "#64748B" }}>PROGRESSO DA LIÇÃO</span>
-              <span>
-                Questão <strong>{indiceAtual + 1}</strong> de {questoes.length}
+    <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
+      <Navbar />
+
+      <div className="w-full max-w-5xl mx-auto px-4 py-8 md:py-12 flex-1 flex flex-col relative z-10">
+        {/* BARRA DE PROGRESSO */}
+        <div className="flex items-center gap-4 md:gap-8 mb-8 w-full max-w-4xl mx-auto">
+          <div className="flex-1 flex flex-col gap-2.5">
+            <div className="flex justify-between items-center text-[10.5px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              <span className="text-gray-500 dark:text-gray-400">
+                {fase === "revisao"
+                  ? "Modo de Revisão"
+                  : `${nivelFormatado} • ${tituloFormatado}`}
+              </span>
+              <span className="text-orange-500 dark:text-orange-400 transition-colors">
+                Questão {indiceFila + 1} de{" "}
+                {fase === "revisao"
+                  ? errosCometidos.length
+                  : licao.questoes.length}
               </span>
             </div>
-
-            <div className="progresso-fundo">
+            <div className="h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
               <div
-                className="progresso-barra"
-                style={{
-                  width: `${questoes.length > 0 ? ((indiceAtual + 1) / questoes.length) * 100 : 0}%`,
-                  transition: "width 0.3s ease-in-out",
-                }}
+                className="h-full rounded-full transition-all duration-700 ease-out bg-orange-500"
+                style={{ width: `${progressoTotal}%` }}
               ></div>
             </div>
           </div>
+        </div>
 
-          <div className="area-pergunta">
-            <audio ref={audioRef} key={`audio-${indiceAtual}`} />
+        {/* CARD PRINCIPAL DA QUESTÃO */}
+        <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-900 rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-800 p-6 md:p-10 flex flex-col gap-8 mb-36 relative overflow-hidden">
+          {fase === "revisao" && (
+            <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest px-6 py-1.5 rounded-bl-2xl">
+              Corrigindo
+            </div>
+          )}
 
-              {questaoAtual.tipo !== "escolha_palavra" && questaoAtual.tipo !== "ordenar_frase" && (
-                <>
-                  <h2 className="titulo-questao">
-                    {questaoAtual.pergunta_exibicao ||
-                      (questaoAtual.tipo === "audio_input"
-                        ? "Ouvir e Escrever"
-                        : "Traduza")}
-                  </h2>
-                  {questaoAtual.subtitulo && (
-                    <p className="subtitulo-exercicio">{questaoAtual.subtitulo}</p>
+          <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
+            <div className="flex-1 flex flex-col justify-center">
+              <span className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-3">
+                Pergunta
+              </span>
+
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-2 leading-tight">
+                {questao.pergunta_exibicao}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-sm md:text-base">
+                {questao.tipo === "ordenar_frase"
+                  ? "Arraste ou toque nas palavras para formar a frase"
+                  : isInputText
+                    ? "Digite a palavra correta em inglês."
+                    : questao.subtitulo || "Selecione a palavra correspondente"}
+              </p>
+
+              {questao.tipo === "preencher_lacuna" && (
+                <div className="mt-8 flex items-end gap-2 text-2xl md:text-3xl font-bold text-slate-700 dark:text-gray-200 flex-wrap">
+                  <span>{questao.frase_parte_1}</span>
+                  {isInputText ? (
+                    <input
+                      type="text"
+                      value={textoDigitado}
+                      onChange={(e) => setTextoDigitado(e.target.value)}
+                      disabled={statusResposta !== "pendente"}
+                      autoFocus
+                      className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-blue-500 text-blue-600 dark:text-blue-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
+                    />
+                  ) : (
+                    <span className="border-b-4 border-gray-300 dark:border-gray-600 inline-block w-24 mx-2"></span>
                   )}
-                </>
+                  <span>{questao.frase_parte_2}</span>
+                </div>
               )}
 
-            {/* Layout 1: Imagem + Opções de Clique */}
-            {questaoAtual.tipo === "escolha_palavra" && (
-              <div className="layout-multipla-escolha">
-                <div className="container-imagem-central">
-                  <div className="questao-hint-container">
-                      <h2 className="titulo-questao">
-                        {questaoAtual.pergunta_exibicao ||
-                          (questaoAtual.tipo === "audio_input"
-                            ? "Ouvir e Escrever"
-                            : "Traduza")}
-                      </h2>
-
-                      <div className="container-audio-hint">
-                        <button
-                          className="btn-audio-circular"
-                          onClick={() => audioRef.current.play()}
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ margin: "0" }}
-                          >
-                            volume_up
-                          </span>
-                        </button>
-                        <div className="wrapper-hint-relativo">
-                          <button
-                            className={`btn-hint-circular ${mostrarDica ? "ativo" : ""}`}
-                            onClick={() => setMostrarDica(!mostrarDica)}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ margin: "0" }}
-                            >
-                              lightbulb
-                            </span>
-                          </button>
-
-                          {mostrarDica && (
-                            <div className="balao-hint-lateral">
-                              {questaoAtual.dica}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                  </div>
-                  <img
-                    src={`http://localhost:3000/images/${questaoAtual.img}`}
-                    alt="Exercício"
-                    className="img-pergunta-principal"
-                  />
+              {questao.tipo === "ordenar_frase" && questao.frase_exibicao && (
+                <div className="mt-6">
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
+                    "{questao.frase_exibicao}"
+                  </span>
                 </div>
-                <div className="lista-botoes-opcoes">
-                  {questaoAtual.opcoes.map((opcao, idx) => (
-                    <button
-                      key={idx}
-                      className={`btn-opcao-item ${resposta === opcao ? "selecionada" : ""} ${resposta === opcao && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
-                      onClick={() => {
-                        setResposta(opcao);
-                        tocarSFX("botao_selecionar_resposta.mp3"); // Som ao selecionar a opção
-                        falarTextoOpcao(opcao); // Lê automaticamente a opção no idioma correto
-                      }}
-                      disabled={feedback.acertou}
-                    >
-                      <span className="numero-indicador">{idx + 1}</span>
-                      {opcao}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Layout 2: Grade de Imagens */}
-            {questaoAtual.tipo === "escolha_imagem" && (
-              <div className="layout-grade-imagens">
-                <div className="container-translate-audio">
-                  <button
-                    className="btn-audio-circular"
-                    onClick={() => audioRef.current.play()}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ margin: "0" }}
-                    >
+              {questao.audio && (
+                <button
+                  onClick={tocarAudio}
+                  className="mt-8 flex items-center gap-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-blue-100 dark:border-blue-800/50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                    <span className="material-symbols-outlined text-[24px]">
                       volume_up
                     </span>
+                  </div>
+                  Ouvir Pronúncia
+                </button>
+              )}
+            </div>
+
+            {questao.img && questao.tipo !== "escolha_imagem" && (
+              <div className="w-full md:w-[45%] lg:w-[40%] bg-gray-50 dark:bg-gray-800/40 p-6 rounded-3xl flex items-center justify-center border border-gray-100 dark:border-gray-700/50">
+                <img
+                  src={`/images/${questao.img}`}
+                  alt="Apoio visual"
+                  className="max-h-48 md:max-h-56 object-contain drop-shadow-md rounded-xl"
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+              </div>
+            )}
+          </div>
+
+          {!isInputText && (
+            <hr className="border-gray-100 dark:border-gray-800" />
+          )}
+
+          {/* ========================================== */}
+          {/* ORDENAR FRASE (Tap & Drag) */}
+          {/* ========================================== */}
+          {questao.tipo === "ordenar_frase" && (
+            <div className="w-full flex flex-col gap-6 mt-2">
+              <div
+                className={`flex flex-wrap content-start gap-2 min-h-[68px] p-2 rounded-2xl border-2 transition-colors
+                  ${statusResposta === "pendente" ? "bg-gray-50 dark:bg-gray-800/40 border-dashed border-gray-300 dark:border-gray-700" : ""}
+                  ${statusResposta === "correta" ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : ""}
+                  ${statusResposta === "errada" ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" : ""}
+                `}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+              >
+                {palavrasSelecionadas.map((palavra, i) => (
+                  <button
+                    key={i}
+                    onClick={() =>
+                      statusResposta === "pendente" && handleRemovePalavra(i)
+                    }
+                    className={`px-4 py-3 border-2 rounded-xl font-bold shadow-sm transition-transform 
+                      ${statusResposta === "pendente" ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 active:scale-95" : ""}
+                      ${statusResposta === "correta" ? "bg-green-500 border-green-600 text-white cursor-default" : ""}
+                      ${statusResposta === "errada" ? "bg-red-500 border-red-600 text-white cursor-default" : ""}
+                    `}
+                  >
+                    {palavra.texto}
                   </button>
-                  <div
-                    className={`tag-palavra-ingles ${mostrarTraducao ? "modo-pt" : ""}`}
-                    onClick={() => setMostrarTraducao(!mostrarTraducao)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ margin: "0" }}
-                    >
-                      translate
-                    </span>
-
-                    <span>
-                      {mostrarTraducao
-                        ? questaoAtual.traducao
-                        : questaoAtual.palavra_ingles}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grade-cards">
-                  {questaoAtual.opcoes.map((opcao, idx) => (
-                    <button
-                      key={idx}
-                      className={`card-imagem-item ${resposta === opcao.texto ? "selecionada" : ""} ${resposta === opcao.texto && feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
-                      onClick={() => {
-                        setResposta(opcao.texto);
-                        tocarSFX("botao_selecionar_resposta.mp3");
-                        falarTextoOpcao(opcao.texto);
-                      }}
-                      disabled={feedback.acertou}
-                    >
-                      <div className="container-img-card">
-                        <img
-                          src={`${API_BASE}/images/${opcao.img}`}
-                          alt={opcao.texto}
-                        />
-                      </div>
-                      <span className="legenda-card">{opcao.texto}</span>
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
-            )}
 
-            {/* --- LAYOUT 3: PREENCHER LACUNA --- */}
-            {questaoAtual.tipo === "preencher_lacuna" && (
-              <div className="layout-lacuna">
-                <div className="container-imagem-lacuna">
-                  <img
-                    src={`${API_BASE}/images/${questaoAtual.img}`}
-                    alt="Contexto"
-                  />
-                  <div className="container-audio-hint">
-                    <button
-                      className="btn-audio-circular"
-                      onClick={() => audioRef.current.play()}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ margin: "0" }}
-                      >
-                        volume_up
-                      </span>
-                    </button>
+              <div className="flex flex-wrap justify-center gap-3">
+                {questao.opcoes.map((texto, index) => {
+                  const isSelected = palavrasSelecionadas.some(
+                    (p) => p.originalIndex === index,
+                  );
 
-                    <button className="btn-hint-circular">
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ margin: "0" }}
-                      >
-                        lightbulb
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="frase-container">
-                  <span className="texto-frase">
-                    {questaoAtual.frase_parte_1}
-                  </span>
-
-                  <span
-                    className={`lacuna-vazia ${resposta ? "preenchida" : ""}`}
-                  >
-                    {resposta || "__"}
-                  </span>
-
-                  <span className="texto-frase">
-                    {questaoAtual.frase_parte_2}
-                  </span>
-                </div>
-
-                <div className="input-container-lacuna">
-                  <input
-                    type="text"
-                    className={`input-lacuna ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
-                    placeholder="Clique aqui para digitar..."
-                    value={resposta}
-                    onChange={(e) => setResposta(e.target.value)}
-                    disabled={feedback.acertou}
-                    autoFocus
-                  />
-                  <span id="icone-lapis" className="material-symbols-outlined">
-                    edit
-                  </span>
-                </div>
-
-                {questaoAtual.dica && (
-                  <p className="dica-texto">Dica: {questaoAtual.dica}</p>
-                )}
-              </div>
-            )}
-
-            {/* --- LAYOUT 5: PREENCHER COM BLOCOS --- */}
-            {questaoAtual.tipo === "ordenar_frase" && (
-              <div className="layout-ordenar">
-
-                  <div className="area-pergunta-ordenar">
-                    <div className="area-questao-audio">
-                      <h2 className="titulo-questao">
-                        {questaoAtual.pergunta_exibicao ||
-                          (questaoAtual.tipo === "audio_input"
-                            ? "Ouvir e Escrever"
-                            : "Traduza")}
-                      </h2>
-                      <div className="container-audio-exibicao">
-                        <button
-                          className="btn-audio-circular"
-                          onClick={() => audioRef.current.play()}
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ margin: "0" }}
-                          >
-                            volume_up
-                          </span>
-                        </button>
-                        <div className="balao-frase">
-                          {questaoAtual.frase_exibicao}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="container-img-pequena">
-                      <img
-                        src={`${API_BASE}/images/${questaoAtual.img}`}
-                        alt="Cena"
-                      />
-                    </div>
-                  </div>
-
-                <div
-                  className={`area-montagem ${feedback.color === "red" ? "erro anim-shake-erro" : ""}`}
-                  onClick={removerUltimaPalavra}
-                >
-                  {resposta ? (
-                    resposta.split(" ").map((pal, i) => (
-                      <span
-                        key={i}
-                        className="palavra-montada"
-                        onClick={() =>
-                          tocarSFX("botao_desselecionar_resposta.mp3")
+                  return (
+                    <div
+                      key={index}
+                      draggable={!isSelected && statusResposta === "pendente"}
+                      onDragStart={(e) => onDragStart(e, texto, index)}
+                      onClick={() =>
+                        !isSelected &&
+                        statusResposta === "pendente" &&
+                        handleAddPalavra(texto, index)
+                      }
+                      className={`px-4 py-3 rounded-xl font-bold text-[16px] transition-all select-none
+                        ${
+                          isSelected
+                            ? "bg-gray-200 dark:bg-gray-800 text-gray-200 dark:text-gray-800 border-2 border-gray-200 dark:border-gray-800 shadow-none cursor-default"
+                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-blue-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
                         }
-                      >
-                        {pal}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="placeholder-montagem">
-                      Toque nas palavras abaixo...
-                    </span>
-                  )}
-                </div>
-
-                <div className="banco-palavras">
-                  {questaoAtual.opcoes.map((palavra, idx) => {
-                    const selecionada = resposta.split(" ").includes(palavra);
-                    return (
-                      <button
-                        key={idx}
-                        className={`btn-puzzle ${selecionada ? "item-escondido" : ""}`}
-                        onClick={() => {
-                          adicionarPalavra(palavra);
-                          tocarSFX("botao_selecionar_resposta.mp3");
-                          falarTextoOpcao(palavra);
-                        }}
-                        disabled={feedback.acertou || selecionada}
-                      >
-                        {palavra}
-                      </button>
-                    );
-                  })}
-                </div>
+                      `}
+                    >
+                      {texto}
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+          )}
+
+          {/* ========================================== */}
+          {/* MÚLTIPLA ESCOLHA COMUM */}
+          {/* ========================================== */}
+          {!isInputText && questao.tipo !== "ordenar_frase" && (
+            <div
+              className={`grid gap-4 w-full ${questao.tipo === "escolha_imagem" ? "grid-cols-2" : "grid-cols-1"}`}
+            >
+              {questao.opcoes &&
+                questao.opcoes.map((opcao, index) => {
+                  const textoOpcao =
+                    typeof opcao === "string" ? opcao : opcao.texto;
+                  const imagemOpcao =
+                    typeof opcao === "object" ? opcao.img : null;
+                  const isSelected = opcaoSelecionada === index;
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() =>
+                        statusResposta === "pendente" &&
+                        setOpcaoSelecionada(index)
+                      }
+                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"}`}
+                    >
+                      {imagemOpcao && (
+                        <img
+                          src={`/images/${imagemOpcao}`}
+                          alt={textoOpcao}
+                          className="w-full h-32 object-contain mb-2 rounded-lg"
+                          onError={(e) => (e.target.style.display = "none")}
+                        />
+                      )}
+                      {questao.tipo !== "escolha_imagem" && (
+                        <span
+                          className={`w-10 h-10 shrink-0 rounded-xl flex justify-center items-center text-sm font-bold transition-colors ${isSelected ? "bg-orange-500 dark:bg-orange-600 text-white shadow-sm" : "bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:text-orange-500"}`}
+                        >
+                          {index + 1}
+                        </span>
+                      )}
+                      <span
+                        className={`font-bold text-[16px] transition-colors ${questao.tipo !== "escolha_imagem" ? "ml-4" : "text-center w-full"} ${isSelected ? "text-orange-600 dark:text-orange-400" : "text-slate-700 dark:text-gray-200"}`}
+                      >
+                        {textoOpcao}
+                      </span>
+                      <div
+                        className={`ml-auto w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-orange-500" : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"}`}
+                      >
+                        {isSelected && (
+                          <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* BARRA DE AÇÕES INFERIOR - ALINHADA COM O CARD (max-w-4xl) */}
+      <div
+        className={`fixed bottom-0 left-0 w-full px-4 py-4 md:py-6 flex justify-center z-50 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)]
+          ${statusResposta === "correta" ? "bg-green-50 dark:bg-green-900/30 border-t border-green-200 dark:border-green-800" : ""}
+          ${statusResposta === "errada" ? "bg-red-50 dark:bg-red-900/30 border-t border-red-200 dark:border-red-800" : ""}
+          ${statusResposta === "pendente" ? "bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800" : ""}
+        `}
+      >
+        <div className="w-full max-w-4xl flex justify-between items-center gap-4">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
+          >
+            <span className="material-symbols-outlined text-[24px] rotate-180">
+              logout
+            </span>
+            <span className="hidden sm:inline text-[15px]">Sair da lição</span>
+          </button>
+
+          <div className="hidden md:flex flex-1 items-center justify-center font-extrabold text-xl">
+            {statusResposta === "correta" && (
+              <span className="text-green-600 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[32px]">
+                  check_circle
+                </span>
+                Correto!
+              </span>
+            )}
+            {statusResposta === "errada" && (
+              <span className="text-red-600 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[32px]">
+                  cancel
+                </span>
+                Incorreto. A resposta é:{" "}
+                <strong className="ml-1 px-3 py-1 bg-white/50 dark:bg-black/30 rounded-lg">
+                  {questao.resposta}
+                </strong>
+              </span>
             )}
           </div>
 
-          <div className="barra-navegacao-inferior">
-            {indiceAtual === 0 ? (
-              <button
-                className="btn-navegacao secundario"
-                onClick={() => navigate("/dashboard")}
-              >
-                ⬅ Sair
-              </button>
-            ) : (
-              <button
-                className="btn-navegacao secundario"
-                onClick={() => {
-                  tocarSFX("voltar.mp3");
-                  setIndiceAtual((prev) => prev - 1);
-                }}
-              >
-                ⬅ Voltar
-              </button>
-            )}
-
-            {!feedback.acertou ? (
-              <button
-                className={`btn-navegacao primario ${feedback.color === "red" ? "btn-erro anim-shake-erro" : ""}`}
-                onClick={finalizarExercicio}
-                disabled={!resposta.trim()}
-              >
-                Verificar
-              </button>
-            ) : (
-              <button
-                className="btn-navegacao sucesso"
-                onClick={() => {
-                  if (indiceAtual === questoes.length - 1) {
-                    tocarSFX("finalizar.mp3");
-                  } else {
-                    tocarSFX("avancar.mp3");
-                  }
-                  proximaQuestao();
-                }}
-              >
-                {indiceAtual === questoes.length - 1
-                  ? "Finalizar ✨"
-                  : "Próximo ➡"}
-              </button>
-            )}
-          </div>
-        </>
-      )}
+          <button
+            onClick={verificarResposta}
+            disabled={isVerificarDisabled}
+            className={`flex-1 sm:flex-none sm:w-[280px] flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-[16px] transition-all ${
+              isVerificarDisabled
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                : statusResposta === "correta"
+                  ? "bg-green-500 hover:bg-green-600 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] active:scale-95 cursor-pointer"
+                  : statusResposta === "errada"
+                    ? "bg-red-500 hover:bg-red-600 text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)] active:scale-95 cursor-pointer"
+                    : "bg-orange-500 hover:bg-orange-600 text-white shadow-[0_8px_20px_rgba(249,115,22,0.3)] active:scale-95 cursor-pointer"
+            }`}
+          >
+            {statusResposta === "pendente"
+              ? "Verificar resposta"
+              : statusResposta === "errada" && fase === "revisao"
+                ? "Tentar novamente"
+                : "Continuar"}
+            <span className="material-symbols-outlined text-[24px]">
+              {statusResposta === "pendente"
+                ? "done"
+                : statusResposta === "errada" && fase === "revisao"
+                  ? "replay"
+                  : "arrow_forward"}
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
