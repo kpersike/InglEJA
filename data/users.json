@@ -147,5 +147,11 @@
     "email": "teste@hotmail.com",
     "senha": "123",
     "pontos": 0
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "fernando@teste.com",
+    "senha": "321",
+    "pontos": 0
   }
 ]

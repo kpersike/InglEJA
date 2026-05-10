@@ -13,7 +13,12 @@
           "traducao": "Oi",
           "audio": "hi.mp3",
           "img": "aceno.jpg",
-          "opcoes": ["Hi", "Bye", "Water", "Milk"],
+          "opcoes": [
+            "Hi",
+            "Bye",
+            "Water",
+            "Milk"
+          ],
           "resposta": "Hi"
         },
         {
@@ -24,7 +29,12 @@
           "traducao": "Olá",
           "audio": "hello.mp3",
           "img": "ola.jpg",
-          "opcoes": ["Hello", "Please", "Morning", "Night"],
+          "opcoes": [
+            "Hello",
+            "Please",
+            "Morning",
+            "Night"
+          ],
           "resposta": "Hello"
         },
         {
@@ -35,7 +45,12 @@
           "traducao": "Água",
           "audio": "water.mp3",
           "img": "agua.jpg",
-          "opcoes": ["Water", "Coffee", "Juice", "Soda"],
+          "opcoes": [
+            "Water",
+            "Coffee",
+            "Juice",
+            "Soda"
+          ],
           "resposta": "Water"
         },
         {
@@ -46,8 +61,14 @@
           "audio": "good_morning.mp3",
           "traducao": "Bom dia",
           "opcoes": [
-            { "texto": "Good Morning", "img": "sunrise.jpg" },
-            { "texto": "Good Night", "img": "moon.jpg" }
+            {
+              "texto": "Good Morning",
+              "img": "sunrise.jpg"
+            },
+            {
+              "texto": "Good Night",
+              "img": "moon.jpg"
+            }
           ],
           "resposta": "Good Morning"
         },
@@ -59,8 +80,14 @@
           "audio": "night.mp3",
           "traducao": "Noite",
           "opcoes": [
-            { "texto": "Day", "img": "sun.jpg" },
-            { "texto": "Night", "img": "night_stars.jpg" }
+            {
+              "texto": "Day",
+              "img": "sun.jpg"
+            },
+            {
+              "texto": "Night",
+              "img": "night_stars.jpg"
+            }
           ],
           "resposta": "Night"
         },
@@ -83,7 +110,10 @@
           "audio": "hello.mp3",
           "frase_exibicao": "Olá!",
           "img": "aceno.jpg",
-          "opcoes": ["Hello", "!"],
+          "opcoes": [
+            "Hello",
+            "!"
+          ],
           "traducao": "Olá",
           "resposta": "Hello !"
         },
@@ -94,7 +124,11 @@
           "audio": "good_morning.mp3",
           "frase_exibicao": "Bom dia",
           "img": "sunrise.jpg",
-          "opcoes": ["Morning", "Good", "Night"],
+          "opcoes": [
+            "Morning",
+            "Good",
+            "Night"
+          ],
           "traducao": "Bom dia",
           "resposta": "Good Morning"
         },
@@ -109,6 +143,18 @@
           "dica": "A palavra para 'Olá'.",
           "traducao": "Olá, meu nome é...",
           "resposta": "Hello"
+        },
+        {
+          "id": 11,
+          "tipo": "escolha_imagem",
+          "pergunta_exibicao": "Nova Pergunta...",
+          "resposta": "Opção 1",
+          "opcoes": [
+            "Opção 1",
+            "Opção 2",
+            "Opção 3",
+            "Opção 4"
+          ]
         }
       ]
     },
@@ -125,7 +171,12 @@
           "traducao": "Amarelo",
           "audio": "yellow.mp3",
           "img": "yellow.jpg",
-          "opcoes": ["Yellow", "Red", "Blue", "Green"],
+          "opcoes": [
+            "Yellow",
+            "Red",
+            "Blue",
+            "Green"
+          ],
           "resposta": "Yellow"
         },
         {
@@ -136,7 +187,12 @@
           "traducao": "Verde",
           "audio": "green.mp3",
           "img": "green.jpg",
-          "opcoes": ["Pink", "Green", "Black", "White"],
+          "opcoes": [
+            "Pink",
+            "Green",
+            "Black",
+            "White"
+          ],
           "resposta": "Green"
         },
         {
@@ -147,7 +203,12 @@
           "traducao": "Preto",
           "audio": "black.mp3",
           "img": "black.jpg",
-          "opcoes": ["White", "Black", "Brown", "Grey"],
+          "opcoes": [
+            "White",
+            "Black",
+            "Brown",
+            "Grey"
+          ],
           "resposta": "Black"
         },
         {
@@ -158,7 +219,12 @@
           "traducao": "Branco",
           "audio": "white.mp3",
           "img": "white.jpg",
-          "opcoes": ["Purple", "White", "Red", "Blue"],
+          "opcoes": [
+            "Purple",
+            "White",
+            "Red",
+            "Blue"
+          ],
           "resposta": "White"
         },
         {
@@ -169,7 +235,12 @@
           "traducao": "Rosa",
           "audio": "pink.mp3",
           "img": "pink.jpg",
-          "opcoes": ["Pink", "Orange", "Yellow", "Green"],
+          "opcoes": [
+            "Pink",
+            "Orange",
+            "Yellow",
+            "Green"
+          ],
           "resposta": "Pink"
         },
         {
@@ -180,8 +251,14 @@
           "audio": "red.mp3",
           "traducao": "Vermelho",
           "opcoes": [
-            { "texto": "Vermelho", "img": "red.jpg" },
-            { "texto": "Azul", "img": "blue.jpg" }
+            {
+              "texto": "Vermelho",
+              "img": "red.jpg"
+            },
+            {
+              "texto": "Azul",
+              "img": "blue.jpg"
+            }
           ],
           "resposta": "Vermelho"
         },
@@ -216,7 +293,11 @@
           "audio": "i_like_blue.mp3",
           "frase_exibicao": "Eu gosto de azul",
           "img": "blue.jpg",
-          "opcoes": ["blue", "I", "like"],
+          "opcoes": [
+            "blue",
+            "I",
+            "like"
+          ],
           "traducao": "Eu gosto de azul",
           "resposta": "I like blue"
         },
@@ -227,7 +308,11 @@
           "audio": "a_red_apple.mp3",
           "frase_exibicao": "Uma maçã vermelha",
           "img": "apple_card.jpg",
-          "opcoes": ["apple", "red", "A"],
+          "opcoes": [
+            "apple",
+            "red",
+            "A"
+          ],
           "traducao": "Uma maçã vermelha",
           "resposta": "A red apple"
         }
@@ -246,7 +331,12 @@
           "traducao": "Irmão",
           "audio": "brother.mp3",
           "img": "brother.jpg",
-          "opcoes": ["Sister", "Brother", "Father", "Mother"],
+          "opcoes": [
+            "Sister",
+            "Brother",
+            "Father",
+            "Mother"
+          ],
           "resposta": "Brother"
         },
         {
@@ -257,7 +347,12 @@
           "traducao": "Irmã",
           "audio": "sister.mp3",
           "img": "sister.jpg",
-          "opcoes": ["Sister", "Brother", "Son", "Daughter"],
+          "opcoes": [
+            "Sister",
+            "Brother",
+            "Son",
+            "Daughter"
+          ],
           "resposta": "Sister"
         },
         {
@@ -268,7 +363,12 @@
           "traducao": "Filho",
           "audio": "son.mp3",
           "img": "son.jpg",
-          "opcoes": ["Son", "Sun", "Boy", "Girl"],
+          "opcoes": [
+            "Son",
+            "Sun",
+            "Boy",
+            "Girl"
+          ],
           "resposta": "Son"
         },
         {
@@ -279,7 +379,12 @@
           "traducao": "Filha",
           "audio": "daughter.mp3",
           "img": "daughter.jpg",
-          "opcoes": ["Daughter", "Sister", "Mother", "Woman"],
+          "opcoes": [
+            "Daughter",
+            "Sister",
+            "Mother",
+            "Woman"
+          ],
           "resposta": "Daughter"
         },
         {
@@ -290,7 +395,12 @@
           "traducao": "Bebê",
           "audio": "baby.mp3",
           "img": "baby.jpg",
-          "opcoes": ["Kid", "Baby", "Man", "Woman"],
+          "opcoes": [
+            "Kid",
+            "Baby",
+            "Man",
+            "Woman"
+          ],
           "resposta": "Baby"
         },
         {
@@ -301,7 +411,12 @@
           "traducao": "Avô",
           "audio": "grandfather.mp3",
           "img": "grandfather.jpg",
-          "opcoes": ["Grandmother", "Grandfather", "Father", "Uncle"],
+          "opcoes": [
+            "Grandmother",
+            "Grandfather",
+            "Father",
+            "Uncle"
+          ],
           "resposta": "Grandfather"
         },
         {
@@ -312,7 +427,12 @@
           "traducao": "Avó",
           "audio": "grandmother.mp3",
           "img": "grandmother.jpg",
-          "opcoes": ["Grandmother", "Grandfather", "Mother", "Aunt"],
+          "opcoes": [
+            "Grandmother",
+            "Grandfather",
+            "Mother",
+            "Aunt"
+          ],
           "resposta": "Grandmother"
         },
         {
@@ -334,7 +454,10 @@
           "audio": "my_family.mp3",
           "frase_exibicao": "Minha família",
           "img": "family.jpg",
-          "opcoes": ["family", "My"],
+          "opcoes": [
+            "family",
+            "My"
+          ],
           "traducao": "Minha família",
           "resposta": "My family"
         },
@@ -345,7 +468,12 @@
           "audio": "i_have_a_brother.mp3",
           "frase_exibicao": "Eu tenho um irmão",
           "img": "brother.jpg",
-          "opcoes": ["brother", "a", "have", "I"],
+          "opcoes": [
+            "brother",
+            "a",
+            "have",
+            "I"
+          ],
           "traducao": "Eu tenho um irmão",
           "resposta": "I have a brother"
         }
@@ -364,7 +492,12 @@
           "traducao": "Pão",
           "audio": "bread.mp3",
           "img": "bread.jpg",
-          "opcoes": ["Milk", "Bread", "Cheese", "Butter"],
+          "opcoes": [
+            "Milk",
+            "Bread",
+            "Cheese",
+            "Butter"
+          ],
           "resposta": "Bread"
         },
         {
@@ -375,7 +508,12 @@
           "traducao": "Leite",
           "audio": "milk.mp3",
           "img": "milk.jpg",
-          "opcoes": ["Water", "Coffee", "Milk", "Tea"],
+          "opcoes": [
+            "Water",
+            "Coffee",
+            "Milk",
+            "Tea"
+          ],
           "resposta": "Milk"
         },
         {
@@ -386,7 +524,12 @@
           "traducao": "Café",
           "audio": "coffee.mp3",
           "img": "coffee.jpg",
-          "opcoes": ["Soda", "Juice", "Coffee", "Beer"],
+          "opcoes": [
+            "Soda",
+            "Juice",
+            "Coffee",
+            "Beer"
+          ],
           "resposta": "Coffee"
         },
         {
@@ -397,7 +540,12 @@
           "traducao": "Maçã",
           "audio": "apple.mp3",
           "img": "apple_card.jpg",
-          "opcoes": ["Orange", "Banana", "Apple", "Grape"],
+          "opcoes": [
+            "Orange",
+            "Banana",
+            "Apple",
+            "Grape"
+          ],
           "resposta": "Apple"
         },
         {
@@ -408,7 +556,12 @@
           "traducao": "Arroz",
           "audio": "rice.mp3",
           "img": "rice.jpg",
-          "opcoes": ["Rice", "Beans", "Pasta", "Meat"],
+          "opcoes": [
+            "Rice",
+            "Beans",
+            "Pasta",
+            "Meat"
+          ],
           "resposta": "Rice"
         },
         {
@@ -419,7 +572,12 @@
           "traducao": "Feijão",
           "audio": "beans.mp3",
           "img": "beans.jpg",
-          "opcoes": ["Rice", "Beans", "Salad", "Soup"],
+          "opcoes": [
+            "Rice",
+            "Beans",
+            "Salad",
+            "Soup"
+          ],
           "resposta": "Beans"
         },
         {
@@ -430,7 +588,12 @@
           "traducao": "Carne",
           "audio": "meat.mp3",
           "img": "meat.jpg",
-          "opcoes": ["Fish", "Chicken", "Meat", "Egg"],
+          "opcoes": [
+            "Fish",
+            "Chicken",
+            "Meat",
+            "Egg"
+          ],
           "resposta": "Meat"
         },
         {
@@ -452,7 +615,11 @@
           "audio": "i_like_coffee.mp3",
           "frase_exibicao": "Eu gosto de café",
           "img": "coffee.jpg",
-          "opcoes": ["coffee", "like", "I"],
+          "opcoes": [
+            "coffee",
+            "like",
+            "I"
+          ],
           "traducao": "Eu gosto de café",
           "resposta": "I like coffee"
         },
@@ -463,7 +630,12 @@
           "audio": "the_bread_is_hot.mp3",
           "frase_exibicao": "O pão está quente",
           "img": "hot_bread.jpg",
-          "opcoes": ["hot", "is", "bread", "The"],
+          "opcoes": [
+            "hot",
+            "is",
+            "bread",
+            "The"
+          ],
           "traducao": "O pão está quente",
           "resposta": "The bread is hot"
         }
@@ -482,7 +654,12 @@
           "traducao": "Violão",
           "audio": "guitar.mp3",
           "img": "guitar.jpg",
-          "opcoes": ["Drums", "Piano", "Guitar", "Flute"],
+          "opcoes": [
+            "Drums",
+            "Piano",
+            "Guitar",
+            "Flute"
+          ],
           "resposta": "Guitar"
         },
         {
@@ -493,7 +670,12 @@
           "traducao": "Bateria",
           "audio": "drums.mp3",
           "img": "drums.jpg",
-          "opcoes": ["Violin", "Drums", "Saxophone", "Bass"],
+          "opcoes": [
+            "Violin",
+            "Drums",
+            "Saxophone",
+            "Bass"
+          ],
           "resposta": "Drums"
         },
         {
@@ -504,7 +686,12 @@
           "traducao": "Cantor",
           "audio": "singer.mp3",
           "img": "singer.jpg",
-          "opcoes": ["Dancer", "singer", "writer", "player"],
+          "opcoes": [
+            "Dancer",
+            "singer",
+            "writer",
+            "player"
+          ],
           "resposta": "singer"
         },
         {
@@ -526,7 +713,11 @@
           "audio": "i_love_music.mp3",
           "frase_exibicao": "Eu amo música",
           "img": "music_love.jpg",
-          "opcoes": ["music", "love", "I"],
+          "opcoes": [
+            "music",
+            "love",
+            "I"
+          ],
           "traducao": "Eu amo música",
           "resposta": "I love music"
         },
@@ -538,7 +729,12 @@
           "traducao": "Show/Concerto",
           "audio": "concert.mp3",
           "img": "concert.jpg",
-          "opcoes": ["Cinema", "Concert", "Party", "Mall"],
+          "opcoes": [
+            "Cinema",
+            "Concert",
+            "Party",
+            "Mall"
+          ],
           "resposta": "Concert"
         },
         {
@@ -559,7 +755,13 @@
           "audio": "do_you_play_guitar.mp3",
           "frase_exibicao": "Você toca guitarra?",
           "img": "guitar.jpg",
-          "opcoes": ["play", "you", "Do", "guitar", "?"],
+          "opcoes": [
+            "play",
+            "you",
+            "Do",
+            "guitar",
+            "?"
+          ],
           "traducao": "Você toca guitarra?",
           "resposta": "Do you play guitar ?"
         },
@@ -571,7 +773,12 @@
           "traducao": "Alto (volume)",
           "audio": "loud.mp3",
           "img": "loud.jpg",
-          "opcoes": ["Quiet", "Loud", "Soft", "Slow"],
+          "opcoes": [
+            "Quiet",
+            "Loud",
+            "Soft",
+            "Slow"
+          ],
           "resposta": "Loud"
         },
         {
@@ -581,11 +788,23 @@
           "audio": "favorite_song.mp3",
           "frase_exibicao": "Esta é minha música favorita",
           "img": "music_love.jpg",
-          "opcoes": ["song", "is", "favorite", "my", "This"],
+          "opcoes": [
+            "song",
+            "is",
+            "favorite",
+            "my",
+            "This"
+          ],
           "traducao": "Esta é minha música favorita",
           "resposta": "This is my favorite song"
         }
       ]
+    },
+    {
+      "id": 6,
+      "slug": "novo-nivel-6",
+      "titulo": "Nível 6: testando",
+      "questoes": []
     }
   ]
 }

@@ -119,8 +119,9 @@ function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8 md:p-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
+      {/* CARD PRINCIPAL DE LOGIN */}
+      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8 md:p-10 relative">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
@@ -225,6 +226,19 @@ function Auth() {
             {isLogin ? "Crie uma aqui" : "Entre aqui"}
           </button>
         </p>
+      </div>
+
+      {/* BOTÃO DISCRETO PARA PROFESSORES */}
+      <div className="mt-8 text-center animate-[fadeIn_1s_ease-in]">
+        <button
+          onClick={() => navigate("/admin")}
+          className="text-sm font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex items-center justify-center gap-2 mx-auto cursor-pointer border-none bg-transparent"
+        >
+          <span className="material-symbols-outlined text-[18px]">
+            admin_panel_settings
+          </span>
+          Acesso para Professores
+        </button>
       </div>
     </div>
   );
