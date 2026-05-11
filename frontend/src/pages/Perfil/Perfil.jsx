@@ -1,0 +1,199 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../../components/Navbar/Navbar";
+
+function Perfil() {
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
+  const [usuario, setUsuario] = useState(() => {
+    const dadosSalvos = localStorage.getItem("usuarioLogado");
+    return dadosSalvos ? JSON.parse(dadosSalvos) : null;
+  });
+
+  const [novoNome, setNovoNome] = useState(usuario?.nome || "");
+  const [novoAvatar, setNovoAvatar] = useState(usuario?.avatar || null);
+  const [salvando, setSalvando] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
+  const [erro, setErro] = useState("");
+
+  const avataresPredefinidos = [
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Milo`,
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Felix`,
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Luna`,
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka`,
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Bandit`,
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=Coco`,
+    `https://api.dicebear.com/7.x/bottts/svg?seed=Robot1`,
+    `https://api.dicebear.com/7.x/bottts/svg?seed=Robot2`,
+  ];
+
+  useEffect(() => {
+    if (!usuario) {
+      navigate("/");
+    }
+  }, [usuario, navigate]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limite
+        setErro("A imagem é muito grande. Escolha uma imagem de até 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNovoAvatar(reader.result);
+        setErro("");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSalvar = async () => {
+    if (!novoNome.trim()) {
+      setErro("O nome não pode estar vazio.");
+      return;
+    }
+
+    setSalvando(true);
+    setErro("");
+    setSucesso(false);
+
+    try {
+      const resposta = await fetch("http://localhost:3000/api/atualizar-perfil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: usuario.email,
+          novoNome: novoNome.trim(),
+          avatar: novoAvatar
+        }),
+      });
+
+      const dados = await resposta.json();
+
+      if (dados.sucesso) {
+        const usuarioAtualizado = { ...usuario, nome: dados.usuario.nome, avatar: dados.usuario.avatar };
+        localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
+        setUsuario(usuarioAtualizado);
+        setSucesso(true);
+        setTimeout(() => setSucesso(false), 3000);
+      } else {
+        setErro(dados.erro || "Erro ao salvar perfil.");
+      }
+    } catch (err) {
+      setErro("Erro de conexão com o servidor.");
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  if (!usuario) return null;
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-nunito transition-colors duration-300 flex flex-col">
+      <Navbar />
+      
+      <main className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-10 flex flex-col pt-24 md:pt-32">
+        
+        <button 
+          onClick={() => navigate("/dashboard")}
+          className="self-start flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-6 transition-colors font-bold"
+        >
+          <span className="material-symbols-outlined">arrow_back</span>
+          Voltar ao Painel
+        </button>
+
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">Personalizar Perfil</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-10">Escolha como você quer ser visto na plataforma.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-12">
+            
+            {/* COLUNA ESQUERDA - AVATAR ATUAL */}
+            <div className="flex flex-col items-center">
+              <div className="relative group cursor-pointer mb-6" onClick={() => fileInputRef.current?.click()}>
+                <div className="w-40 h-40 rounded-full bg-primary-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center text-6xl font-black overflow-hidden relative">
+                  {novoAvatar ? (
+                    <img src={novoAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{novoNome ? novoNome.charAt(0).toUpperCase() : "U"}</span>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                    <span className="text-white text-sm font-bold mt-1">Alterar</span>
+                  </div>
+                </div>
+              </div>
+
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                accept="image/*" 
+                className="hidden" 
+              />
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                Fazer Upload
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">Formato: JPG, PNG. Máx: 2MB.</p>
+            </div>
+
+            {/* COLUNA DIREITA - FORMULÁRIO */}
+            <div className="flex flex-col">
+              
+              <div className="mb-8">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Nome de Usuário</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">person</span>
+                  <input
+                    type="text"
+                    value={novoNome}
+                    onChange={(e) => setNovoNome(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-800 dark:text-gray-100 font-bold"
+                    placeholder="Seu nome completo ou apelido"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-10">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4">Ou escolha um avatar pré-montado</label>
+                <div className="grid grid-cols-4 gap-4">
+                  {avataresPredefinidos.map((url, i) => (
+                    <div 
+                      key={i} 
+                      onClick={() => setNovoAvatar(url)}
+                      className={`cursor-pointer rounded-full p-1 border-2 transition-all hover:scale-105 ${novoAvatar === url ? "border-primary-500 shadow-md" : "border-transparent hover:border-gray-300 dark:hover:border-gray-600"}`}
+                    >
+                      <img src={url} alt={`Avatar ${i+1}`} className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {erro && <p className="text-red-500 font-bold mb-4 text-sm">{erro}</p>}
+              {sucesso && <p className="text-green-500 font-bold mb-4 text-sm">Perfil atualizado com sucesso!</p>}
+
+              <button
+                onClick={handleSalvar}
+                disabled={salvando}
+                className={`mt-auto px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all ${salvando ? "bg-primary-400 cursor-not-allowed" : "bg-primary-600 hover:bg-primary-700 hover:-translate-y-1"}`}
+              >
+                {salvando ? "Salvando..." : "Salvar Alterações"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default Perfil;

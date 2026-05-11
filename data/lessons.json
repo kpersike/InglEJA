@@ -70,7 +70,8 @@
               "img": "moon.jpg"
             }
           ],
-          "resposta": "Good Morning"
+          "resposta": "Good Morning",
+          "dica": "Usado pela manhã, logo ao acordar."
         },
         {
           "id": 5,
@@ -89,7 +90,8 @@
               "img": "night_stars.jpg"
             }
           ],
-          "resposta": "Night"
+          "resposta": "Night",
+          "dica": "Usado à noite, antes de ir dormir."
         },
         {
           "id": 7,
@@ -115,7 +117,8 @@
             "!"
           ],
           "traducao": "Olá",
-          "resposta": "Hello !"
+          "resposta": "Hello !",
+          "dica": "Uma saudação bem comum, que começa com H."
         },
         {
           "id": 9,
@@ -130,7 +133,8 @@
             "Night"
           ],
           "traducao": "Bom dia",
-          "resposta": "Good Morning"
+          "resposta": "Good Morning",
+          "dica": "Usado pela manhã, logo ao acordar."
         },
         {
           "id": 10,
@@ -143,18 +147,6 @@
           "dica": "A palavra para 'Olá'.",
           "traducao": "Olá, meu nome é...",
           "resposta": "Hello"
-        },
-        {
-          "id": 11,
-          "tipo": "escolha_imagem",
-          "pergunta_exibicao": "Nova Pergunta...",
-          "resposta": "Opção 1",
-          "opcoes": [
-            "Opção 1",
-            "Opção 2",
-            "Opção 3",
-            "Opção 4"
-          ]
         }
       ]
     },
@@ -260,7 +252,8 @@
               "img": "blue.jpg"
             }
           ],
-          "resposta": "Vermelho"
+          "resposta": "Vermelho",
+          "dica": "Observe bem as imagens, elas são a melhor pista para descobrir a resposta!"
         },
         {
           "id": 7,
@@ -299,7 +292,8 @@
             "like"
           ],
           "traducao": "Eu gosto de azul",
-          "resposta": "I like blue"
+          "resposta": "I like blue",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         },
         {
           "id": 10,
@@ -314,7 +308,8 @@
             "A"
           ],
           "traducao": "Uma maçã vermelha",
-          "resposta": "A red apple"
+          "resposta": "A red apple",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         }
       ]
     },
@@ -459,7 +454,8 @@
             "My"
           ],
           "traducao": "Minha família",
-          "resposta": "My family"
+          "resposta": "My family",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         },
         {
           "id": 10,
@@ -475,7 +471,8 @@
             "I"
           ],
           "traducao": "Eu tenho um irmão",
-          "resposta": "I have a brother"
+          "resposta": "I have a brother",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         }
       ]
     },
@@ -621,7 +618,8 @@
             "I"
           ],
           "traducao": "Eu gosto de café",
-          "resposta": "I like coffee"
+          "resposta": "I like coffee",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         },
         {
           "id": 10,
@@ -637,7 +635,8 @@
             "The"
           ],
           "traducao": "O pão está quente",
-          "resposta": "The bread is hot"
+          "resposta": "The bread is hot",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         }
       ]
     },
@@ -719,7 +718,8 @@
             "I"
           ],
           "traducao": "Eu amo música",
-          "resposta": "I love music"
+          "resposta": "I love music",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         },
         {
           "id": 6,
@@ -763,7 +763,8 @@
             "?"
           ],
           "traducao": "Você toca guitarra?",
-          "resposta": "Do you play guitar ?"
+          "resposta": "Do you play guitar ?",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         },
         {
           "id": 9,
@@ -796,7 +797,8 @@
             "This"
           ],
           "traducao": "Esta é minha música favorita",
-          "resposta": "This is my favorite song"
+          "resposta": "This is my favorite song",
+          "dica": "Tente deduzir pela imagem ou áudio, eles ajudam muito!"
         }
       ]
     },

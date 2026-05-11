@@ -38,7 +38,7 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+          <h1 className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 mb-2">
             InglEJA
           </h1>
           <h2 className="text-gray-500 dark:text-gray-400 font-medium tracking-widest uppercase text-sm">
@@ -56,7 +56,7 @@ export default function AdminLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white"
               placeholder="admin@ingleja.com"
             />
           </div>
@@ -70,7 +70,7 @@ export default function AdminLogin() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all dark:bg-gray-900 dark:border-gray-700 dark:text-white"
               placeholder="••••••••"
             />
           </div>
@@ -83,7 +83,7 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
+            className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
           >
             Acessar Painel
           </button>
@@ -93,7 +93,7 @@ export default function AdminLogin() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 mx-auto bg-transparent border-none cursor-pointer"
+            className="text-sm font-semibold text-gray-500 hover:text-primary-600 transition-colors flex items-center justify-center gap-2 mx-auto bg-transparent border-none cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">
               arrow_back

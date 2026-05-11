@@ -32,12 +32,12 @@ export default function AdminLayout() {
           {/* Mostra Logo apenas se estiver aberta */}
           {sidebarAberta && (
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-md shrink-0">
+              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold shadow-md shrink-0">
                 I
               </div>
               <span className="font-extrabold text-xl tracking-tight text-gray-900 whitespace-nowrap">
                 InglEJA{" "}
-                <span className="text-[10px] text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-md ml-1 font-bold">
+                <span className="text-[10px] text-primary-600 uppercase tracking-widest bg-primary-50 px-2 py-1 rounded-md ml-1 font-bold">
                   Admin
                 </span>
               </span>
@@ -47,7 +47,7 @@ export default function AdminLayout() {
           {/* Botão de Toggle */}
           <button
             onClick={() => setSidebarAberta(!sidebarAberta)}
-            className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
+            className="text-gray-400 hover:text-primary-600 hover:bg-primary-50 p-2 rounded-lg transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
             title={sidebarAberta ? "Recolher Menu" : "Expandir Menu"}
           >
             <span className="material-symbols-outlined">
@@ -58,7 +58,7 @@ export default function AdminLayout() {
 
         <nav className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto overflow-x-hidden px-3">
           <div
-            className="flex items-center gap-3 px-3 py-3 bg-blue-50 text-blue-700 rounded-xl font-bold cursor-pointer transition-all whitespace-nowrap"
+            className="flex items-center gap-3 px-3 py-3 bg-primary-50 text-primary-700 rounded-xl font-bold cursor-pointer transition-all whitespace-nowrap"
             title="Lições"
           >
             <span className="material-symbols-outlined shrink-0">
