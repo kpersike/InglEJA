@@ -27,9 +27,10 @@ function Dashboard() {
     if (configSalvas) {
       const parsed = JSON.parse(configSalvas);
       if (parsed.layoutHorizontal === undefined) parsed.layoutHorizontal = true;
+      if (parsed.temaPrincipal === undefined) parsed.temaPrincipal = "theme-blue";
       return parsed;
     }
-    return { som: true, modoEscuro: false, layoutHorizontal: true };
+    return { som: true, modoEscuro: false, layoutHorizontal: true, temaPrincipal: "theme-blue" };
   });
 
   const [notificacoes, setNotificacoes] = useState(() => {
@@ -232,6 +233,12 @@ function Dashboard() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+
+    // Aplica o Tema Principal
+    const todosTemas = ["theme-blue", "theme-green", "theme-purple", "theme-rose", "theme-orange"];
+    document.documentElement.classList.remove(...todosTemas);
+    document.documentElement.classList.add(configuracoes.temaPrincipal || "theme-blue");
+
     localStorage.setItem(
       "configuracoes_ingleja",
       JSON.stringify(configuracoes),
@@ -267,6 +274,8 @@ function Dashboard() {
 
   const fazerLogout = () => {
     localStorage.removeItem("usuarioLogado");
+    localStorage.removeItem("emailUsuario");
+    localStorage.removeItem("fase_em_revisao");
     navigate("/");
   };
 
@@ -303,7 +312,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-transparent transition-colors duration-300">
-      <Navbar />
+      <Navbar usuario={usuario} />
 
       <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-10 flex flex-col">
         {/* CABEÇALHO DO DASHBOARD */}
@@ -334,7 +343,7 @@ function Dashboard() {
             </div>
 
             <button
-              className={`w-11 h-11 rounded-full text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-blue-500" : ""}`}
+              className={`w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
               onClick={() => toggleMenu("config")}
             >
               <span
@@ -345,7 +354,7 @@ function Dashboard() {
             </button>
 
             <button
-              className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-blue-500" : ""}`}
+              className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
               onClick={() => toggleMenu("notificacoes")}
             >
               <span
@@ -359,10 +368,14 @@ function Dashboard() {
             </button>
 
             <button
-              className="w-11 h-11 rounded-full bg-blue-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2"
+              className="w-11 h-11 rounded-full bg-primary-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2 overflow-hidden"
               onClick={() => toggleMenu("perfil")}
             >
-              {usuario.nome ? usuario.nome.charAt(0).toUpperCase() : "U"}
+              {usuario.avatar ? (
+                <img src={usuario.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                usuario.nome ? usuario.nome.charAt(0).toUpperCase() : "U"
+              )}
             </button>
 
             {/* DROPDOWNS */}
@@ -436,7 +449,7 @@ function Dashboard() {
                   {notificacoes.length > 0 && (
                     <button
                       onClick={() => setNotificacoes([])}
-                      className="text-xs text-blue-500 hover:underline border-none bg-transparent cursor-pointer"
+                      className="text-xs text-primary-500 hover:underline border-none bg-transparent cursor-pointer"
                     >
                       Limpar
                     </button>
@@ -477,6 +490,39 @@ function Dashboard() {
                   </p>
                 </div>
                 <ul className="py-2 m-0 list-none">
+                  <li className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 font-semibold flex flex-col gap-3 cursor-default transition-colors text-left border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">
+                        palette
+                      </span>
+                      Cores do Tema
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {[
+                        { classe: "theme-blue", corBotao: "bg-blue-500" },
+                        { classe: "theme-green", corBotao: "bg-green-500" },
+                        { classe: "theme-purple", corBotao: "bg-purple-500" },
+                        { classe: "theme-rose", corBotao: "bg-rose-500" },
+                        { classe: "theme-orange", corBotao: "bg-orange-500" },
+                      ].map((tema) => (
+                        <button
+                          key={tema.classe}
+                          onClick={() => setConfiguracoes({ ...configuracoes, temaPrincipal: tema.classe })}
+                          className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 ${configuracoes.temaPrincipal === tema.classe ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800" : ""}`}
+                          title={tema.classe.replace("theme-", "")}
+                        />
+                      ))}
+                    </div>
+                  </li>
+                  <li
+                    className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700"
+                    onClick={() => navigate("/perfil")}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      manage_accounts
+                    </span>{" "}
+                    Personalizar Perfil
+                  </li>
                   <li
                     className="px-5 py-2.5 text-sm text-red-500 font-semibold flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition-colors text-left"
                     onClick={fazerLogout}
@@ -507,13 +553,13 @@ function Dashboard() {
                   Continue assim! Você está dominando o idioma.
                 </p>
               </div>
-              <h2 className="text-3xl font-extrabold text-blue-500 m-0">
+              <h2 className="text-3xl font-extrabold text-primary-500 m-0">
                 {porcentagemProgresso}%
               </h2>
             </div>
             <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4 transition-colors">
               <div
-                className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
+                className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${porcentagemProgresso}%` }}
               ></div>
             </div>
@@ -530,7 +576,7 @@ function Dashboard() {
         >
           {configuracoes.layoutHorizontal && (
             <button
-              className="absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all"
+              className="absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all"
               onClick={() => scrollTimeline("esquerda")}
             >
               <span className="material-symbols-outlined text-[28px]">
@@ -602,30 +648,49 @@ function Dashboard() {
                     licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
                   }
                   className={`
-                    relative flex items-center justify-center rounded-full transition-all duration-500 z-10
+                    relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
                     ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed"}
                     ${
                       licao.status === "atual" || licao.status === "revisando"
-                        ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-blue-50 dark:border-gray-800"
+                        ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-primary-50 dark:border-gray-800"
                         : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
                     }
                   `}
                 >
-                  <span
-                    className={`
-                    material-symbols-outlined transition-colors duration-300
-                    ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-blue-500 dark:text-blue-400" : "text-[36px]"}
-                    ${licao.status === "concluido" ? "text-blue-600 dark:text-blue-500" : ""}
-                    ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
-                    ${licao.iconeTema === "waving_hand" && licao.status !== "bloqueado" ? "anim-wave" : ""}
-                  `}
-                  >
-                    {licao.status === "concluido"
-                      ? "check"
-                      : licao.status === "bloqueado"
-                        ? "lock"
-                        : licao.iconeTema}
-                  </span>
+                  {licao.iconeTema === "restaurant" && licao.status !== "concluido" && licao.status !== "bloqueado" ? (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className={`w-[1em] h-[1em] anim-cross transition-colors duration-300 ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}`}>
+                      <path className="fork" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.88 3.75 3.99V22h2.5v-9.01C11.34 12.88 13 11.12 13 9V2h-2v7z"/>
+                      <path className="knife" d="M16 6v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+                    </svg>
+                  ) : (
+                    <span
+                      className={`
+                      material-symbols-outlined transition-colors duration-300
+                      ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}
+                      ${licao.status === "concluido" ? "text-primary-600 dark:text-primary-500 anim-check" : ""}
+                      ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
+                      ${licao.iconeTema === "waving_hand" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-wave" : ""}
+                      ${licao.iconeTema === "palette" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-palette" : ""}
+                      ${licao.iconeTema === "family_restroom" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-jump" : ""}
+                      ${licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-music-main" : ""}
+                    `}
+                    >
+                      {licao.status === "concluido"
+                        ? "check"
+                        : licao.status === "bloqueado"
+                          ? "lock"
+                          : licao.iconeTema}
+                    </span>
+                  )}
+                  
+                  {/* NOTINHAS MUSICAIS FLUTUANTES PARA O TEMA MÚSICA */}
+                  {licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[18px] m-note m-note-1">music_note</span>
+                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[22px] m-note m-note-2">music_note</span>
+                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[16px] m-note m-note-3">music_note</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* TEXTOS DA LIÇÃO (Tipografia Refinada) */}
@@ -638,7 +703,7 @@ function Dashboard() {
                   <span
                     className={`text-[12px] font-bold mb-1.5 transition-colors uppercase tracking-widest ${
                       licao.status === "atual" || licao.status === "revisando"
-                        ? "text-blue-500 dark:text-blue-400"
+                        ? "text-primary-500 dark:text-primary-400"
                         : "text-gray-400 dark:text-gray-500"
                     }`}
                   >
@@ -657,7 +722,7 @@ function Dashboard() {
 
                   <span
                     className={`text-[13px] font-semibold transition-colors
-                    ${licao.status === "atual" || licao.status === "concluido" ? "text-blue-600 dark:text-blue-500" : ""}
+                    ${licao.status === "atual" || licao.status === "concluido" ? "text-primary-600 dark:text-primary-500" : ""}
                     ${licao.status === "revisando" ? "text-purple-600 dark:text-purple-400" : ""}
                     ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
                   `}
@@ -677,7 +742,7 @@ function Dashboard() {
                         e.stopPropagation();
                         handleRevisarBotao(licao.slug, licao.titulo);
                       }}
-                      className="mt-3 text-[12px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
+                      className="mt-3 text-[12px] font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
                     >
                       Revisar Lição
                     </button>
@@ -698,7 +763,7 @@ function Dashboard() {
 
           {configuracoes.layoutHorizontal && (
             <button
-              className="absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all"
+              className="absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all"
               onClick={() => scrollTimeline("direita")}
             >
               <span className="material-symbols-outlined text-[28px]">
@@ -743,7 +808,7 @@ function Dashboard() {
                   onClick={() =>
                     handleRevisarBotao(licaoAtual.slug, licaoAtual.titulo)
                   }
-                  className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-[14px] border-none cursor-pointer"
+                  className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-primary-600 dark:text-primary-400 font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-[14px] border-none cursor-pointer"
                 >
                   Revisar Nível
                 </button>

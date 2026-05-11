@@ -240,7 +240,7 @@ export default function AdminLicoes() {
           </button>
           <button
             onClick={handleAdicionarNivel}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer border-none"
+            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer border-none"
           >
             <span className="material-symbols-outlined">add</span> Novo Nível
           </button>
@@ -254,7 +254,7 @@ export default function AdminLicoes() {
               <h2 className="font-bold text-gray-700">Módulos Cadastrados</h2>
               <button
                 onClick={() => setMostrarModulos(false)}
-                className="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer bg-transparent border-none p-1 rounded-md hover:bg-blue-50 flex"
+                className="text-gray-400 hover:text-primary-600 transition-colors cursor-pointer bg-transparent border-none p-1 rounded-md hover:bg-primary-50 flex"
                 title="Recolher painel"
               >
                 <span className="material-symbols-outlined">
@@ -268,11 +268,11 @@ export default function AdminLicoes() {
                 <div
                   key={nivel.id}
                   onClick={() => handleSelecionarNivel(nivel)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${nivelSelecionado?.id === nivel.id ? "border-blue-500 bg-blue-50 ring-4 ring-blue-50/50" : "border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-200"}`}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${nivelSelecionado?.id === nivel.id ? "border-primary-500 bg-primary-50 ring-4 ring-primary-50/50" : "border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-200"}`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <h3
-                      className={`font-bold ${nivelSelecionado?.id === nivel.id ? "text-blue-700" : "text-gray-800"}`}
+                      className={`font-bold ${nivelSelecionado?.id === nivel.id ? "text-primary-700" : "text-gray-800"}`}
                     >
                       {nivel.titulo}
                     </h3>
@@ -292,7 +292,7 @@ export default function AdminLicoes() {
           <div className="flex flex-col justify-start shrink-0">
             <button
               onClick={() => setMostrarModulos(true)}
-              className="p-3 bg-white border border-gray-200 rounded-xl shadow-sm text-gray-400 hover:text-blue-600 transition-all cursor-pointer hover:bg-blue-50"
+              className="p-3 bg-white border border-gray-200 rounded-xl shadow-sm text-gray-400 hover:text-primary-600 transition-all cursor-pointer hover:bg-primary-50"
               title="Mostrar Módulos"
             >
               <span className="material-symbols-outlined">menu_open</span>
@@ -305,14 +305,14 @@ export default function AdminLicoes() {
             <div className="flex flex-col h-full overflow-hidden">
               <div className="p-4 px-6 border-b border-gray-100 flex-shrink-0 bg-white z-10 flex justify-between items-center">
                 <div className="flex items-center gap-3 flex-1">
-                  <span className="material-symbols-outlined text-blue-500">
+                  <span className="material-symbols-outlined text-primary-500">
                     edit_document
                   </span>
                   <input
                     type="text"
                     value={nivelSelecionado.titulo}
                     onChange={(e) => handleAlterarTituloNivel(e.target.value)}
-                    className="text-xl font-bold text-gray-800 border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 w-full max-w-md bg-transparent hover:bg-gray-50 transition-colors"
+                    className="text-xl font-bold text-gray-800 border-none outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 w-full max-w-md bg-transparent hover:bg-gray-50 transition-colors"
                     title="Clique para renomear o módulo"
                   />
                 </div>
@@ -328,7 +328,7 @@ export default function AdminLicoes() {
                   </button>
                   <button
                     onClick={handleAdicionarQuestao}
-                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all cursor-pointer border border-blue-200"
+                    className="bg-primary-50 hover:bg-primary-100 text-primary-600 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all cursor-pointer border border-primary-200"
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       add
@@ -346,7 +346,7 @@ export default function AdminLicoes() {
                       <div
                         key={questao.id}
                         onClick={() => setQuestaoSelecionada(questao)}
-                        className={`p-4 bg-white border-2 rounded-xl flex items-center gap-4 cursor-pointer transition-all shadow-sm ${questaoSelecionada?.id === questao.id ? "border-blue-500 ring-2 ring-blue-50" : "border-gray-100 hover:border-gray-300"}`}
+                        className={`p-4 bg-white border-2 rounded-xl flex items-center gap-4 cursor-pointer transition-all shadow-sm ${questaoSelecionada?.id === questao.id ? "border-primary-500 ring-2 ring-primary-50" : "border-gray-100 hover:border-gray-300"}`}
                       >
                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-sm shrink-0">
                           {index + 1}
@@ -386,7 +386,7 @@ export default function AdminLicoes() {
                           Formulário de Edição
                         </h3>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full uppercase tracking-widest">
+                          <span className="text-xs font-bold bg-primary-100 text-primary-700 px-3 py-1 rounded-full uppercase tracking-widest">
                             ID: {questaoSelecionada.id}
                           </span>
                           <button
@@ -417,7 +417,7 @@ export default function AdminLicoes() {
                                 e.target.value,
                               )
                             }
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none transition-all"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 outline-none transition-all"
                           />
                         </div>
 
@@ -434,7 +434,7 @@ export default function AdminLicoes() {
                                   e.target.value,
                                 )
                               }
-                              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white cursor-pointer"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 outline-none bg-white cursor-pointer"
                             >
                               <option value="escolha_palavra">
                                 Escolha Palavra
@@ -508,8 +508,8 @@ export default function AdminLicoes() {
                         )}
 
                         {questaoSelecionada.tipo === "ordenar_frase" && (
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                            <label className="block text-xs font-bold text-blue-700 mb-1">
+                          <div className="p-4 bg-primary-50 border border-primary-200 rounded-xl">
+                            <label className="block text-xs font-bold text-primary-700 mb-1">
                               Frase Exibição (Dica visual)
                             </label>
                             <input
@@ -521,7 +521,7 @@ export default function AdminLicoes() {
                                   e.target.value,
                                 )
                               }
-                              className="w-full px-3 py-2 rounded-lg border border-blue-300 focus:border-blue-500 outline-none bg-white"
+                              className="w-full px-3 py-2 rounded-lg border border-primary-300 focus:border-primary-500 outline-none bg-white"
                             />
                           </div>
                         )}
@@ -609,7 +609,7 @@ export default function AdminLicoes() {
                                           e.target.value,
                                         )
                                       }
-                                      className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white"
+                                      className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-primary-500 outline-none bg-white"
                                     />
                                   ) : (
                                     <div className="flex-1 flex gap-2">
@@ -624,7 +624,7 @@ export default function AdminLicoes() {
                                             e.target.value,
                                           )
                                         }
-                                        className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white"
+                                        className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-primary-500 outline-none bg-white"
                                       />
                                       <input
                                         type="text"
@@ -637,7 +637,7 @@ export default function AdminLicoes() {
                                             e.target.value,
                                           )
                                         }
-                                        className="w-1/3 px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-none bg-white font-mono text-sm"
+                                        className="w-1/3 px-3 py-2 rounded-lg border border-gray-300 focus:border-primary-500 outline-none bg-white font-mono text-sm"
                                       />
                                     </div>
                                   )}
@@ -669,7 +669,7 @@ export default function AdminLicoes() {
                     <h3 className="text-lg font-bold text-gray-800">
                       Live Preview
                     </h3>
-                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                    <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
                       <span className="material-symbols-outlined text-[14px]">
                         smartphone
                       </span>{" "}

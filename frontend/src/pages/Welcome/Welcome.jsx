@@ -74,6 +74,7 @@ const Welcome = () => {
           className="welcome-input"
           value={nomeDigitado} // Liga o input ao estado
           onChange={(e) => setNomeDigitado(e.target.value)} // Atualiza o estado ao digitar
+          onKeyDown={(e) => e.key === 'Enter' && finalizarWelcome()} // Confirma ao apertar Enter
         />
         
         {/* Chamamos a função finalizarWelcome no clique */}

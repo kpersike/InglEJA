@@ -22,7 +22,23 @@ function Exercicio() {
   // Estado para o Drag and Drop
   const [draggedWord, setDraggedWord] = useState(null);
 
+  
   const [statusResposta, setStatusResposta] = useState("pendente");
+  const [mostrarDica, setMostrarDica] = useState(false);
+  const [tempoInicio] = useState(Date.now());
+  const [tempoCalculado, setTempoCalculado] = useState("0:00");
+
+  // ==========================================
+  // ESTADOS DO LIGAR PARES
+  // ==========================================
+  const [colunaPt, setColunaPt] = useState([]);
+  const [colunaEn, setColunaEn] = useState([]);
+  const [paresConcluidos, setParesConcluidos] = useState([]); // [{pt, en}]
+  const [linhaAtiva, setLinhaAtiva] = useState(null); // { ptId, x1, y1, x2, y2 }
+  const [linhasFixas, setLinhasFixas] = useState([]); // [{ x1, y1, x2, y2, pt, en }]
+  const itemsRef = React.useRef({});
+  const containerLigarRef = React.useRef(null);
+
 
   // ==========================================
   // CARREGAMENTO DOS DADOS DINÂMICOS
@@ -154,6 +170,7 @@ function Exercicio() {
       setTextoDigitado("");
       setPalavrasSelecionadas([]);
       setStatusResposta("pendente");
+      setMostrarDica(false);
       return;
     }
 
@@ -162,6 +179,7 @@ function Exercicio() {
     setTextoDigitado("");
     setPalavrasSelecionadas([]);
     setStatusResposta("pendente");
+    setMostrarDica(false);
 
     if (fase === "normal") {
       if (indiceFila < licao.questoes.length - 1) {
@@ -183,9 +201,36 @@ function Exercicio() {
     }
   };
 
-  const finalizarLicao = () => {
+  const finalizarLicao = async () => {
     const audioWin = new Audio("/audios/sfx/vitoria.mp3");
     audioWin.play().catch(() => {});
+    
+    const diffSegundos = Math.floor((Date.now() - tempoInicio) / 1000);
+    const minutos = Math.floor(diffSegundos / 60);
+    const segundos = diffSegundos % 60;
+    setTempoCalculado(`${minutos}:${segundos.toString().padStart(2, "0")}`);
+    
+    try {
+      const userStr = localStorage.getItem("usuarioLogado");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
+        
+        const response = await fetch("http://localhost:3000/api/salvar-progresso", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, slugFase: licao.slug, pontos: xpGanhos })
+        });
+        
+        if (response.ok) {
+           const data = await response.json();
+           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao salvar progresso", e);
+    }
+    
     setFase("conquista");
   };
 
@@ -211,6 +256,7 @@ function Exercicio() {
         proximoSlug={dadosProximaLicao ? dadosProximaLicao.slug : null}
         xpGanhos={40 + acertosPerfeitos * 5}
         comboAtual={acertosPerfeitos}
+        tempoTotal={tempoCalculado}
       />
     );
   }
@@ -228,7 +274,7 @@ function Exercicio() {
               replay
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white mb-4 tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-400 mb-4 tracking-tight drop-shadow-sm pb-1">
             Prática leva à perfeição!
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl mb-12 max-w-lg">
@@ -295,7 +341,7 @@ function Exercicio() {
 
           <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
             <div className="flex-1 flex flex-col justify-center">
-              <span className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-3">
+              <span className="text-[11px] font-extrabold text-primary-500 dark:text-primary-400 uppercase tracking-widest mb-3">
                 Pergunta
               </span>
 
@@ -320,7 +366,7 @@ function Exercicio() {
                       onChange={(e) => setTextoDigitado(e.target.value)}
                       disabled={statusResposta !== "pendente"}
                       autoFocus
-                      className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-blue-500 text-blue-600 dark:text-blue-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
+                      className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-primary-500 text-primary-600 dark:text-primary-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
                     />
                   ) : (
                     <span className="border-b-4 border-gray-300 dark:border-gray-600 inline-block w-24 mx-2"></span>
@@ -331,24 +377,44 @@ function Exercicio() {
 
               {questao.tipo === "ordenar_frase" && questao.frase_exibicao && (
                 <div className="mt-6">
-                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
+                  <span className="text-2xl font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-4 py-2 rounded-xl">
                     "{questao.frase_exibicao}"
                   </span>
                 </div>
               )}
 
-              {questao.audio && (
+              <div className="mt-8 flex items-center gap-4 flex-wrap">
+                {questao.audio && (
+                  <button
+                    onClick={tocarAudio}
+                    className="flex items-center gap-3 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-primary-100 dark:border-primary-800/50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-[24px]">
+                        volume_up
+                      </span>
+                    </div>
+                    Ouvir Pronúncia
+                  </button>
+                )}
+
                 <button
-                  onClick={tocarAudio}
-                  className="mt-8 flex items-center gap-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-blue-100 dark:border-blue-800/50"
+                  onClick={() => setMostrarDica(!mostrarDica)}
+                  className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50"
                 >
                   <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-[24px]">
-                      volume_up
+                    <span className="material-symbols-outlined text-[24px] text-yellow-500">
+                      lightbulb
                     </span>
                   </div>
-                  Ouvir Pronúncia
+                  {mostrarDica ? "Ocultar Dica" : "Ver Dica"}
                 </button>
+              </div>
+
+              {mostrarDica && (
+                <div className="mt-6 p-5 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-r-xl text-yellow-800 dark:text-yellow-200 text-sm md:text-base font-semibold animate-[fadeIn_0.3s_ease-out] shadow-sm">
+                  💡 {questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!"}
+                </div>
               )}
             </div>
 
@@ -419,7 +485,7 @@ function Exercicio() {
                         ${
                           isSelected
                             ? "bg-gray-200 dark:bg-gray-800 text-gray-200 dark:text-gray-800 border-2 border-gray-200 dark:border-gray-800 shadow-none cursor-default"
-                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-blue-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
+                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-primary-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
                         }
                       `}
                     >

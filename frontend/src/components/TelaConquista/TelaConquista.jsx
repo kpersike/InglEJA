@@ -164,8 +164,8 @@ const TelaConquista = ({
             </span>
           </div>
 
-          <div className="bg-blue-50/60 dark:bg-blue-900/10 p-6 rounded-[1.5rem] border border-blue-100 dark:border-blue-900/30 flex flex-col items-center transition-colors hover:-translate-y-1 duration-300">
-            <div className="flex flex-col items-center gap-2 text-blue-600 dark:text-blue-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
+          <div className="bg-primary-50/60 dark:bg-primary-900/10 p-6 rounded-[1.5rem] border border-primary-100 dark:border-primary-900/30 flex flex-col items-center transition-colors hover:-translate-y-1 duration-300">
+            <div className="flex flex-col items-center gap-2 text-primary-600 dark:text-primary-500 text-[10px] font-extrabold uppercase tracking-widest mb-3">
               <span className="material-symbols-outlined text-[28px] drop-shadow-sm">
                 timer
               </span>
@@ -174,7 +174,7 @@ const TelaConquista = ({
             <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
               {tempoTotal}
             </strong>
-            <span className="text-[11px] font-bold text-blue-600 bg-blue-100/80 dark:bg-blue-900/40 dark:text-blue-400 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-bold text-primary-600 bg-primary-100/80 dark:bg-primary-900/40 dark:text-primary-400 px-3 py-1 rounded-full">
               Minutos
             </span>
           </div>
