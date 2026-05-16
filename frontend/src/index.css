@@ -84,6 +84,10 @@
   }
 }
 
+html{
+  height: auto;
+}
+
 /* Esconde a barra de rolagem nativa, mas mantém o scroll funcionando */
 .hide-scrollbar {
   -ms-overflow-style: none;

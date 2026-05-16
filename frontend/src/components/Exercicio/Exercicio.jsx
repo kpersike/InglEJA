@@ -28,6 +28,10 @@ function Exercicio() {
   const [tempoInicio] = useState(Date.now());
   const [tempoCalculado, setTempoCalculado] = useState("0:00");
 
+  const [historicoRespostas, setHistoricoRespostas] = useState({}); // { [index]: { opcao, texto, palavras } }
+  // NOVO: Guarda quais questões da revisão já foram resolvidas com sucesso nesta rodada
+  const [revisadasConcluidas, setRevisadasConcluidas] = useState([]);
+
   // ==========================================
   // ESTADOS DO LIGAR PARES
   // ==========================================
@@ -110,6 +114,49 @@ function Exercicio() {
     }
   };
 
+  // Recupera as respostas do histórico ao navegar (Avançar / Voltar)
+  React.useEffect(() => {
+    if (fase === "normal") {
+      const respostaSalva = historicoRespostas[perguntaAtualIndex];
+      if (respostaSalva) {
+        setOpcaoSelecionada(respostaSalva.opcaoSelecionada);
+        setTextoDigitado(respostaSalva.textoDigitado);
+        setPalavrasSelecionadas(respostaSalva.palavrasSelecionadas);
+        setStatusResposta(respostaSalva.acertou ? "correta" : "errada");
+      } else {
+        setOpcaoSelecionada(null);
+        setTextoDigitado("");
+        setPalavrasSelecionadas([]);
+        setStatusResposta("pendente");
+      }
+    } else if (fase === "revisao") {
+      // Se a questão já foi resolvida com sucesso nesta rodada de revisão:
+      if (revisadasConcluidas.includes(perguntaAtualIndex)) {
+        setStatusResposta("correta");
+        // Opcional: Se quiser resgatar o que ele marcou no acerto da revisão, 
+        // o historicoRespostas já foi atualizado com o acerto na função verificarResposta!
+        const respostaSalva = historicoRespostas[perguntaAtualIndex];
+        if (respostaSalva) {
+          setOpcaoSelecionada(respostaSalva.opcaoSelecionada);
+          setTextoDigitado(respostaSalva.textoDigitado);
+          setPalavrasSelecionadas(respostaSalva.palavrasSelecionadas);
+        }
+      } else {
+        // Se ainda não foi resolvida na revisão, limpa tudo para nova tentativa
+        setOpcaoSelecionada(null);
+        setTextoDigitado("");
+        setPalavrasSelecionadas([]);
+        setStatusResposta("pendente");
+      }
+    } else {
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+    }
+    setMostrarDica(false);
+  }, [perguntaAtualIndex, fase, revisadasConcluidas]);
+
   // ==========================================
   // LÓGICA DE VALIDAÇÃO E ÁUDIO
   // ==========================================
@@ -119,6 +166,28 @@ function Exercicio() {
       audio.play().catch(() => {});
     }
   };
+
+  // Controla o sumiço gradual do balão após 3 segundos
+  const [animarBalao, setAnimarBalao] = useState(false);
+
+  React.useEffect(() => {
+    if (mostrarDica) {
+      setAnimarBalao(true);
+
+      const timerSumir = setTimeout(() => {
+        setAnimarBalao(false); // Inicia o fade-out gradual
+
+        // Aguarda a animação de 300ms terminar para remover do DOM
+        const timerRemover = setTimeout(() => {
+          setMostrarDica(false);
+        }, 300);
+
+        return () => clearTimeout(timerRemover);
+      }, 3000);
+
+      return () => clearTimeout(timerSumir);
+    }
+  }, [mostrarDica]);
 
   const verificarResposta = () => {
     if (statusResposta === "pendente") {
@@ -140,11 +209,33 @@ function Exercicio() {
         acertou = textoEscolhido === questao.resposta;
       }
 
+      // === SALVA NO HISTÓRICO AQUI ===
+      setHistoricoRespostas((prev) => ({
+        ...prev,
+        [perguntaAtualIndex]: {
+          opcaoSelecionada,
+          textoDigitado,
+          palavrasSelecionadas,
+          acertou
+        }
+      }));
+
       if (acertou) {
         setStatusResposta("correta");
         const audio = new Audio("/audios/sfx/acerto.mp3");
         audio.volume = 0.5;
         audio.play().catch(() => {});
+
+        // === ADICIONE ESTE BLOCO AQUI ===
+        if (fase === "revisao") {
+          setRevisadasConcluidas((prev) => [...prev, perguntaAtualIndex]);
+        }
+        // ================================
+
+        // Atualiza a pontuação apenas na fase normal
+        if (fase === "normal") {
+          setPontuacao((prev) => prev + 10);
+        }
       } else {
         setStatusResposta("errada");
         const audio = new Audio("/audios/sfx/erro.mp3");
@@ -198,6 +289,19 @@ function Exercicio() {
       } else {
         finalizarLicao();
       }
+    }
+  };
+
+  const voltarQuestao = () => {
+    if (indiceFila > 0) {
+      // Limpa as respostas da tela antes de voltar para não misturar com a questão anterior
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+      setMostrarDica(false);
+
+      setIndiceFila((prev) => prev - 1);
     }
   };
 
@@ -298,6 +402,11 @@ function Exercicio() {
     );
   }
 
+  // A questão fica bloqueada se já foi respondida na fase normal OU se já foi resolvida com sucesso na revisão
+  const jaRespondida =
+    (fase === "normal" && historicoRespostas[perguntaAtualIndex] !== undefined) ||
+    (fase === "revisao" && revisadasConcluidas.includes(perguntaAtualIndex));
+
   // ==========================================
   // TELA PRINCIPAL (EXERCÍCIO)
   // ==========================================
@@ -364,7 +473,7 @@ function Exercicio() {
                       type="text"
                       value={textoDigitado}
                       onChange={(e) => setTextoDigitado(e.target.value)}
-                      disabled={statusResposta !== "pendente"}
+                      disabled={statusResposta !== "pendente" || jaRespondida}
                       autoFocus
                       className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-primary-500 text-primary-600 dark:text-primary-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
                     />
@@ -394,28 +503,39 @@ function Exercicio() {
                         volume_up
                       </span>
                     </div>
-                    Ouvir Pronúncia
+                    {/* Ouvir Pronúncia */}
                   </button>
                 )}
 
-                <button
-                  onClick={() => setMostrarDica(!mostrarDica)}
-                  className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-[24px] text-yellow-500">
-                      lightbulb
-                    </span>
-                  </div>
-                  {mostrarDica ? "Ocultar Dica" : "Ver Dica"}
-                </button>
-              </div>
+                {/* CONTAINER RELATIVO PARA O BALÃO */}
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setMostrarDica(!mostrarDica)}
+                    title={mostrarDica ? "Ocultar Dica" : "Ver Dica"}
+                    className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-[24px] text-yellow-500">
+                        lightbulb
+                      </span>
+                    </div>
+                  </button>
 
-              {mostrarDica && (
-                <div className="mt-6 p-5 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-r-xl text-yellow-800 dark:text-yellow-200 text-sm md:text-base font-semibold animate-[fadeIn_0.3s_ease-out] shadow-sm">
-                  💡 {questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!"}
+                  {/* BALÃO DE DICA FLUTUANTE */}
+                  {mostrarDica && (
+                    <div
+                      className={`absolute left-full top-1/2 -translate-y-1/2 ml-4 w-max max-w-[240px] md:max-w-[320px] p-4 bg-yellow-50 dark:bg-gray-800 border border-yellow-200 dark:border-yellow-600 rounded-2xl text-yellow-900 dark:text-yellow-100 text-sm font-semibold shadow-xl z-50 text-center transition-all duration-300 transform
+      ${animarBalao ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
+    `}
+                    >
+                      💡 {questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!"}
+
+                      {/* SETINHA DO BALÃO CORRIGIDA */}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1.5 w-3 h-3 bg-yellow-50 dark:bg-gray-800 border-l border-b border-yellow-200 dark:border-yellow-600 rotate-45"></div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             {questao.img && questao.tipo !== "escolha_imagem" && (
@@ -452,7 +572,9 @@ function Exercicio() {
                   <button
                     key={i}
                     onClick={() =>
-                      statusResposta === "pendente" && handleRemovePalavra(i)
+                      !jaRespondida &&
+                      statusResposta === "pendente" && 
+                      handleRemovePalavra(i)
                     }
                     className={`px-4 py-3 border-2 rounded-xl font-bold shadow-sm transition-transform 
                       ${statusResposta === "pendente" ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 active:scale-95" : ""}
@@ -474,11 +596,12 @@ function Exercicio() {
                   return (
                     <div
                       key={index}
-                      draggable={!isSelected && statusResposta === "pendente"}
+                      draggable={!isSelected && statusResposta === "pendente" && !jaRespondida}
                       onDragStart={(e) => onDragStart(e, texto, index)}
                       onClick={() =>
                         !isSelected &&
                         statusResposta === "pendente" &&
+                        !jaRespondida &&
                         handleAddPalavra(texto, index)
                       }
                       className={`px-4 py-3 rounded-xl font-bold text-[16px] transition-all select-none
@@ -516,10 +639,11 @@ function Exercicio() {
                     <button
                       key={index}
                       onClick={() =>
+                        !jaRespondida &&
                         statusResposta === "pendente" &&
                         setOpcaoSelecionada(index)
                       }
-                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"}`}
+                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"} ${jaRespondida ? "cursor-default" : "cursor-pointer"}`}
                     >
                       {imagemOpcao && (
                         <img
@@ -565,15 +689,29 @@ function Exercicio() {
         `}
       >
         <div className="w-full max-w-4xl flex justify-between items-center gap-4">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
-          >
-            <span className="material-symbols-outlined text-[24px] rotate-180">
-              logout
-            </span>
-            <span className="hidden sm:inline text-[15px]">Sair da lição</span>
-          </button>
+          {/* BOTÃO CONDICIONAL: SAIR NA PRIMEIRA QUESTÃO, VOLTAR NAS DEMAIS */}
+          {indiceFila === 0 ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
+            >
+              <span className="material-symbols-outlined text-[24px] rotate-180">
+                logout
+              </span>
+              <span className="hidden sm:inline text-[15px]">Sair da lição</span>
+            </button>
+          ) : (
+              <button
+                onClick={voltarQuestao}
+                // O botão de voltar agora fica sempre disponível contanto que não seja a primeira tela
+                className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  arrow_back
+                </span>
+                <span className="hidden sm:inline text-[15px]">Voltar</span>
+              </button>
+          )}
 
           <div className="hidden md:flex flex-1 items-center justify-center font-extrabold text-xl">
             {statusResposta === "correta" && (
