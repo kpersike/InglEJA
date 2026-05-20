@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -14,6 +14,12 @@ function Auth() {
   });
   const [feedback, setFeedback] = useState({ msg: "", color: "" });
 
+  useEffect(() => {
+    localStorage.removeItem("usuarioLogado");
+    localStorage.removeItem("emailUsuario");
+    localStorage.removeItem("fase_em_revisao");
+  }, []);
+
   const alternarTela = () => {
     setIsLogin(!isLogin);
     setFeedback({ msg: "", color: "" });
@@ -27,7 +33,7 @@ function Auth() {
     if (e) e.preventDefault();
     const { email, senha, confirmarSenha } = formData;
     if (!email || !senha || !confirmarSenha) {
-      setFeedback({ msg: "Preencha todos os campos.", color: "text-blue-500" });
+      setFeedback({ msg: "Preencha todos os campos.", color: "text-primary-500" });
       return;
     }
     if (senha !== confirmarSenha) {
@@ -42,6 +48,7 @@ function Auth() {
         body: JSON.stringify({ nome: "Aluno InglEJA", email, senha }),
       });
       if (response.ok) {
+        localStorage.setItem("emailUsuario", email);
         setFeedback({
           msg: "Conta criada com sucesso!",
           color: "text-green-500",
@@ -77,7 +84,7 @@ function Auth() {
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
         setFeedback({
           msg: `Bem-vindo, ${data.usuario.nome}!`,
-          color: "text-blue-500",
+          color: "text-primary-500",
         });
         setTimeout(() => navigate("/dashboard"), 1500);
       } else {
@@ -124,7 +131,7 @@ function Auth() {
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8 md:p-10 relative">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
+            <div className="w-10 h-10 bg-primary-600 rounded-full"></div>
             <span className="font-black text-3xl text-gray-900 dark:text-white tracking-tighter">
               InglEJA
             </span>
@@ -147,7 +154,7 @@ function Auth() {
               id="email"
               onChange={handleChange}
               required
-              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-primary-500 transition-all"
               placeholder="exemplo@gmail.com"
             />
           </div>
@@ -161,7 +168,7 @@ function Auth() {
               id="senha"
               onChange={handleChange}
               required
-              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-primary-500 transition-all"
               placeholder="••••••••"
             />
           </div>
@@ -176,7 +183,7 @@ function Auth() {
                 id="confirmarSenha"
                 onChange={handleChange}
                 required
-                className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:border-primary-500 transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -184,7 +191,7 @@ function Auth() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all mt-2"
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-600/20 active:scale-95 transition-all mt-2"
           >
             {isLogin ? "LOGAR" : "CADASTRAR"}
           </button>
@@ -221,7 +228,7 @@ function Auth() {
           {isLogin ? "Ainda não tem uma conta?" : "Já possui cadastro?"}
           <button
             onClick={alternarTela}
-            className="ml-2 text-blue-600 dark:text-blue-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+            className="ml-2 text-primary-600 dark:text-primary-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
           >
             {isLogin ? "Crie uma aqui" : "Entre aqui"}
           </button>

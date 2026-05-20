@@ -37,7 +37,7 @@
 
 /* Botão "Próximo" e "Começar" */
 .driver-popover-next-btn {
-  background-color: #2563eb !important; /* blue-600 (Azul do seu app) */
+  background-color: rgb(var(--color-primary-600)) !important; /* blue-600 (Azul do seu app) */
   color: white !important;
   border-radius: 8px !important;
   font-weight: 700 !important;
@@ -49,7 +49,7 @@
     transform 0.1s !important;
 }
 .driver-popover-next-btn:hover {
-  background-color: #1d4ed8 !important; /* blue-700 */
+  background-color: rgb(var(--color-primary-700)) !important; /* blue-700 */
 }
 .driver-popover-next-btn:active {
   transform: scale(0.95) !important; /* Efeito de clique */

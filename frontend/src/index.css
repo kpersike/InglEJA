@@ -5,6 +5,76 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Padrão: Azul (blue) */
+    --color-primary-50: 239 246 255;
+    --color-primary-100: 219 234 254;
+    --color-primary-200: 191 219 254;
+    --color-primary-300: 147 197 253;
+    --color-primary-400: 96 165 250;
+    --color-primary-500: 59 130 246;
+    --color-primary-600: 37 99 235;
+    --color-primary-700: 29 78 216;
+    --color-primary-800: 30 64 175;
+    --color-primary-900: 30 58 138;
+  }
+
+  :root.theme-green {
+    /* Verde (green) */
+    --color-primary-50: 240 253 244;
+    --color-primary-100: 220 252 231;
+    --color-primary-200: 187 247 208;
+    --color-primary-300: 134 239 172;
+    --color-primary-400: 74 222 128;
+    --color-primary-500: 34 197 94;
+    --color-primary-600: 22 163 74;
+    --color-primary-700: 21 128 61;
+    --color-primary-800: 22 101 52;
+    --color-primary-900: 20 83 45;
+  }
+
+  :root.theme-purple {
+    /* Roxo (purple) */
+    --color-primary-50: 250 245 255;
+    --color-primary-100: 243 232 255;
+    --color-primary-200: 233 213 255;
+    --color-primary-300: 216 180 254;
+    --color-primary-400: 192 132 252;
+    --color-primary-500: 168 85 247;
+    --color-primary-600: 147 51 234;
+    --color-primary-700: 126 34 206;
+    --color-primary-800: 107 33 168;
+    --color-primary-900: 88 28 135;
+  }
+
+  :root.theme-rose {
+    /* Rosa (rose) */
+    --color-primary-50: 255 241 242;
+    --color-primary-100: 255 228 230;
+    --color-primary-200: 254 205 211;
+    --color-primary-300: 253 164 175;
+    --color-primary-400: 251 113 133;
+    --color-primary-500: 244 63 94;
+    --color-primary-600: 225 29 72;
+    --color-primary-700: 190 18 60;
+    --color-primary-800: 159 18 57;
+    --color-primary-900: 136 19 55;
+  }
+
+  :root.theme-orange {
+    /* Laranja (orange) */
+    --color-primary-50: 255 247 237;
+    --color-primary-100: 255 237 213;
+    --color-primary-200: 254 215 170;
+    --color-primary-300: 253 186 116;
+    --color-primary-400: 251 146 60;
+    --color-primary-500: 249 115 22;
+    --color-primary-600: 234 88 12;
+    --color-primary-700: 194 65 12;
+    --color-primary-800: 154 52 18;
+    --color-primary-900: 124 45 18;
+  }
+
   body,
   html,
   #root {
@@ -12,6 +82,10 @@
     margin: 0;
     padding: 0;
   }
+}
+
+html{
+  height: auto;
 }
 
 /* Esconde a barra de rolagem nativa, mas mantém o scroll funcionando */
@@ -68,6 +142,9 @@
 .anim-wave {
   display: inline-block;
   transform-origin: bottom center;
+}
+
+.anim-wave:hover, .circle-icon:hover .anim-wave {
   animation: aceno-suave 1.5s ease-in-out infinite;
 }
 
@@ -87,18 +164,141 @@
   }
 }
 
+.anim-palette {
+  display: inline-block;
+  transform-origin: center;
+}
+
+.anim-palette:hover, .circle-icon:hover .anim-palette {
+  animation: girar-paleta 1.5s ease-in-out infinite;
+}
+
+@keyframes girar-paleta {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-15deg) scale(1.15); }
+  50% { transform: rotate(10deg) scale(1.15); }
+  75% { transform: rotate(-5deg) scale(1.15); }
+}
+
+.anim-jump {
+  display: inline-block;
+}
+
+.anim-jump:hover, .circle-icon:hover .anim-jump {
+  animation: pulinho 0.8s ease-in-out infinite;
+}
+
+@keyframes pulinho {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Animação para a faca e garfo cruzarem e descruzarem continuamente */
+.anim-cross .fork, .anim-cross .knife {
+  transform-origin: 50% 85%;
+}
+
+.circle-icon:hover .anim-cross .fork {
+  animation: cross-fork 1.2s ease-in-out infinite;
+}
+
+.circle-icon:hover .anim-cross .knife {
+  animation: cross-knife 1.2s ease-in-out infinite;
+}
+
+@keyframes cross-fork {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  50% { transform: rotate(30deg) translateX(2px); }
+}
+
+@keyframes cross-knife {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  50% { transform: rotate(-30deg) translateX(-2px); }
+}
+
+/* Animação suave de pulso para o ícone de Check (concluído) */
+.anim-check {
+  display: inline-block;
+}
+
+.circle-icon:hover .anim-check {
+  animation: pulso-suave 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulso-suave {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+/* Animações do tema Música */
+.anim-music-main {
+  display: inline-block;
+}
+
+.circle-icon:hover .anim-music-main {
+  animation: music-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes music-bounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+
+.m-note {
+  opacity: 0;
+  transform: translate(0, 0) scale(0.5);
+  transform-origin: center;
+}
+
+.circle-icon:hover .m-note-1 {
+  animation: float-note-1 1.5s ease-out infinite;
+  animation-delay: 0s;
+}
+
+.circle-icon:hover .m-note-2 {
+  animation: float-note-2 1.5s ease-out infinite;
+  animation-delay: 0.3s;
+}
+
+.circle-icon:hover .m-note-3 {
+  animation: float-note-3 1.5s ease-out infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes float-note-1 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+  20% { opacity: 1; transform: translate(-15px, -15px) scale(1) rotate(-15deg); }
+  80% { opacity: 0; transform: translate(-25px, -35px) scale(0.8) rotate(-25deg); }
+  100% { opacity: 0; transform: translate(-25px, -35px) scale(0.8) rotate(-25deg); }
+}
+
+@keyframes float-note-2 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+  20% { opacity: 1; transform: translate(15px, -10px) scale(1) rotate(15deg); }
+  80% { opacity: 0; transform: translate(30px, -25px) scale(0.8) rotate(30deg); }
+  100% { opacity: 0; transform: translate(30px, -25px) scale(0.8) rotate(30deg); }
+}
+
+@keyframes float-note-3 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+  20% { opacity: 1; transform: translate(-5px, -20px) scale(1) rotate(5deg); }
+  80% { opacity: 0; transform: translate(-10px, -45px) scale(0.8) rotate(10deg); }
+  100% { opacity: 0; transform: translate(-10px, -45px) scale(0.8) rotate(10deg); }
+}
+
+
 /* =========================================
    BACKGROUND COM ONDAS SUTIS (MODO CLARO E ESCURO)
    ========================================= */
 .bg-waves {
   background-color: #f8fafc; /* slate-50 */
-  background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-200 400 Q 200 -100 800 300 T 1800 200' fill='none' stroke='rgba(59, 130, 246, 0.05)' stroke-width='4'/%3E%3Cpath d='M-100 600 Q 300 100 900 500 T 1900 400' fill='none' stroke='rgba(59, 130, 246, 0.03)' stroke-width='3'/%3E%3Cpath d='M0 800 Q 400 300 1000 700 T 2000 600' fill='none' stroke='rgba(59, 130, 246, 0.04)' stroke-width='5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-200 400 Q 200 -100 800 300 T 1800 200' fill='none' stroke='rgba(148, 163, 184, 0.15)' stroke-width='4'/%3E%3Cpath d='M-100 600 Q 300 100 900 500 T 1900 400' fill='none' stroke='rgba(148, 163, 184, 0.1)' stroke-width='3'/%3E%3Cpath d='M0 800 Q 400 300 1000 700 T 2000 600' fill='none' stroke='rgba(148, 163, 184, 0.12)' stroke-width='5'/%3E%3C/svg%3E");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
 
-body.dark .bg-waves {
+.dark .bg-waves {
   background-color: #030712; /* gray-950 */
   background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-200 400 Q 200 -100 800 300 T 1800 200' fill='none' stroke='rgba(255, 255, 255, 0.02)' stroke-width='4'/%3E%3Cpath d='M-100 600 Q 300 100 900 500 T 1900 400' fill='none' stroke='rgba(255, 255, 255, 0.01)' stroke-width='3'/%3E%3Cpath d='M0 800 Q 400 300 1000 700 T 2000 600' fill='none' stroke='rgba(255, 255, 255, 0.02)' stroke-width='5'/%3E%3C/svg%3E");
 }

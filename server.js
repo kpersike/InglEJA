@@ -12,7 +12,8 @@ const LESSONS_PATH = path.join(__dirname, "data", "lessons.json");
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // --- 🚨 AJUSTE DE ROTA DEFINITIVO 🚨 ---
 const publicPath = path.resolve(__dirname, "frontend", "public");
@@ -55,14 +56,16 @@ app.post("/api/cadastro", (req, res) => {
   }
 });
 
-// Rota para atualizar o nome do usuário
-app.put("/api/atualizar-nome", (req, res) => {
-  const { email, novoNome } = req.body;
+// Rota para atualizar o perfil do usuário
+app.put("/api/atualizar-perfil", (req, res) => {
+  const { email, novoNome, avatar } = req.body;
   let usuarios = getUsers();
   const index = usuarios.findIndex((u) => u.email === email);
 
   if (index !== -1) {
-    usuarios[index].nome = novoNome;
+    if (novoNome) usuarios[index].nome = novoNome;
+    if (avatar !== undefined) usuarios[index].avatar = avatar;
+    
     fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
     return res.json({ sucesso: true, usuario: usuarios[index] });
   }
@@ -86,6 +89,7 @@ app.post("/api/login", (req, res) => {
           email: usuario.email,
           pontos: usuario.pontos || 0,
           progresso: usuario.progresso || {},
+          avatar: usuario.avatar || null,
         },
       });
     } else {
@@ -126,6 +130,7 @@ app.post("/api/login-google", (req, res) => {
         email: usuario.email,
         pontos: usuario.pontos || 0,
         progresso: usuario.progresso || {},
+        avatar: usuario.avatar || null,
       },
     });
   } catch (err) {
@@ -156,6 +161,28 @@ app.get("/api/fase/:slug", (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ erro: "Erro ao carregar a fase" });
+  }
+});
+
+
+app.post("/api/salvar-progresso", (req, res) => {
+  try {
+    const { email, slugFase, pontos } = req.body;
+    let usuarios = getUsers();
+    const userIndex = usuarios.findIndex((u) => u.email === email);
+
+    if (userIndex !== -1) {
+      if (!usuarios[userIndex].progresso) usuarios[userIndex].progresso = {};
+      usuarios[userIndex].progresso[slugFase] = true;
+      usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (pontos || 0);
+
+      fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+      return res.json({ sucesso: true, usuarioAtualizado: usuarios[userIndex] });
+    }
+    res.status(404).json({ erro: "Usuário não encontrado" });
+  } catch (err) {
+    console.error("Erro ao salvar progresso:", err);
+    res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });
 

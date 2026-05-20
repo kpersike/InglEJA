@@ -22,7 +22,27 @@ function Exercicio() {
   // Estado para o Drag and Drop
   const [draggedWord, setDraggedWord] = useState(null);
 
+  
   const [statusResposta, setStatusResposta] = useState("pendente");
+  const [mostrarDica, setMostrarDica] = useState(false);
+  const [tempoInicio] = useState(Date.now());
+  const [tempoCalculado, setTempoCalculado] = useState("0:00");
+
+  const [historicoRespostas, setHistoricoRespostas] = useState({}); // { [index]: { opcao, texto, palavras } }
+  // NOVO: Guarda quais questões da revisão já foram resolvidas com sucesso nesta rodada
+  const [revisadasConcluidas, setRevisadasConcluidas] = useState([]);
+
+  // ==========================================
+  // ESTADOS DO LIGAR PARES
+  // ==========================================
+  const [colunaPt, setColunaPt] = useState([]);
+  const [colunaEn, setColunaEn] = useState([]);
+  const [paresConcluidos, setParesConcluidos] = useState([]); // [{pt, en}]
+  const [linhaAtiva, setLinhaAtiva] = useState(null); // { ptId, x1, y1, x2, y2 }
+  const [linhasFixas, setLinhasFixas] = useState([]); // [{ x1, y1, x2, y2, pt, en }]
+  const itemsRef = React.useRef({});
+  const containerLigarRef = React.useRef(null);
+
 
   // ==========================================
   // CARREGAMENTO DOS DADOS DINÂMICOS
@@ -94,6 +114,49 @@ function Exercicio() {
     }
   };
 
+  // Recupera as respostas do histórico ao navegar (Avançar / Voltar)
+  React.useEffect(() => {
+    if (fase === "normal") {
+      const respostaSalva = historicoRespostas[perguntaAtualIndex];
+      if (respostaSalva) {
+        setOpcaoSelecionada(respostaSalva.opcaoSelecionada);
+        setTextoDigitado(respostaSalva.textoDigitado);
+        setPalavrasSelecionadas(respostaSalva.palavrasSelecionadas);
+        setStatusResposta(respostaSalva.acertou ? "correta" : "errada");
+      } else {
+        setOpcaoSelecionada(null);
+        setTextoDigitado("");
+        setPalavrasSelecionadas([]);
+        setStatusResposta("pendente");
+      }
+    } else if (fase === "revisao") {
+      // Se a questão já foi resolvida com sucesso nesta rodada de revisão:
+      if (revisadasConcluidas.includes(perguntaAtualIndex)) {
+        setStatusResposta("correta");
+        // Opcional: Se quiser resgatar o que ele marcou no acerto da revisão, 
+        // o historicoRespostas já foi atualizado com o acerto na função verificarResposta!
+        const respostaSalva = historicoRespostas[perguntaAtualIndex];
+        if (respostaSalva) {
+          setOpcaoSelecionada(respostaSalva.opcaoSelecionada);
+          setTextoDigitado(respostaSalva.textoDigitado);
+          setPalavrasSelecionadas(respostaSalva.palavrasSelecionadas);
+        }
+      } else {
+        // Se ainda não foi resolvida na revisão, limpa tudo para nova tentativa
+        setOpcaoSelecionada(null);
+        setTextoDigitado("");
+        setPalavrasSelecionadas([]);
+        setStatusResposta("pendente");
+      }
+    } else {
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+    }
+    setMostrarDica(false);
+  }, [perguntaAtualIndex, fase, revisadasConcluidas]);
+
   // ==========================================
   // LÓGICA DE VALIDAÇÃO E ÁUDIO
   // ==========================================
@@ -103,6 +166,28 @@ function Exercicio() {
       audio.play().catch(() => {});
     }
   };
+
+  // Controla o sumiço gradual do balão após 3 segundos
+  const [animarBalao, setAnimarBalao] = useState(false);
+
+  React.useEffect(() => {
+    if (mostrarDica) {
+      setAnimarBalao(true);
+
+      const timerSumir = setTimeout(() => {
+        setAnimarBalao(false); // Inicia o fade-out gradual
+
+        // Aguarda a animação de 300ms terminar para remover do DOM
+        const timerRemover = setTimeout(() => {
+          setMostrarDica(false);
+        }, 300);
+
+        return () => clearTimeout(timerRemover);
+      }, 3000);
+
+      return () => clearTimeout(timerSumir);
+    }
+  }, [mostrarDica]);
 
   const verificarResposta = () => {
     if (statusResposta === "pendente") {
@@ -124,11 +209,33 @@ function Exercicio() {
         acertou = textoEscolhido === questao.resposta;
       }
 
+      // === SALVA NO HISTÓRICO AQUI ===
+      setHistoricoRespostas((prev) => ({
+        ...prev,
+        [perguntaAtualIndex]: {
+          opcaoSelecionada,
+          textoDigitado,
+          palavrasSelecionadas,
+          acertou
+        }
+      }));
+
       if (acertou) {
         setStatusResposta("correta");
         const audio = new Audio("/audios/sfx/acerto.mp3");
         audio.volume = 0.5;
         audio.play().catch(() => {});
+
+        // === ADICIONE ESTE BLOCO AQUI ===
+        if (fase === "revisao") {
+          setRevisadasConcluidas((prev) => [...prev, perguntaAtualIndex]);
+        }
+        // ================================
+
+        // Atualiza a pontuação apenas na fase normal
+        if (fase === "normal") {
+          setPontuacao((prev) => prev + 10);
+        }
       } else {
         setStatusResposta("errada");
         const audio = new Audio("/audios/sfx/erro.mp3");
@@ -154,6 +261,7 @@ function Exercicio() {
       setTextoDigitado("");
       setPalavrasSelecionadas([]);
       setStatusResposta("pendente");
+      setMostrarDica(false);
       return;
     }
 
@@ -162,6 +270,7 @@ function Exercicio() {
     setTextoDigitado("");
     setPalavrasSelecionadas([]);
     setStatusResposta("pendente");
+    setMostrarDica(false);
 
     if (fase === "normal") {
       if (indiceFila < licao.questoes.length - 1) {
@@ -183,9 +292,49 @@ function Exercicio() {
     }
   };
 
-  const finalizarLicao = () => {
+  const voltarQuestao = () => {
+    if (indiceFila > 0) {
+      // Limpa as respostas da tela antes de voltar para não misturar com a questão anterior
+      setOpcaoSelecionada(null);
+      setTextoDigitado("");
+      setPalavrasSelecionadas([]);
+      setStatusResposta("pendente");
+      setMostrarDica(false);
+
+      setIndiceFila((prev) => prev - 1);
+    }
+  };
+
+  const finalizarLicao = async () => {
     const audioWin = new Audio("/audios/sfx/vitoria.mp3");
     audioWin.play().catch(() => {});
+    
+    const diffSegundos = Math.floor((Date.now() - tempoInicio) / 1000);
+    const minutos = Math.floor(diffSegundos / 60);
+    const segundos = diffSegundos % 60;
+    setTempoCalculado(`${minutos}:${segundos.toString().padStart(2, "0")}`);
+    
+    try {
+      const userStr = localStorage.getItem("usuarioLogado");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
+        
+        const response = await fetch("http://localhost:3000/api/salvar-progresso", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, slugFase: licao.slug, pontos: xpGanhos })
+        });
+        
+        if (response.ok) {
+           const data = await response.json();
+           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao salvar progresso", e);
+    }
+    
     setFase("conquista");
   };
 
@@ -211,6 +360,7 @@ function Exercicio() {
         proximoSlug={dadosProximaLicao ? dadosProximaLicao.slug : null}
         xpGanhos={40 + acertosPerfeitos * 5}
         comboAtual={acertosPerfeitos}
+        tempoTotal={tempoCalculado}
       />
     );
   }
@@ -228,7 +378,7 @@ function Exercicio() {
               replay
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white mb-4 tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-400 mb-4 tracking-tight drop-shadow-sm pb-1">
             Prática leva à perfeição!
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl mb-12 max-w-lg">
@@ -251,6 +401,11 @@ function Exercicio() {
       </div>
     );
   }
+
+  // A questão fica bloqueada se já foi respondida na fase normal OU se já foi resolvida com sucesso na revisão
+  const jaRespondida =
+    (fase === "normal" && historicoRespostas[perguntaAtualIndex] !== undefined) ||
+    (fase === "revisao" && revisadasConcluidas.includes(perguntaAtualIndex));
 
   // ==========================================
   // TELA PRINCIPAL (EXERCÍCIO)
@@ -295,7 +450,7 @@ function Exercicio() {
 
           <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
             <div className="flex-1 flex flex-col justify-center">
-              <span className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-3">
+              <span className="text-[11px] font-extrabold text-primary-500 dark:text-primary-400 uppercase tracking-widest mb-3">
                 Pergunta
               </span>
 
@@ -318,9 +473,9 @@ function Exercicio() {
                       type="text"
                       value={textoDigitado}
                       onChange={(e) => setTextoDigitado(e.target.value)}
-                      disabled={statusResposta !== "pendente"}
+                      disabled={statusResposta !== "pendente" || jaRespondida}
                       autoFocus
-                      className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-blue-500 text-blue-600 dark:text-blue-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
+                      className={`w-40 text-center bg-transparent border-b-4 focus:outline-none transition-colors pb-1 mx-2 ${statusResposta === "pendente" ? "border-gray-300 dark:border-gray-600 focus:border-primary-500 text-primary-600 dark:text-primary-400" : ""} ${statusResposta === "correta" ? "border-green-500 text-green-600 dark:text-green-400" : ""} ${statusResposta === "errada" ? "border-red-500 text-red-600 dark:text-red-400" : ""}`}
                     />
                   ) : (
                     <span className="border-b-4 border-gray-300 dark:border-gray-600 inline-block w-24 mx-2"></span>
@@ -331,25 +486,56 @@ function Exercicio() {
 
               {questao.tipo === "ordenar_frase" && questao.frase_exibicao && (
                 <div className="mt-6">
-                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
+                  <span className="text-2xl font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-4 py-2 rounded-xl">
                     "{questao.frase_exibicao}"
                   </span>
                 </div>
               )}
 
-              {questao.audio && (
-                <button
-                  onClick={tocarAudio}
-                  className="mt-8 flex items-center gap-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-blue-100 dark:border-blue-800/50"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-[24px]">
-                      volume_up
-                    </span>
-                  </div>
-                  Ouvir Pronúncia
-                </button>
-              )}
+              <div className="mt-8 flex items-center gap-4 flex-wrap">
+                {questao.audio && (
+                  <button
+                    onClick={tocarAudio}
+                    className="flex items-center gap-3 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-primary-100 dark:border-primary-800/50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-[24px]">
+                        volume_up
+                      </span>
+                    </div>
+                    {/* Ouvir Pronúncia */}
+                  </button>
+                )}
+
+                {/* CONTAINER RELATIVO PARA O BALÃO */}
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setMostrarDica(!mostrarDica)}
+                    title={mostrarDica ? "Ocultar Dica" : "Ver Dica"}
+                    className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-[24px] text-yellow-500">
+                        lightbulb
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* BALÃO DE DICA FLUTUANTE */}
+                  {mostrarDica && (
+                    <div
+                      className={`absolute left-full top-1/2 -translate-y-1/2 ml-4 w-max max-w-[240px] md:max-w-[320px] p-4 bg-yellow-50 dark:bg-gray-800 border border-yellow-200 dark:border-yellow-600 rounded-2xl text-yellow-900 dark:text-yellow-100 text-sm font-semibold shadow-xl z-50 text-center transition-all duration-300 transform
+      ${animarBalao ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
+    `}
+                    >
+                      💡 {questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!"}
+
+                      {/* SETINHA DO BALÃO CORRIGIDA */}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1.5 w-3 h-3 bg-yellow-50 dark:bg-gray-800 border-l border-b border-yellow-200 dark:border-yellow-600 rotate-45"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {questao.img && questao.tipo !== "escolha_imagem" && (
@@ -386,7 +572,9 @@ function Exercicio() {
                   <button
                     key={i}
                     onClick={() =>
-                      statusResposta === "pendente" && handleRemovePalavra(i)
+                      !jaRespondida &&
+                      statusResposta === "pendente" && 
+                      handleRemovePalavra(i)
                     }
                     className={`px-4 py-3 border-2 rounded-xl font-bold shadow-sm transition-transform 
                       ${statusResposta === "pendente" ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 active:scale-95" : ""}
@@ -408,18 +596,19 @@ function Exercicio() {
                   return (
                     <div
                       key={index}
-                      draggable={!isSelected && statusResposta === "pendente"}
+                      draggable={!isSelected && statusResposta === "pendente" && !jaRespondida}
                       onDragStart={(e) => onDragStart(e, texto, index)}
                       onClick={() =>
                         !isSelected &&
                         statusResposta === "pendente" &&
+                        !jaRespondida &&
                         handleAddPalavra(texto, index)
                       }
                       className={`px-4 py-3 rounded-xl font-bold text-[16px] transition-all select-none
                         ${
                           isSelected
                             ? "bg-gray-200 dark:bg-gray-800 text-gray-200 dark:text-gray-800 border-2 border-gray-200 dark:border-gray-800 shadow-none cursor-default"
-                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-blue-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
+                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-primary-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
                         }
                       `}
                     >
@@ -450,10 +639,11 @@ function Exercicio() {
                     <button
                       key={index}
                       onClick={() =>
+                        !jaRespondida &&
                         statusResposta === "pendente" &&
                         setOpcaoSelecionada(index)
                       }
-                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"}`}
+                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"} ${jaRespondida ? "cursor-default" : "cursor-pointer"}`}
                     >
                       {imagemOpcao && (
                         <img
@@ -499,15 +689,29 @@ function Exercicio() {
         `}
       >
         <div className="w-full max-w-4xl flex justify-between items-center gap-4">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
-          >
-            <span className="material-symbols-outlined text-[24px] rotate-180">
-              logout
-            </span>
-            <span className="hidden sm:inline text-[15px]">Sair da lição</span>
-          </button>
+          {/* BOTÃO CONDICIONAL: SAIR NA PRIMEIRA QUESTÃO, VOLTAR NAS DEMAIS */}
+          {indiceFila === 0 ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
+            >
+              <span className="material-symbols-outlined text-[24px] rotate-180">
+                logout
+              </span>
+              <span className="hidden sm:inline text-[15px]">Sair da lição</span>
+            </button>
+          ) : (
+              <button
+                onClick={voltarQuestao}
+                // O botão de voltar agora fica sempre disponível contanto que não seja a primeira tela
+                className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  arrow_back
+                </span>
+                <span className="hidden sm:inline text-[15px]">Voltar</span>
+              </button>
+          )}
 
           <div className="hidden md:flex flex-1 items-center justify-center font-extrabold text-xl">
             {statusResposta === "correta" && (
