@@ -9,6 +9,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const timelineRef = useRef(null);
   const menuRef = useRef(null);
+  const dropdownContainerRef = useRef(null);
 
   const [menuAberto, setMenuAberto] = useState(null);
 
@@ -249,6 +250,103 @@ function Dashboard() {
     localStorage.setItem("notificacoes_ingleja", JSON.stringify(notificacoes));
   }, [notificacoes]);
 
+  // Impede o Tab de vazar do Dashboard para a barra do navegador
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key !== "Tab" || !menuRef.current) return;
+
+      // Busca todos os botões e links ativos na tela inteira do Dashboard
+      const elementosFocaveis = menuRef.current.querySelectorAll(
+        'button:not([disabled]), a:not([disabled]), [tabindex="0"]'
+      );
+
+      if (elementosFocaveis.length === 0) return;
+
+      const primeiroElemento = elementosFocaveis[0];
+      const ultimoElemento = elementosFocaveis[elementosFocaveis.length - 1];
+
+      // Se estiver voltando (Shift + Tab) no primeiro elemento, vai para o último
+      if (e.shiftKey) {
+        if (document.activeElement === primeiroElemento) {
+          ultimoElemento.focus();
+          e.preventDefault();
+        }
+      } 
+      // Se estiver avançando (Tab) no último elemento, volta para o primeiro
+      else {
+        if (document.activeElement === ultimoElemento) {
+          primeiroElemento.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Crie esta referência logo acima, junto com as outras (ex: menuRef, dropdownContainerRef)
+  const anteriorMenuAbertoRef = useRef(null);
+
+useEffect(() => {
+  if (menuAberto && dropdownContainerRef.current) {
+    // O setTimeout força o navegador a executar isso LOGO APÓS o menu aparecer na tela
+    const timer = setTimeout(() => {
+      if (dropdownContainerRef.current) {
+        const primeiroItemFocavel = dropdownContainerRef.current.querySelector('button, [tabindex="0"]');
+        if (primeiroItemFocavel) {
+          primeiroItemFocavel.focus();
+        }
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }
+}, [menuAberto]); // Simplificado para monitorar diretamente a abertura do menu
+
+  // Fecha o menu aberto ao pressionar a tecla 'Esc'
+  useEffect(() => {
+    const tratarPressionamentoEsc = (evento) => {
+      if (evento.key === "Escape") {
+        // Se houver qualquer menu aberto, fecha-o (ajuste o valor para null ou falso dependendo do seu padrão)
+        if (menuAberto) {
+          setMenuAberto(null);
+        }
+      }
+    };
+
+    // Registra o evento de teclado na janela (window)
+    window.addEventListener("keydown", tratarPressionamentoEsc);
+
+    // Limpa o evento quando o componente for desmontado para evitar vazamento de memória
+    return () => {
+      window.removeEventListener("keydown", tratarPressionamentoEsc);
+    };
+  }, [menuAberto]);
+
+  useEffect(() => {
+    const tratarPressionamentoEsc = (evento) => {
+      if (evento.key === "Escape" && menuAberto) {
+        // 1. Encontra o botão que está ativo/focado no momento em que o menu abriu
+        // Normalmente, o usuário abriu o menu clicando ou dando Enter no próprio botão do cabeçalho
+        const idBotaoOrigem = `btn-${menuAberto}`;
+        const botaoOrigem = document.getElementById(idBotaoOrigem);
+
+        // 2. Fecha o menu
+        setMenuAberto(null);
+
+        // 3. Devolve o foco para o botão do cabeçalho
+        if (botaoOrigem) {
+          // Um pequeno timeout garante que o foco mude após o menu sumir da tela
+          setTimeout(() => botaoOrigem.focus(), 50);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", tratarPressionamentoEsc);
+    return () => window.removeEventListener("keydown", tratarPressionamentoEsc);
+  }, [menuAberto]);
+
   const dispararNotificacao = (titulo, desc) => {
     const novaNotificacao = { id: Date.now(), titulo, desc };
     setNotificacoes((prev) => [novaNotificacao, ...prev]);
@@ -311,7 +409,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent transition-colors duration-300">
+    <div ref={menuRef} className="min-h-screen bg-transparent transition-colors duration-300">
       <Navbar usuario={usuario} />
 
       <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-10 flex flex-col">
@@ -343,8 +441,9 @@ function Dashboard() {
             </div>
 
             <button
-              className={`w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
-              onClick={() => toggleMenu("config")}
+              className={`w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
+              // onClick={() => toggleMenu("config")}
+              onClick={() => setMenuAberto(menuAberto === "config" ? null : "config")}
             >
               <span
                 className={`material-symbols-outlined text-[24px] ${menuAberto === "config" ? "anim-spin" : ""}`}
@@ -354,7 +453,7 @@ function Dashboard() {
             </button>
 
             <button
-              className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
+              className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
               onClick={() => toggleMenu("notificacoes")}
             >
               <span
@@ -368,7 +467,7 @@ function Dashboard() {
             </button>
 
             <button
-              className="w-11 h-11 rounded-full bg-primary-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2 overflow-hidden"
+              className="w-11 h-11 rounded-full bg-primary-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2 overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50"
               onClick={() => toggleMenu("perfil")}
             >
               {usuario.avatar ? (
@@ -384,10 +483,12 @@ function Dashboard() {
                 <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 text-left">
                   Configurações
                 </div>
-                <ul className="py-2 m-0 list-none">
+                <ul ref={dropdownContainerRef} className="py-2 m-0 list-none">
                   <li
-                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    tabIndex="0"
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("som")}
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("som")} // Permite ativar com o Enter do teclado
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -399,12 +500,15 @@ function Dashboard() {
                       type="checkbox"
                       checked={configuracoes.som}
                       readOnly
+                      tabIndex="-1"
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
                   <li
-                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    tabIndex="0"
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("modoEscuro")}
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("modoEscuro")} // Permite ativar com o Enter do teclado
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -416,12 +520,15 @@ function Dashboard() {
                       type="checkbox"
                       checked={configuracoes.modoEscuro}
                       readOnly
+                      tabIndex="-1"
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
                   <li
-                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    tabIndex="0"
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("layoutHorizontal")}
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("layoutHorizontal")} // Permite ativar com o Enter do teclado
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -435,6 +542,7 @@ function Dashboard() {
                       type="checkbox"
                       checked={configuracoes.layoutHorizontal}
                       readOnly
+                      tabIndex="-1"
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
@@ -444,12 +552,13 @@ function Dashboard() {
 
             {menuAberto === "notificacoes" && (
               <div className="absolute top-14 right-0 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
-                <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                <div ref={dropdownContainerRef} className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                   Notificações
                   {notificacoes.length > 0 && (
                     <button
                       onClick={() => setNotificacoes([])}
-                      className="text-xs text-primary-500 hover:underline border-none bg-transparent cursor-pointer"
+                      tabIndex="0"
+                      className="text-xs text-primary-500 hover:underline border-none bg-transparent cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
                     >
                       Limpar
                     </button>
@@ -460,7 +569,8 @@ function Dashboard() {
                     notificacoes.map((n) => (
                       <li
                         key={n.id}
-                        className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 cursor-pointer transition-colors"
+                        tabIndex="0"
+                        className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                       >
                         <strong className="block text-[13px] text-gray-800 dark:text-gray-200 mb-1">
                           {n.titulo}
@@ -480,7 +590,7 @@ function Dashboard() {
             )}
 
             {menuAberto === "perfil" && (
-              <div className="absolute top-14 right-0 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
+              <div ref={dropdownContainerRef} className="absolute top-14 right-0 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
                 <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 text-left">
                   <p className="text-sm font-bold text-gray-900 dark:text-white m-0">
                     {usuario.nome}
@@ -508,15 +618,17 @@ function Dashboard() {
                         <button
                           key={tema.classe}
                           onClick={() => setConfiguracoes({ ...configuracoes, temaPrincipal: tema.classe })}
-                          className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 ${configuracoes.temaPrincipal === tema.classe ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800" : ""}`}
+                          className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-gray-800 ${configuracoes.temaPrincipal === tema.classe ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800" : ""}`}
                           title={tema.classe.replace("theme-", "")}
                         />
                       ))}
                     </div>
                   </li>
                   <li
-                    className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700"
+                    tabIndex="0"
+                    className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700 border-b border-gray-100 dark:border-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => navigate("/perfil")}
+                    onKeyDown={(e) => e.key === "Enter" && navigate("/perfil")}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       manage_accounts
@@ -524,8 +636,10 @@ function Dashboard() {
                     Personalizar Perfil
                   </li>
                   <li
-                    className="px-5 py-2.5 text-sm text-red-500 font-semibold flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition-colors text-left"
+                    tabIndex="0"
+                    className="px-5 py-2.5 text-sm text-red-500 font-semibold flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:bg-red-50 dark:focus-visible:bg-red-900/20"
                     onClick={fazerLogout}
+                    onKeyDown={(e) => e.key === "Enter" && fazerLogout()}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       logout
@@ -642,13 +756,14 @@ function Dashboard() {
                 )}
 
                 {/* CÍRCULO DA LIÇÃO (Estilo Soft/Neumórfico) */}
-                <div
+                <button
                   onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
                   onMouseEnter={() =>
                     licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
                   }
                   className={`
                     relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
+                    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50
                     ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed"}
                     ${
                       licao.status === "atual" || licao.status === "revisando"
@@ -691,7 +806,7 @@ function Dashboard() {
                       <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[16px] m-note m-note-3">music_note</span>
                     </div>
                   )}
-                </div>
+                </button>
 
                 {/* TEXTOS DA LIÇÃO (Tipografia Refinada) */}
                 <div
@@ -742,7 +857,7 @@ function Dashboard() {
                         e.stopPropagation();
                         handleRevisarBotao(licao.slug, licao.titulo);
                       }}
-                      className="mt-3 text-[12px] font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
+                      className="mt-3 text-[12px] font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
                       Revisar Lição
                     </button>
@@ -751,7 +866,7 @@ function Dashboard() {
                   {licao.status === "revisando" && (
                     <button
                       onClick={(e) => handleCancelarRevisao(e)}
-                      className="mt-3 text-[12px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm"
+                      className="mt-3 text-[12px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 px-5 py-2 rounded-full cursor-pointer border-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
                       Cancelar Revisão
                     </button>
@@ -808,7 +923,7 @@ function Dashboard() {
                   onClick={() =>
                     handleRevisarBotao(licaoAtual.slug, licaoAtual.titulo)
                   }
-                  className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-primary-600 dark:text-primary-400 font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-[14px] border-none cursor-pointer"
+                  className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-primary-600 dark:text-primary-400 font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50"
                 >
                   Revisar Nível
                 </button>
@@ -818,7 +933,7 @@ function Dashboard() {
                 <>
                   <button
                     onClick={(e) => handleCancelarRevisao(e)}
-                    className="bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-semibold py-2.5 px-3 transition-colors text-[14px] border-none cursor-pointer"
+                    className="bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-semibold py-2.5 px-3 rounded-lg transition-colors text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/50"
                   >
                     Cancelar
                   </button>
@@ -826,7 +941,7 @@ function Dashboard() {
                     onClick={() =>
                       handleCliqueCirculo(licaoAtual.slug, licaoAtual.status)
                     }
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer"
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/50"
                   >
                     Continuar Revisão
                     <span className="material-symbols-outlined text-lg">
@@ -841,7 +956,7 @@ function Dashboard() {
                   onClick={() =>
                     handleCliqueCirculo(licaoAtual.slug, licaoAtual.status)
                   }
-                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer"
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50"
                 >
                   Continuar Lição
                   <span className="material-symbols-outlined text-lg">
