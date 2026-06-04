@@ -347,6 +347,67 @@ useEffect(() => {
     return () => window.removeEventListener("keydown", tratarPressionamentoEsc);
   }, [menuAberto]);
 
+  useEffect(() => {
+    if (!configuracoes.acessibilidadeAtiva) return;
+
+    const falarTexto = (evento) => {
+      const elemento = evento.target;
+
+      // 🌟 CORREÇÃO AQUI: Prioriza o aria-label ou o placeholder antes do innerText
+      let textoParaFalar =
+        elemento.getAttribute("aria-label") ||
+        elemento.placeholder ||
+        elemento.innerText ||
+        "";
+
+      // Remove resíduos de ícones caso algum elemento ainda passe com texto direto
+      textoParaFalar = textoParaFalar
+        .replace("volume_up", "")
+        .replace("dark_mode", "")
+        .replace("accessibility_new", "")
+        .replace("settings", "") // Salvaguarda extra
+        .trim();
+
+      if (textoParaFalar && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+
+        const mensagem = new SpeechSynthesisUtterance(textoParaFalar);
+        mensagem.lang = "pt-BR";
+        mensagem.rate = 1.2;
+
+        window.speechSynthesis.speak(mensagem);
+      }
+    };
+
+    document.addEventListener("focus", falarTexto, true);
+
+    return () => {
+      document.removeEventListener("focus", falarTexto, true);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    };
+  }, [configuracoes.acessibilidadeAtiva]);
+
+  useEffect(() => {
+    if (!configuracoes.acessibilidadeAtiva) return;
+
+    const nivel = usuario.nivel || 4;
+    const porcentagem = porcentagemProgresso || 0;
+    const feitas = missoesConcluidas || 0;
+    const totais = totalMissoes || 0;
+
+    const introducao = `Módulo: Fundamentos de Inglês. Seu nível atual é Mestre de Inglês, Nível ${nivel}. Seu Progresso Geral é de ${porcentagem}%, ${feitas} de ${totais} missões concluídas.`;
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const mensagem = new SpeechSynthesisUtterance(introducao);
+      mensagem.lang = "pt-BR";
+      mensagem.rate = 1.1;
+      window.speechSynthesis.speak(mensagem);
+    }
+
+    // O segredo: Monitoramos apenas a ativação da acessibilidade ou a mudança drástica do progresso
+  }, [configuracoes.acessibilidadeAtiva, porcentagemProgresso, usuario.nivel]);
+
   const dispararNotificacao = (titulo, desc) => {
     const novaNotificacao = { id: Date.now(), titulo, desc };
     setNotificacoes((prev) => [novaNotificacao, ...prev]);
@@ -408,6 +469,29 @@ useEffect(() => {
     }
   };
 
+  const nomesDosTemas = {
+    "theme-blue": "Tema Azul",
+    "theme-green": "Tema Verde",
+    "theme-purple": "Tema Roxo",
+    "theme-rose": "Tema Rosa",
+    "theme-orange": "Tema Laranja",
+  };
+
+  const nomesDasLicoes = {
+    "waving_hand": "Saudações",
+    "restaurant": "Alimentação",
+    "palette": "Cores e Arte",
+    "family_restroom": "Família",
+    "music_note": "Música"
+  };
+
+  const statusTraduzido = {
+    bloqueado: "Bloqueada",
+    concluido: "Concluída",
+    atual: "Disponível, lição atual",
+    revisando: "Disponível, para revisão",
+  };
+
   return (
     <div ref={menuRef} className="min-h-screen bg-transparent transition-colors duration-300">
       <Navbar usuario={usuario} />
@@ -441,11 +525,14 @@ useEffect(() => {
             </div>
 
             <button
+              aria-label="Configurações"
+              aria-expanded={menuAberto === "config"}
               className={`w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
               // onClick={() => toggleMenu("config")}
               onClick={() => setMenuAberto(menuAberto === "config" ? null : "config")}
             >
               <span
+                aria-hidden="true"
                 className={`material-symbols-outlined text-[24px] ${menuAberto === "config" ? "anim-spin" : ""}`}
               >
                 settings
@@ -453,10 +540,12 @@ useEffect(() => {
             </button>
 
             <button
+              aria-label="Notificações"
               className={`relative w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 ${menuAberto === "notificacoes" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
               onClick={() => toggleMenu("notificacoes")}
             >
               <span
+                aria-hidden="true"
                 className={`material-symbols-outlined text-[24px] ${menuAberto === "notificacoes" ? "anim-shake" : ""}`}
               >
                 notifications
@@ -467,6 +556,7 @@ useEffect(() => {
             </button>
 
             <button
+              aria-label="Perfil"
               className="w-11 h-11 rounded-full bg-primary-600 text-white font-bold text-[15px] flex items-center justify-center shadow-md hover:scale-105 transition-transform ml-2 overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50"
               onClick={() => toggleMenu("perfil")}
             >
@@ -525,6 +615,7 @@ useEffect(() => {
                     />
                   </li>
                   <li
+                    aria-label="Visão Horizontal"
                     tabIndex="0"
                     className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("layoutHorizontal")}
@@ -541,6 +632,29 @@ useEffect(() => {
                     <input
                       type="checkbox"
                       checked={configuracoes.layoutHorizontal}
+                      readOnly
+                      tabIndex="-1"
+                      className="accent-blue-500 pointer-events-none"
+                    />
+                  </li>
+                  {/* NOVO ITEM: CONFIGURAÇÃO DE ACESSIBILIDADE */}
+                  <li
+                    tabIndex="0"
+                    role="checkbox"
+                    aria-checked={configuracoes.acessibilidadeAtiva}
+                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
+                    onClick={() => toggleConfig("acessibilidadeAtiva")}
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("acessibilidadeAtiva")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">
+                        accessibility_new
+                      </span>{" "}
+                      Leitor de Tela
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={configuracoes.acessibilidadeAtiva}
                       readOnly
                       tabIndex="-1"
                       className="accent-blue-500 pointer-events-none"
@@ -601,12 +715,16 @@ useEffect(() => {
                 </div>
                 <ul className="py-2 m-0 list-none">
                   <li className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 font-semibold flex flex-col gap-3 cursor-default transition-colors text-left border-b border-gray-100 dark:border-gray-700">
+
+                    {/* Título da seção - O leitor de tela ignora o ícone e foca no contexto */}
                     <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-[20px]">
+                      <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                         palette
                       </span>
                       Cores do Tema
                     </div>
+
+                    {/* Container dos botões */}
                     <div className="flex items-center gap-2 mt-1">
                       {[
                         { classe: "theme-blue", corBotao: "bg-blue-500" },
@@ -614,34 +732,51 @@ useEffect(() => {
                         { classe: "theme-purple", corBotao: "bg-purple-500" },
                         { classe: "theme-rose", corBotao: "bg-rose-500" },
                         { classe: "theme-orange", corBotao: "bg-orange-500" },
-                      ].map((tema) => (
-                        <button
-                          key={tema.classe}
-                          onClick={() => setConfiguracoes({ ...configuracoes, temaPrincipal: tema.classe })}
-                          className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-gray-800 ${configuracoes.temaPrincipal === tema.classe ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800" : ""}`}
-                          title={tema.classe.replace("theme-", "")}
-                        />
-                      ))}
+                      ].map((tema) => {
+                        // Verifica se este botão é o tema atualmente ativo
+                        const estaAtivo = configuracoes.temaPrincipal === tema.classe;
+
+                        // Monta o texto perfeito para o leitor falar
+                        const nomeTraduzido = nomesDosTemas[tema.classe] || "Tema";
+                        const textoAcessivel = estaAtivo ? `${nomeTraduzido}, selecionado` : nomeTraduzido;
+
+                        return (
+                          <button
+                            key={tema.classe}
+                            type="button"
+                            // 🌟 Ditamos exatamente o que o motor de voz lerá em português
+                            aria-label={textoAcessivel}
+                            onClick={() => setConfiguracoes({ ...configuracoes, temaPrincipal: tema.classe })}
+                            className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-gray-800 ${estaAtivo
+                                ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800"
+                                : ""
+                              }`}
+                            title={nomeTraduzido} // Mantém o tooltip visual em português ao passar o mouse
+                          />
+                        );
+                      })}
                     </div>
                   </li>
                   <li
+                    aria-label="Personalizar perfil"
                     tabIndex="0"
                     className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700 border-b border-gray-100 dark:border-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => navigate("/perfil")}
                     onKeyDown={(e) => e.key === "Enter" && navigate("/perfil")}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
+                    <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                       manage_accounts
                     </span>{" "}
                     Personalizar Perfil
                   </li>
                   <li
+                    aria-label="Sair da conta"
                     tabIndex="0"
                     className="px-5 py-2.5 text-sm text-red-500 font-semibold flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:bg-red-50 dark:focus-visible:bg-red-900/20"
                     onClick={fazerLogout}
                     onKeyDown={(e) => e.key === "Enter" && fazerLogout()}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
+                    <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                       logout
                     </span>{" "}
                     Sair
@@ -690,19 +825,22 @@ useEffect(() => {
         >
           {configuracoes.layoutHorizontal && (
             <button
-              className="absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all"
+              type="button"
+              aria-label="Seta esquerda Visão Horizontal"
+              className={`absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-110`}
               onClick={() => scrollTimeline("esquerda")}
             >
-              <span className="material-symbols-outlined text-[28px]">
+              <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
                 chevron_left
               </span>
             </button>
           )}
 
           <main
+            tabIndex="-1"
             className={`relative w-full py-10 ${
               configuracoes.layoutHorizontal
-                ? "flex flex-row items-start overflow-x-auto hide-scrollbar scroll-smooth" // px-10 foi removido daqui!
+                ? "flex flex-row items-start overflow-x-auto hide-scrollbar scroll-smooth"
                 : "flex flex-col items-center gap-16"
             }`}
             ref={timelineRef}
@@ -757,50 +895,58 @@ useEffect(() => {
 
                 {/* CÍRCULO DA LIÇÃO (Estilo Soft/Neumórfico) */}
                 <button
-                  onClick={() => handleCliqueCirculo(licao.slug, licao.status)}
+                  type="button"
+                  // 🌟 AGORA SIM: Busca a tradução do assunto no dicionário de lições
+                  aria-label={`Lição: ${nomesDasLicoes[licao.iconeTema] || "Geral"}. Status: ${statusTraduzido[licao.status] || licao.status}`}
+
+                  tabIndex="0"
+                  aria-disabled={licao.status === "bloqueado"}
+                  onClick={(e) => {
+                    if (licao.status === "bloqueado") {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleCliqueCirculo(licao.slug, licao.status);
+                  }}
                   onMouseEnter={() =>
                     licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
                   }
                   className={`
-                    relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
-                    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50
-                    ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed"}
-                    ${
-                      licao.status === "atual" || licao.status === "revisando"
-                        ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-primary-50 dark:border-gray-800"
-                        : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
+    relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
+    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-105
+    ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed opacity-60"}
+    ${licao.status === "atual" || licao.status === "revisando"
+                      ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-primary-50 dark:border-gray-800"
+                      : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
                     }
-                  `}
+  `}
                 >
+                  {/* Conteúdo interno com aria-hidden="true" (SVGs e spans) continua igual */}
                   {licao.iconeTema === "restaurant" && licao.status !== "concluido" && licao.status !== "bloqueado" ? (
-                    <svg viewBox="0 0 24 24" fill="currentColor" className={`w-[1em] h-[1em] anim-cross transition-colors duration-300 ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}`}>
-                      <path className="fork" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.88 3.75 3.99V22h2.5v-9.01C11.34 12.88 13 11.12 13 9V2h-2v7z"/>
-                      <path className="knife" d="M16 6v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={`w-[1em] h-[1em] anim-cross transition-colors duration-300 ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}`}>
+                      <path className="fork" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.88 3.75 3.99V22h2.5v-9.01C11.34 12.88 13 11.12 13 9V2h-2v7z" />
+                      <path className="knife" d="M16 6v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" />
                     </svg>
                   ) : (
                     <span
+                      aria-hidden="true"
                       className={`
-                      material-symbols-outlined transition-colors duration-300
-                      ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}
-                      ${licao.status === "concluido" ? "text-primary-600 dark:text-primary-500 anim-check" : ""}
-                      ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
-                      ${licao.iconeTema === "waving_hand" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-wave" : ""}
-                      ${licao.iconeTema === "palette" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-palette" : ""}
-                      ${licao.iconeTema === "family_restroom" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-jump" : ""}
-                      ${licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-music-main" : ""}
-                    `}
+      material-symbols-outlined transition-colors duration-300
+      ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}
+      ${licao.status === "concluido" ? "text-primary-600 dark:text-primary-500 anim-check" : ""}
+      ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
+      ${licao.iconeTema === "waving_hand" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-wave" : ""}
+      ${licao.iconeTema === "palette" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-palette" : ""}
+      ${licao.iconeTema === "family_restroom" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-jump" : ""}
+      ${licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-music-main" : ""}
+    `}
                     >
-                      {licao.status === "concluido"
-                        ? "check"
-                        : licao.status === "bloqueado"
-                          ? "lock"
-                          : licao.iconeTema}
+                      {licao.status === "concluido" ? "check" : licao.status === "bloqueado" ? "lock" : licao.iconeTema}
                     </span>
                   )}
-                  
-                  {/* NOTINHAS MUSICAIS FLUTUANTES PARA O TEMA MÚSICA */}
+
                   {licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div aria-hidden="true" className="absolute inset-0 pointer-events-none flex items-center justify-center">
                       <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[18px] m-note m-note-1">music_note</span>
                       <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[22px] m-note m-note-2">music_note</span>
                       <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[16px] m-note m-note-3">music_note</span>
@@ -878,10 +1024,12 @@ useEffect(() => {
 
           {configuracoes.layoutHorizontal && (
             <button
-              className="absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all"
+              type="button"
+              aria-label="Seta direita Visão Horizontal"
+              className={`absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-110`}
               onClick={() => scrollTimeline("direita")}
             >
-              <span className="material-symbols-outlined text-[28px]">
+              <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
                 chevron_right
               </span>
             </button>
@@ -944,7 +1092,7 @@ useEffect(() => {
                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/50"
                   >
                     Continuar Revisão
-                    <span className="material-symbols-outlined text-lg">
+                    <span aria-hidden="true" className="material-symbols-outlined text-lg">
                       chevron_right
                     </span>
                   </button>
