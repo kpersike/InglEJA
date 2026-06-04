@@ -29,9 +29,11 @@ function Dashboard() {
       const parsed = JSON.parse(configSalvas);
       if (parsed.layoutHorizontal === undefined) parsed.layoutHorizontal = true;
       if (parsed.temaPrincipal === undefined) parsed.temaPrincipal = "theme-blue";
+      if (parsed.acessibilidadeAtiva === undefined) parsed.acessibilidadeAtiva = false;
+      if (parsed.vlibrasAtivo === undefined) parsed.vlibrasAtivo = false;
       return parsed;
     }
-    return { som: true, modoEscuro: false, layoutHorizontal: true, temaPrincipal: "theme-blue" };
+    return { som: true, modoEscuro: false, layoutHorizontal: true, temaPrincipal: "theme-blue", acessibilidadeAtiva: false, vlibrasAtivo: false };
   });
 
   const [notificacoes, setNotificacoes] = useState(() => {
@@ -408,6 +410,14 @@ useEffect(() => {
     // O segredo: Monitoramos apenas a ativação da acessibilidade ou a mudança drástica do progresso
   }, [configuracoes.acessibilidadeAtiva, porcentagemProgresso, usuario.nivel]);
 
+  // Assegura o estado correto do VLibras assim que o componente monta
+  useEffect(() => {
+    const widgetVLibras = document.querySelector("[vw]");
+    if (widgetVLibras) {
+      widgetVLibras.style.display = configuracoes.vlibrasAtivo ? "block" : "none";
+    }
+  }, []); // Executa apenas uma vez no carregamento da tela
+
   const dispararNotificacao = (titulo, desc) => {
     const novaNotificacao = { id: Date.now(), titulo, desc };
     setNotificacoes((prev) => [novaNotificacao, ...prev]);
@@ -423,11 +433,29 @@ useEffect(() => {
   const toggleConfig = (chave) => {
     setConfiguracoes((prev) => {
       const novoEstado = !prev[chave];
+
+      // Cria o novo objeto de configurações atualizado
+      const novasConfigs = { ...prev, [chave]: novoEstado };
+
+      // 1. Mantém seu efeito sonoro original do botão de som
       if (chave === "som" && novoEstado === true) {
         const audio = new Audio("/audios/sfx/acerto.mp3");
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
       }
-      return { ...prev, [chave]: novoEstado };
+
+      // 2. 🌟 CONTROLE COMPLEMENTAR DO VLIBRAS:
+      // Se a chave alterada for o VLibras, altera a visibilidade do widget na hora
+      if (chave === "vlibrasAtivo") {
+        const widgetVLibras = document.querySelector("[vw]");
+        if (widgetVLibras) {
+          widgetVLibras.style.display = novoEstado ? "block" : "none";
+        }
+      }
+
+      // 3. 🌟 PERSISTÊNCIA: Grava as novas configurações de volta no LocalStorage
+      localStorage.setItem("configuracoes_ingleja", JSON.stringify(novasConfigs));
+
+      return novasConfigs;
     });
   };
 
@@ -637,24 +665,64 @@ useEffect(() => {
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
-                  {/* NOVO ITEM: CONFIGURAÇÃO DE ACESSIBILIDADE */}
+                  {/* ========================================== */}
+                  {/* GRUPO PRINCIPAL DE ACESSIBILIDADE */}
+                  {/* ========================================== */}
+                  {/* Título do Grupo (Apenas leitura/divisão visual) */}
+                  <li
+                    className="px-5 pt-3 pb-1 flex items-center gap-3 text-xs font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase select-none border-t border-gray-100 dark:border-gray-800"
+                    aria-hidden="true"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      accessibility_new
+                    </span>
+                    Acessibilidade
+                  </li>
+
+                  {/* SUBTÓPICO 1: LEITOR DE TELA */}
                   <li
                     tabIndex="0"
                     role="checkbox"
                     aria-checked={configuracoes.acessibilidadeAtiva}
-                    className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
+                    aria-label="Acessibilidade: Ativar leitor de tela"
+                    className="px-5 pl-9 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("acessibilidadeAtiva")}
                     onKeyDown={(e) => e.key === "Enter" && toggleConfig("acessibilidadeAtiva")}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-[20px]">
-                        accessibility_new
-                      </span>{" "}
+                      <span className="material-symbols-outlined text-[20px] text-gray-400">
+                        speech_to_text
+                      </span>
                       Leitor de Tela
                     </div>
                     <input
                       type="checkbox"
                       checked={configuracoes.acessibilidadeAtiva}
+                      readOnly
+                      tabIndex="-1"
+                      className="accent-blue-500 pointer-events-none"
+                    />
+                  </li>
+
+                  {/* SUBTÓPICO 2: VLIBRAS */}
+                  <li
+                    tabIndex="0"
+                    role="checkbox"
+                    aria-checked={configuracoes.vlibrasAtivo} // 🌟 Novo estado que vamos mapear abaixo
+                    aria-label="Acessibilidade: Exibir assistente de Libras"
+                    className="px-5 pl-9 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700 border-b border-gray-100 dark:border-gray-800"
+                    onClick={() => toggleConfig("vlibrasAtivo")}
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("vlibrasAtivo")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px] text-gray-400">
+                        sign_language
+                      </span>
+                      Avatar VLibras
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={configuracoes.vlibrasAtivo}
                       readOnly
                       tabIndex="-1"
                       className="accent-blue-500 pointer-events-none"
