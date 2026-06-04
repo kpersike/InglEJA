@@ -225,6 +225,107 @@ function Exercicio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [fase, indiceFila, statusResposta]); // Executa novamente quando a tela mudar para recalcular os botões ativos
 
+  // ==========================================
+  // MOTOR DE ACESSIBILIDADE: LEITURA DE ENTRADA
+  // ==========================================
+  React.useEffect(() => {
+    // Busca as configurações atuais salvas no localStorage
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+
+    const parsedConfig = JSON.parse(configSalvas);
+    // Se a acessibilidade não estiver ativa, não faz nada
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    // Prepara as variáveis seguras com base nos dados do seu escopo
+    const numeroQuestao = indiceFila + 1;
+    const totalQuestoes = fase === "revisao" ? errosCometidos.length : licao.questoes.length;
+    const enunciado = questao.pergunta_exibicao || "";
+
+    // Define o texto complementar de ajuda baseado no tipo de exercício
+    let instrucaoTipo = "Selecione a palavra correspondente.";
+    if (questao.tipo === "ordenar_frase") {
+      instrucaoTipo = "Arraste ou toque nas palavras para formar a frase correta.";
+    } else if (!questao.opcoes || questao.opcoes.length === 0) {
+      instrucaoTipo = "Digite a palavra correta em inglês.";
+    } else if (questao.subtitulo) {
+      instrucaoTipo = questao.subtitulo;
+    }
+
+    // Monta a frase de boas-vindas da questão
+    const textoIntroducao = `Questão ${numeroQuestao} de ${totalQuestoes}. Pergunta: ${enunciado}. Instrução: ${instrucaoTipo}. Use a tecla Tab para navegar pelas opções.`;
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel(); // Limpa leituras anteriores
+
+      const mensagem = new SpeechSynthesisUtterance(textoIntroducao);
+      mensagem.lang = "pt-BR";
+      mensagem.rate = 1.15; // Velocidade confortável para exercícios
+
+      window.speechSynthesis.speak(mensagem);
+    }
+
+    // O efeito roda sempre que mudar o índice da questão ou a fase (Ex: entrou em modo revisão)
+  }, [perguntaAtualIndex, fase]);
+
+// ==========================================
+  // MOTOR DE ACESSIBILIDADE: LEITURA DO FOCO (TAB) - BILÍNGUE E DINÂMICO
+  // ==========================================
+  React.useEffect(() => {
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+
+    const parsedConfig = JSON.parse(configSalvas);
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    const falarTextoFocado = (evento) => {
+      const elemento = evento.target;
+
+      let textoParaFalar =
+        elemento.getAttribute("aria-label") ||
+        elemento.placeholder ||
+        elemento.innerText ||
+        "";
+
+      // Limpeza de segurança para ícones do Material Symbols
+      textoParaFalar = textoParaFalar
+        .replace("volume_up", "")
+        .replace("lightbulb", "")
+        .replace("logout", "")
+        .replace("arrow_back", "")
+        .replace("arrow_forward", "")
+        .replace("done", "")
+        .replace("replay", "")
+        .replace("check_circle", "")
+        .replace("cancel", "")
+        .trim();
+
+      if (textoParaFalar && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+
+        const mensagem = new SpeechSynthesisUtterance(textoParaFalar);
+        
+        // 🌟 VERIFICA O IDIOMA: Se o elemento tiver data-lang="en", pronuncia em inglês americano
+        const idiomaElemento = elemento.getAttribute("data-lang");
+        if (idiomaElemento === "en") {
+          mensagem.lang = "en-US";
+          mensagem.rate = 1.0; // Ritmo natural para inglês
+        } else {
+          mensagem.lang = "pt-BR";
+          mensagem.rate = 1.2;
+        }
+
+        window.speechSynthesis.speak(mensagem);
+      }
+    };
+
+    document.addEventListener("focus", falarTextoFocado, true);
+
+    return () => {
+      document.removeEventListener("focus", falarTextoFocado, true);
+    };
+  }, []);
+
   const verificarResposta = () => {
     if (statusResposta === "pendente") {
       let acertou = false;
@@ -382,6 +483,23 @@ function Exercicio() {
     else isVerificarDisabled = opcaoSelecionada === null;
   }
 
+  // Função auxiliar para falar um texto imediatamente (útil para eventos de clique/ações)
+  const falarTextoDireto = (texto, idioma = "pt-BR") => {
+    if (!window.speechSynthesis) return;
+
+    // Busca se a acessibilidade está ativa
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+    const parsedConfig = JSON.parse(configSalvas);
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    window.speechSynthesis.cancel(); // Interrompe falas anteriores
+    const mensagem = new SpeechSynthesisUtterance(texto);
+    mensagem.lang = idioma;
+    mensagem.rate = 1.15;
+    window.speechSynthesis.speak(mensagem);
+  };
+
   // ==========================================
   // RENDERIZAÇÃO: TELA FINAL DE CONQUISTA
   // ==========================================
@@ -536,6 +654,7 @@ function Exercicio() {
                 {questao.audio && (
                   <button
                     onClick={tocarAudio}
+                    aria-label="Ouvir pronúncia em inglês"
                     className="flex items-center gap-3 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-primary-100 dark:border-primary-800/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50"
                   >
                     <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
@@ -550,8 +669,18 @@ function Exercicio() {
                 {/* CONTAINER RELATIVO PARA O BALÃO */}
                 <div className="relative inline-block">
                   <button
-                    onClick={() => setMostrarDica(!mostrarDica)}
+                      onClick={() => {
+                        const novoEstadoDica = !mostrarDica;
+                        setMostrarDica(novoEstadoDica);
+
+                        // 🌟 SE A DICA ESTIVER ABRINDO, LÊ O TEXTO DA DICA IMEDIATAMENTE
+                        if (novoEstadoDica) {
+                          const textoDica = questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!";
+                          falarTextoDireto(`Dica do exercício: ${textoDica}`, "pt-BR");
+                        }
+                      }}
                     title={mostrarDica ? "Ocultar Dica" : "Ver Dica"}
+                    aria-label={mostrarDica ? "Ocultar dica do exercício" : "Ver dica do exercício"}
                     className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-500/50"
                   >
                     <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
@@ -677,11 +806,18 @@ function Exercicio() {
                   return (
                     <button
                       key={index}
-                      onClick={() =>
-                        !jaRespondida &&
-                        statusResposta === "pendente" &&
-                        setOpcaoSelecionada(index)
-                      }
+                      aria-label={`Opção ${index + 1}: ${textoOpcao}. ${isSelected ? "Selecionada" : ""}`}
+                      onClick={() => {
+                        if (!jaRespondida && statusResposta === "pendente") {
+                          setOpcaoSelecionada(index);
+
+                          // 🌟 Anuncia imediatamente em português a seleção, e depois fala a palavra em inglês
+                          falarTextoDireto(`Opção ${index + 1} selecionada:`, "pt-BR");
+                          setTimeout(() => {
+                            falarTextoDireto(textoOpcao);
+                          }, 2100);
+                        }
+                      }}
                       className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/50 ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"} ${jaRespondida ? "cursor-default" : "cursor-pointer"}`}
                     >
                       {imagemOpcao && (
