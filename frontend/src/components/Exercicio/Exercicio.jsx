@@ -42,6 +42,7 @@ function Exercicio() {
   const [linhasFixas, setLinhasFixas] = useState([]); // [{ x1, y1, x2, y2, pt, en }]
   const itemsRef = React.useRef({});
   const containerLigarRef = React.useRef(null);
+  const cardExercicioRef = React.useRef(null);
 
 
   // ==========================================
@@ -188,6 +189,142 @@ function Exercicio() {
       return () => clearTimeout(timerSumir);
     }
   }, [mostrarDica]);
+
+  // Prende o foco do teclado (Tab) dentro do card do exercício
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key !== "Tab" || !cardExercicioRef.current) return;
+
+      // Busca todos os elementos que podem receber foco dentro do nosso card
+      const elementosFocaveis = cardExercicioRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), [tabindex="0"]'
+      );
+
+      if (elementosFocaveis.length === 0) return;
+
+      const primeiroElemento = elementosFocaveis[0];
+      const ultimoElemento = elementosFocaveis[elementosFocaveis.length - 1];
+
+      // Se estiver pressionando Shift + Tab (voltando) no primeiro elemento
+      if (e.shiftKey) {
+        if (document.activeElement === primeiroElemento) {
+          ultimoElemento.focus();
+          e.preventDefault();
+        }
+      } 
+      // Se estiver pressionando apenas Tab (avançando) no último elemento
+      else {
+        if (document.activeElement === ultimoElemento) {
+          primeiroElemento.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [fase, indiceFila, statusResposta]); // Executa novamente quando a tela mudar para recalcular os botões ativos
+
+  // ==========================================
+  // MOTOR DE ACESSIBILIDADE: LEITURA DE ENTRADA
+  // ==========================================
+  React.useEffect(() => {
+    // Busca as configurações atuais salvas no localStorage
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+
+    const parsedConfig = JSON.parse(configSalvas);
+    // Se a acessibilidade não estiver ativa, não faz nada
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    // Prepara as variáveis seguras com base nos dados do seu escopo
+    const numeroQuestao = indiceFila + 1;
+    const totalQuestoes = fase === "revisao" ? errosCometidos.length : licao.questoes.length;
+    const enunciado = questao.pergunta_exibicao || "";
+
+    // Define o texto complementar de ajuda baseado no tipo de exercício
+    let instrucaoTipo = "Selecione a palavra correspondente.";
+    if (questao.tipo === "ordenar_frase") {
+      instrucaoTipo = "Arraste ou toque nas palavras para formar a frase correta.";
+    } else if (!questao.opcoes || questao.opcoes.length === 0) {
+      instrucaoTipo = "Digite a palavra correta em inglês.";
+    } else if (questao.subtitulo) {
+      instrucaoTipo = questao.subtitulo;
+    }
+
+    // Monta a frase de boas-vindas da questão
+    const textoIntroducao = `Questão ${numeroQuestao} de ${totalQuestoes}. Pergunta: ${enunciado}. Instrução: ${instrucaoTipo}. Use a tecla Tab para navegar pelas opções.`;
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel(); // Limpa leituras anteriores
+
+      const mensagem = new SpeechSynthesisUtterance(textoIntroducao);
+      mensagem.lang = "pt-BR";
+      mensagem.rate = 1.15; // Velocidade confortável para exercícios
+
+      window.speechSynthesis.speak(mensagem);
+    }
+
+    // O efeito roda sempre que mudar o índice da questão ou a fase (Ex: entrou em modo revisão)
+  }, [perguntaAtualIndex, fase]);
+
+// ==========================================
+  // MOTOR DE ACESSIBILIDADE: LEITURA DO FOCO (TAB) - BILÍNGUE E DINÂMICO
+  // ==========================================
+  React.useEffect(() => {
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+
+    const parsedConfig = JSON.parse(configSalvas);
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    const falarTextoFocado = (evento) => {
+      const elemento = evento.target;
+
+      let textoParaFalar =
+        elemento.getAttribute("aria-label") ||
+        elemento.placeholder ||
+        elemento.innerText ||
+        "";
+
+      // Limpeza de segurança para ícones do Material Symbols
+      textoParaFalar = textoParaFalar
+        .replace("volume_up", "")
+        .replace("lightbulb", "")
+        .replace("logout", "")
+        .replace("arrow_back", "")
+        .replace("arrow_forward", "")
+        .replace("done", "")
+        .replace("replay", "")
+        .replace("check_circle", "")
+        .replace("cancel", "")
+        .trim();
+
+      if (textoParaFalar && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+
+        const mensagem = new SpeechSynthesisUtterance(textoParaFalar);
+        
+        // 🌟 VERIFICA O IDIOMA: Se o elemento tiver data-lang="en", pronuncia em inglês americano
+        const idiomaElemento = elemento.getAttribute("data-lang");
+        if (idiomaElemento === "en") {
+          mensagem.lang = "en-US";
+          mensagem.rate = 1.0; // Ritmo natural para inglês
+        } else {
+          mensagem.lang = "pt-BR";
+          mensagem.rate = 1.2;
+        }
+
+        window.speechSynthesis.speak(mensagem);
+      }
+    };
+
+    document.addEventListener("focus", falarTextoFocado, true);
+
+    return () => {
+      document.removeEventListener("focus", falarTextoFocado, true);
+    };
+  }, []);
 
   const verificarResposta = () => {
     if (statusResposta === "pendente") {
@@ -346,6 +483,23 @@ function Exercicio() {
     else isVerificarDisabled = opcaoSelecionada === null;
   }
 
+  // Função auxiliar para falar um texto imediatamente (útil para eventos de clique/ações)
+  const falarTextoDireto = (texto, idioma = "pt-BR") => {
+    if (!window.speechSynthesis) return;
+
+    // Busca se a acessibilidade está ativa
+    const configSalvas = localStorage.getItem("configuracoes_ingleja");
+    if (!configSalvas) return;
+    const parsedConfig = JSON.parse(configSalvas);
+    if (!parsedConfig.acessibilidadeAtiva) return;
+
+    window.speechSynthesis.cancel(); // Interrompe falas anteriores
+    const mensagem = new SpeechSynthesisUtterance(texto);
+    mensagem.lang = idioma;
+    mensagem.rate = 1.15;
+    window.speechSynthesis.speak(mensagem);
+  };
+
   // ==========================================
   // RENDERIZAÇÃO: TELA FINAL DE CONQUISTA
   // ==========================================
@@ -393,7 +547,7 @@ function Exercicio() {
               setFase("revisao");
               setIndiceFila(0);
             }}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-lg py-5 px-12 rounded-2xl shadow-[0_8px_25px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-lg py-5 px-12 rounded-2xl shadow-[0_8px_25px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/50"
           >
             Revisar meus erros
           </button>
@@ -413,7 +567,11 @@ function Exercicio() {
   return (
     <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
       <Navbar />
-
+      {/* ESSA DIV PRECISA ENVOLVER TODO O RESTO DO COMPONENTE */}
+      <div
+        ref={cardExercicioRef}
+        className="flex-1 flex flex-col w-full"
+      >
       <div className="w-full max-w-5xl mx-auto px-4 py-8 md:py-12 flex-1 flex flex-col relative z-10">
         {/* BARRA DE PROGRESSO */}
         <div className="flex items-center gap-4 md:gap-8 mb-8 w-full max-w-4xl mx-auto">
@@ -496,7 +654,8 @@ function Exercicio() {
                 {questao.audio && (
                   <button
                     onClick={tocarAudio}
-                    className="flex items-center gap-3 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-primary-100 dark:border-primary-800/50"
+                    aria-label="Ouvir pronúncia em inglês"
+                    className="flex items-center gap-3 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-primary-100 dark:border-primary-800/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50"
                   >
                     <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
                       <span className="material-symbols-outlined text-[24px]">
@@ -510,9 +669,19 @@ function Exercicio() {
                 {/* CONTAINER RELATIVO PARA O BALÃO */}
                 <div className="relative inline-block">
                   <button
-                    onClick={() => setMostrarDica(!mostrarDica)}
+                      onClick={() => {
+                        const novoEstadoDica = !mostrarDica;
+                        setMostrarDica(novoEstadoDica);
+
+                        // 🌟 SE A DICA ESTIVER ABRINDO, LÊ O TEXTO DA DICA IMEDIATAMENTE
+                        if (novoEstadoDica) {
+                          const textoDica = questao.dica || "Preste muita atenção ao áudio e às imagens, eles sempre dão boas pistas sobre a resposta correta!";
+                          falarTextoDireto(`Dica do exercício: ${textoDica}`, "pt-BR");
+                        }
+                      }}
                     title={mostrarDica ? "Ocultar Dica" : "Ver Dica"}
-                    className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50"
+                    aria-label={mostrarDica ? "Ocultar dica do exercício" : "Ver dica do exercício"}
+                    className="flex items-center gap-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 font-extrabold py-3 px-6 rounded-2xl w-fit transition-all active:scale-95 shadow-sm border border-yellow-100 dark:border-yellow-800/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-500/50"
                   >
                     <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
                       <span className="material-symbols-outlined text-[24px] text-yellow-500">
@@ -573,13 +742,13 @@ function Exercicio() {
                     key={i}
                     onClick={() =>
                       !jaRespondida &&
-                      statusResposta === "pendente" && 
+                      statusResposta === "pendente" &&
                       handleRemovePalavra(i)
                     }
-                    className={`px-4 py-3 border-2 rounded-xl font-bold shadow-sm transition-transform 
-                      ${statusResposta === "pendente" ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 active:scale-95" : ""}
-                      ${statusResposta === "correta" ? "bg-green-500 border-green-600 text-white cursor-default" : ""}
-                      ${statusResposta === "errada" ? "bg-red-500 border-red-600 text-white cursor-default" : ""}
+                    className={`px-4 py-3 border-2 rounded-xl font-bold shadow-sm transition-transform focus-visible:outline-none focus-visible:ring-4
+                      ${statusResposta === "pendente" ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 active:scale-95 focus-visible:ring-orange-500/50" : ""}
+                      ${statusResposta === "correta" ? "bg-green-500 border-green-600 text-white cursor-default focus-visible:ring-green-300/50" : ""}
+                      ${statusResposta === "errada" ? "bg-red-500 border-red-600 text-white cursor-default focus-visible:ring-red-300/50" : ""}
                     `}
                   >
                     {palavra.texto}
@@ -594,7 +763,7 @@ function Exercicio() {
                   );
 
                   return (
-                    <div
+                    <button
                       key={index}
                       draggable={!isSelected && statusResposta === "pendente" && !jaRespondida}
                       onDragStart={(e) => onDragStart(e, texto, index)}
@@ -604,16 +773,15 @@ function Exercicio() {
                         !jaRespondida &&
                         handleAddPalavra(texto, index)
                       }
-                      className={`px-4 py-3 rounded-xl font-bold text-[16px] transition-all select-none
-                        ${
-                          isSelected
-                            ? "bg-gray-200 dark:bg-gray-800 text-gray-200 dark:text-gray-800 border-2 border-gray-200 dark:border-gray-800 shadow-none cursor-default"
-                            : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-primary-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
+                      className={`px-4 py-3 rounded-xl font-bold text-[16px] transition-all select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/50
+                        ${isSelected
+                          ? "bg-gray-200 dark:bg-gray-800 text-gray-200 dark:text-gray-800 border-2 border-gray-200 dark:border-gray-800 shadow-none cursor-default"
+                          : "bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 shadow-sm hover:border-primary-300 dark:hover:border-gray-500 active:scale-95 cursor-grab active:cursor-grabbing"
                         }
                       `}
                     >
                       {texto}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -638,12 +806,19 @@ function Exercicio() {
                   return (
                     <button
                       key={index}
-                      onClick={() =>
-                        !jaRespondida &&
-                        statusResposta === "pendente" &&
-                        setOpcaoSelecionada(index)
-                      }
-                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"} ${jaRespondida ? "cursor-default" : "cursor-pointer"}`}
+                      aria-label={`Opção ${index + 1}: ${textoOpcao}. ${isSelected ? "Selecionada" : ""}`}
+                      onClick={() => {
+                        if (!jaRespondida && statusResposta === "pendente") {
+                          setOpcaoSelecionada(index);
+
+                          // 🌟 Anuncia imediatamente em português a seleção, e depois fala a palavra em inglês
+                          falarTextoDireto(`Opção ${index + 1} selecionada:`, "pt-BR");
+                          setTimeout(() => {
+                            falarTextoDireto(textoOpcao);
+                          }, 2100);
+                        }
+                      }}
+                      className={`w-full flex items-center rounded-2xl border-2 transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/50 ${questao.tipo === "escolha_imagem" ? "flex-col p-5 gap-3" : "py-4 px-5 group"} ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-900/20 shadow-sm" : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-gray-500 bg-white dark:bg-gray-900"} ${jaRespondida ? "cursor-default" : "cursor-pointer"}`}
                     >
                       {imagemOpcao && (
                         <img
@@ -693,7 +868,7 @@ function Exercicio() {
           {indiceFila === 0 ? (
             <button
               onClick={() => navigate("/dashboard")}
-              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
+              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-400/50 ${statusResposta === "pendente" ? "text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" : "text-slate-800 dark:text-white bg-black/5 border-transparent backdrop-blur-sm"}`}
             >
               <span className="material-symbols-outlined text-[24px] rotate-180">
                 logout
@@ -701,16 +876,16 @@ function Exercicio() {
               <span className="hidden sm:inline text-[15px]">Sair da lição</span>
             </button>
           ) : (
-              <button
-                onClick={voltarQuestao}
-                // O botão de voltar agora fica sempre disponível contanto que não seja a primeira tela
-                className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[24px]">
-                  arrow_back
-                </span>
-                <span className="hidden sm:inline text-[15px]">Voltar</span>
-              </button>
+            <button
+              onClick={voltarQuestao}
+              // O botão de voltar agora fica sempre disponível contanto que não seja a primeira tela
+              className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 text-slate-500 dark:text-gray-400 bg-white hover:bg-slate-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-400/50 "
+            >
+              <span className="material-symbols-outlined text-[24px]">
+                arrow_back
+              </span>
+              <span className="hidden sm:inline text-[15px]">Voltar</span>
+            </button>
           )}
 
           <div className="hidden md:flex flex-1 items-center justify-center font-extrabold text-xl">
@@ -738,15 +913,14 @@ function Exercicio() {
           <button
             onClick={verificarResposta}
             disabled={isVerificarDisabled}
-            className={`flex-1 sm:flex-none sm:w-[280px] flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-[16px] transition-all ${
-              isVerificarDisabled
+            className={`flex-1 sm:flex-none sm:w-[280px] flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-[16px] transition-all focus-visible:outline-none focus-visible:ring-4 ${isVerificarDisabled
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                 : statusResposta === "correta"
-                  ? "bg-green-500 hover:bg-green-600 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] active:scale-95 cursor-pointer"
+                  ? "bg-green-500 hover:bg-green-600 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] active:scale-95 cursor-pointer focus-visible:ring-green-500/50"
                   : statusResposta === "errada"
-                    ? "bg-red-500 hover:bg-red-600 text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)] active:scale-95 cursor-pointer"
-                    : "bg-orange-500 hover:bg-orange-600 text-white shadow-[0_8px_20px_rgba(249,115,22,0.3)] active:scale-95 cursor-pointer"
-            }`}
+                    ? "bg-red-500 hover:bg-red-600 text-white shadow-[0_8px_20px_rgba(239,68,68,0.3)] active:scale-95 cursor-pointer focus-visible:ring-red-500/50"
+                    : "bg-orange-500 hover:bg-orange-600 text-white shadow-[0_8px_20px_rgba(249,115,22,0.3)] active:scale-95 cursor-pointer focus-visible:ring-orange-500/50"
+              }`}
           >
             {statusResposta === "pendente"
               ? "Verificar resposta"
@@ -763,6 +937,7 @@ function Exercicio() {
           </button>
         </div>
       </div>
+    </div>
     </div>
   );
 }
