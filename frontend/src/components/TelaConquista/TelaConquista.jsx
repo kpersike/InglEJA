@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 
@@ -12,6 +12,9 @@ const TelaConquista = ({
 }) => {
   const navigate = useNavigate();
   const [mostrarConfetes, setMostrarConfetes] = useState(true);
+  
+  // ADICIONADO: Referência para prender o foco dentro do card de conquista
+  const cardConquistaRef = useRef(null);
 
   // CORREÇÃO: Usamos o useState com uma função de inicialização "lazy" (preguiçosa).
   // O React aceita o Math.random() aqui porque isso garante que só vai rodar 1 vez na montagem!
@@ -71,9 +74,50 @@ const TelaConquista = ({
     return () => clearInterval(interval); // Limpa o intervalo se o usuário sair da tela
   }, []);
 
+  // ADICIONADO: Lógica de Focus Trap para capturar e ciclar o Tab nesta tela
+  useEffect(() => {
+    if (!cardConquistaRef.current) return;
+
+    // Busca os botões disponíveis na tela de vitória
+    const elementosFocaveis = cardConquistaRef.current.querySelectorAll(
+      "button:not([disabled])"
+    );
+    
+    if (elementosFocaveis.length > 0) {
+      // Dá o foco inicial automaticamente no primeiro botão disponível (geralmente o de avançar)
+      elementosFocaveis[0].focus();
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key !== "Tab") return;
+
+      const elementos = cardConquistaRef.current.querySelectorAll(
+        "button:not([disabled])"
+      );
+      if (elementos.length === 0) return;
+
+      const primeiroElemento = elementos[0];
+      const ultimoElemento = elementos[elementos.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === primeiroElemento) {
+          ultimoElemento.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === ultimoElemento) {
+          primeiroElemento.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const irParaProximo = () => {
     if (proximoSlug) {
-      // Navega para http://localhost:5173/exercicio/[slug-da-vez]
       navigate(`/exercicio/${proximoSlug}`);
       window.location.reload();
     } else {
@@ -125,8 +169,11 @@ const TelaConquista = ({
         </div>
       )}
 
-      {/* CARD PRINCIPAL */}
-      <div className="bg-white dark:bg-gray-900 w-full max-w-2xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center transition-colors relative z-10 animate-[scaleIn_0.4s_ease-out]">
+      {/* CARD PRINCIPAL - ADICIONADA A REF AQUI */}
+      <div 
+        ref={cardConquistaRef}
+        className="bg-white dark:bg-gray-900 w-full max-w-2xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center transition-colors relative z-10 animate-[scaleIn_0.4s_ease-out]"
+      >
         <div className="mb-8 relative">
           <div className="absolute inset-0 bg-orange-400 blur-[35px] opacity-40 rounded-full animate-pulse"></div>
 
@@ -174,7 +221,7 @@ const TelaConquista = ({
             <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
               {tempoTotal}
             </strong>
-            <span className="text-[11px] font-bold text-primary-600 bg-primary-100/80 dark:bg-primary-900/40 dark:text-primary-400 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-bold text-primary-600 bg-primary-100/80 dark:bg-primary-900/40 dark:text-orange-400 px-3 py-1 rounded-full">
               Minutos
             </span>
           </div>
@@ -189,7 +236,7 @@ const TelaConquista = ({
             <strong className="text-3xl font-black text-slate-800 dark:text-white mb-2">
               x{comboAtual}
             </strong>
-            <span className="text-[11px] font-bold text-rose-600 bg-rose-100/80 dark:bg-rose-900/40 dark:text-rose-400 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-bold text-rose-600 bg-rose-100/80 dark:bg-rose-900/40 dark:text-orange-400 px-3 py-1 rounded-full">
               Sequência
             </span>
           </div>
@@ -200,7 +247,8 @@ const TelaConquista = ({
           {proximoSlug && (
             <button
               onClick={irParaProximo}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(249,115,22,0.35)] transition-all hover:-translate-y-1 active:scale-95"
+              // {/* ADICIONADO: focus-visible customizado acompanhando o estilo laranja */}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(249,115,22,0.35)] transition-all hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/50"
             >
               Ir para o Nível {proximoNivelId}
               <span className="material-symbols-outlined text-[26px]">
@@ -211,7 +259,8 @@ const TelaConquista = ({
 
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95"
+            // {/* ADICIONADO: focus-visible customizado com tom cinza/slate */}
+            className="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-extrabold text-[16px] py-5 px-8 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-400/50"
           >
             Voltar ao Mapa
             <span className="material-symbols-outlined text-[24px]">map</span>
