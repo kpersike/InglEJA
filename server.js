@@ -1,126 +1,162 @@
+require("dotenv").config(); // Carrega as variáveis do arquivo .env
 const express = require("express");
-const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const { Pool } = require("pg"); // Importa o cliente do Postgres
 
 const app = express();
-
-// Configurações
 const PORT = 3000;
-const DATA_PATH = path.join(__dirname, "data", "users.json");
-const LESSONS_PATH = path.join(__dirname, "data", "lessons.json");
+
+// Configuração da conexão com o Postgres (Neon)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Obrigatório para conexões seguras na nuvem
+});
+
+// Testar conexão com o Banco ao iniciar
+pool.connect((err, client, release) => {
+  if (err) {
+    return console.error("❌ Erro ao conectar ao Postgres:", err.message);
+  }
+  console.log("✅ Conexão com o Postgres estabelecida com sucesso!");
+  release();
+});
 
 // Middlewares
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// --- 🚨 AJUSTE DE ROTA DEFINITIVO 🚨 ---
 const publicPath = path.resolve(__dirname, "frontend", "public");
 app.use(express.static(publicPath));
 
-// Função de leitura de usuários
-const getUsers = () => {
-  try {
-    if (!fs.existsSync(DATA_PATH)) return [];
-    const content = fs.readFileSync(DATA_PATH, "utf8");
-    if (!content.trim()) return [];
-    const parsed = JSON.parse(content);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error("❌ Erro na leitura do JSON:", error.message);
-    return [];
-  }
-};
+// ==========================================
+// 🧑‍🎓 ROTAS DE USUÁRIOS & ALUNOS
+// ==========================================
 
 // Rota de Cadastro (Alunos)
-app.post("/api/cadastro", (req, res) => {
+app.post("/api/cadastro", async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
     if (!nome || !email || !senha) {
-      return res
-        .status(400)
-        .json({ erro: "Todos os campos são obrigatórios." });
+      return res.status(400).json({ erro: "Todos os campos são obrigatórios." });
     }
 
-    let usuarios = getUsers();
-    if (usuarios.some((u) => u && u.email === email)) {
+    // Verifica se o email já existe no banco
+    const userCheck = await pool.query("SELECT id FROM usuarios WHERE email = $1", [email]);
+    if (userCheck.rows.length > 0) {
       return res.status(400).json({ erro: "Este e-mail já está cadastrado." });
     }
 
-    usuarios.push({ nome, email, senha, pontos: 0 });
-    fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+    // Insere o novo usuário
+    await pool.query(
+      "INSERT INTO usuarios (nome, email, senha, pontos) VALUES ($1, $2, $3, 0)",
+      [nome, email, senha]
+    );
+
     res.json({ mensagem: "Cadastro realizado com sucesso!" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
 
 // Rota para atualizar o perfil do usuário
-app.put("/api/atualizar-perfil", (req, res) => {
-  const { email, novoNome, avatar } = req.body;
-  let usuarios = getUsers();
-  const index = usuarios.findIndex((u) => u.email === email);
+app.put("/api/atualizar-perfil", async (req, res) => {
+  try {
+    const { email, novoNome, avatar } = req.body;
 
-  if (index !== -1) {
-    if (novoNome) usuarios[index].nome = novoNome;
-    if (avatar !== undefined) usuarios[index].avatar = avatar;
-    
-    fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
-    return res.json({ sucesso: true, usuario: usuarios[index] });
+    // COALESCE garante que se o novoNome ou avatar vierem vazios/undefined, o banco mantém o valor que já estava lá
+    const resultado = await pool.query(
+      "UPDATE usuarios SET nome = COALESCE($1, nome), avatar = COALESCE($2, avatar) WHERE email = $3 RETURNING id, nome, email, pontos, avatar",
+      [novoNome, avatar, email]
+    );
+
+    if (resultado.rows.length > 0) {
+      // Busca o progresso atualizado para retornar junto
+      const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [resultado.rows[0].id]);
+      const progressoObj = {};
+      progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
+
+      return res.json({ 
+        sucesso: true, 
+        usuario: { 
+          nome: resultado.rows[0].nome,
+          email: resultado.rows[0].email,
+          pontos: resultado.rows[0].pontos,
+          avatar: resultado.rows[0].avatar, // Agora retorna o avatar real do banco
+          progresso: progressoObj
+        } 
+      });
+    }
+    res.status(404).json({ erro: "Usuário não encontrado" });
+  } catch (err) {
+    console.error("Erro ao atualizar perfil:", err);
+    res.status(500).json({ erro: "Erro interno no servidor." });
   }
-  res.status(404).json({ erro: "Usuário não encontrado" });
 });
 
 // Rota de Login (Alunos)
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   try {
     const { email, senha } = req.body;
-    const usuarios = getUsers();
-    const usuario = usuarios.find(
-      (u) => u.email === email && u.senha === senha,
+    
+    // Agora selecionamos também a coluna avatar
+    const userRes = await pool.query(
+      "SELECT id, nome, email, pontos, avatar FROM usuarios WHERE email = $1 AND senha = $2",
+      [email, senha]
     );
 
-    if (usuario) {
+    if (userRes.rows.length > 0) {
+      const usuario = userRes.rows[0];
+
+      // Busca o progresso do usuário no banco
+      const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
+      const progressoObj = {};
+      progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
+
       res.json({
         sucesso: true,
         usuario: {
           nome: usuario.nome,
           email: usuario.email,
-          pontos: usuario.pontos || 0,
-          progresso: usuario.progresso || {},
-          avatar: usuario.avatar || null,
+          pontos: usuario.pontos,
+          avatar: usuario.avatar, // Retorna o avatar do banco (ou null se não tiver)
+          progresso: progressoObj
         },
       });
     } else {
       res.status(401).json({ erro: "E-mail ou senha incorretos." });
     }
   } catch (err) {
+    console.error("Erro no login:", err);
     res.status(500).json({ erro: "Erro ao processar login." });
   }
 });
 
-// --- INÍCIO DA NOVA ROTA DO GOOGLE ---
-app.post("/api/login-google", (req, res) => {
+// Rota do Google Auth
+app.post("/api/login-google", async (req, res) => {
   try {
-    const { email, nome, foto } = req.body;
-    let usuarios = getUsers();
-
-    let usuario = usuarios.find((u) => u && u.email === email);
+    const { email, nome, foto } = req.body; // 'foto' vem da API do Google se for um novo cadastro
+    
+    let userRes = await pool.query("SELECT id, nome, email, pontos, avatar FROM usuarios WHERE email = $1", [email]);
     let novoUsuario = false;
 
-    if (!usuario) {
-      usuario = {
-        nome: nome,
-        email: email,
-        senha: "GOOGLE_AUTH",
-        pontos: 0,
-        progresso: {},
-      };
-      usuarios.push(usuario);
-      fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
+    if (userRes.rows.length === 0) {
+      // Se for a primeira vez, salva a foto do Google como o avatar inicial do banco
+      userRes = await pool.query(
+        "INSERT INTO usuarios (nome, email, senha, pontos, avatar) VALUES ($1, $2, 'GOOGLE_AUTH', 0, $3) RETURNING id, nome, email, pontos, avatar",
+        [nome, email, foto || null]
+      );
       novoUsuario = true;
     }
+
+    const usuario = userRes.rows[0];
+    
+    // Busca o progresso
+    const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
+    const progressoObj = {};
+    progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
 
     res.json({
       sucesso: true,
@@ -128,9 +164,9 @@ app.post("/api/login-google", (req, res) => {
       usuario: {
         nome: usuario.nome,
         email: usuario.email,
-        pontos: usuario.pontos || 0,
-        progresso: usuario.progresso || {},
-        avatar: usuario.avatar || null,
+        pontos: usuario.pontos,
+        avatar: usuario.avatar, // Retorna o avatar salvo
+        progresso: progressoObj
       },
     });
   } catch (err) {
@@ -139,92 +175,80 @@ app.post("/api/login-google", (req, res) => {
   }
 });
 
+// ==========================================
+// 📚 ROTAS DE LIÇÕES & PROGRESSO (Consumindo do Banco)
+// ==========================================
+
 // Rota para pegar todos os dados de uma FASE específica pelo SLUG
-app.get("/api/fase/:slug", (req, res) => {
+app.get("/api/fase/:slug", async (req, res) => {
   try {
-    const content = fs.readFileSync(LESSONS_PATH, "utf8");
-    const db = JSON.parse(content);
+    const { slug } = req.params;
 
-    const fase = db.niveis.find((n) => n.slug === req.params.slug);
+    // Busca o nível pelo slug
+    const nivelRes = await pool.query("SELECT id, titulo, slug FROM niveis_licoes WHERE slug = $1", [slug]);
+    if (nivelRes.rows.length === 0) return res.status(404).json({ erro: "Fase não encontrada" });
 
-    if (fase) {
-      const questoesSeguras = fase.questoes.map(
-        ({ respostaCorreta, ...resto }) => resto,
-      );
-      res.json({
-        titulo: fase.titulo,
-        slug: fase.slug,
-        questoes: questoesSeguras,
-      });
-    } else {
-      res.status(404).json({ erro: "Fase não encontrada" });
-    }
+    const nivel = nivelRes.rows[0];
+
+    // Busca as questões atreladas a esse nível (Sem expor o campo 'resposta')
+    const questoesRes = await pool.query(
+      `SELECT id, tipo, pergunta_exibicao, dica, traducao, audio, img, opcoes, 
+              frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles 
+       FROM questoes WHERE nivel_id = $1`,
+      [nivel.id]
+    );
+
+    res.json({
+      titulo: nivel.titulo,
+      slug: nivel.slug,
+      questoes: questoesRes.rows,
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ erro: "Erro ao carregar a fase" });
   }
 });
 
-
-app.post("/api/salvar-progresso", (req, res) => {
+// Validação de Respostas v2 (Diretamente contra o Banco de Dados)
+app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
-    const { email, slugFase, pontos } = req.body;
-    let usuarios = getUsers();
-    const userIndex = usuarios.findIndex((u) => u.email === email);
+    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
 
-    if (userIndex !== -1) {
-      if (!usuarios[userIndex].progresso) usuarios[userIndex].progresso = {};
-      usuarios[userIndex].progresso[slugFase] = true;
-      usuarios[userIndex].pontos = (usuarios[userIndex].pontos || 0) + (pontos || 0);
+    // Pega a resposta correta no Banco
+    const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
+    if (questaoRes.rows.length === 0) return res.status(404).json({ erro: "Questão não encontrada" });
 
-      fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
-      return res.json({ sucesso: true, usuarioAtualizado: usuarios[userIndex] });
-    }
-    res.status(404).json({ erro: "Usuário não encontrado" });
-  } catch (err) {
-    console.error("Erro ao salvar progresso:", err);
-    res.status(500).json({ erro: "Erro interno no servidor" });
-  }
-});
-
-app.post("/api/validar-resposta-v2", (req, res) => {
-  try {
-    const {
-      usuarioEmail,
-      slugFase,
-      questaoId,
-      respostaUsuario,
-      eUltimaQuestao,
-    } = req.body;
-
-    const db = JSON.parse(fs.readFileSync(LESSONS_PATH, "utf8"));
-    const fase = db.niveis.find((n) => n.slug === slugFase);
-    if (!fase) return res.status(404).json({ erro: "Fase não encontrada" });
-
-    const questao = fase.questoes.find((q) => q.id == questaoId);
-    if (!questao)
-      return res.status(404).json({ erro: "Questão não encontrada" });
-
-    const acertou =
-      respostaUsuario?.toLowerCase().trim() ===
-      questao.resposta?.toLowerCase().trim();
+    const questao = questaoRes.rows[0];
+    const acertou = respostaUsuario?.toLowerCase().trim() === questao.resposta?.toLowerCase().trim();
 
     if (acertou) {
-      let usuarios = getUsers();
-      const userIndex = usuarios.findIndex((u) => u.email === usuarioEmail);
+      // 1. Soma 10 pontos ao usuário
+      const userUpdate = await pool.query(
+        "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos",
+        [usuarioEmail]
+      );
 
-      if (userIndex !== -1) {
-        usuarios[userIndex].pontos =
-          (usuarios[userIndex].pontos || 0) + (questao.pontos || 10);
+      if (userUpdate.rows.length > 0) {
+        const usuario = userUpdate.rows[0];
 
+        // 2. Se for a última questão da fase, salva no progresso_usuarios
         if (eUltimaQuestao) {
-          if (!usuarios[userIndex].progresso)
-            usuarios[userIndex].progresso = {};
-          usuarios[userIndex].progresso[slugFase] = true;
+          await pool.query(
+            "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            [usuario.id, slugFase]
+          );
           console.log(`✅ Fase ${slugFase} concluída para ${usuarioEmail}`);
         }
 
-        fs.writeFileSync(DATA_PATH, JSON.stringify(usuarios, null, 2));
-        return res.json({ acertou, usuarioAtualizado: usuarios[userIndex] });
+        // Busca o progresso total para responder ao frontend
+        const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
+        const progressoObj = {};
+        progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
+
+        return res.json({ 
+          acertou, 
+          usuarioAtualizado: { ...usuario, progresso: progressoObj, avatar: null } 
+        });
       }
     }
 
@@ -235,15 +259,45 @@ app.post("/api/validar-resposta-v2", (req, res) => {
   }
 });
 
+// Rota legada de salvar progresso mantida para compatibilidade
+app.post("/api/salvar-progresso", async (req, res) => {
+  try {
+    const { email, slugFase, pontos } = req.body;
+
+    const userUpdate = await pool.query(
+      "UPDATE usuarios SET pontos = pontos + $1 WHERE email = $2 RETURNING id, nome, email, pontos",
+      [pontos || 0, email]
+    );
+
+    if (userUpdate.rows.length > 0) {
+      const usuario = userUpdate.rows[0];
+      await pool.query(
+        "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [usuario.id, slugFase]
+      );
+
+      const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
+      const progressoObj = {};
+      progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
+
+      return res.json({ 
+        sucesso: true, 
+        usuarioAtualizado: { ...usuario, progresso: progressoObj, avatar: null } 
+      });
+    }
+    res.status(404).json({ erro: "Usuário não encontrado" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Erro interno no servidor" });
+  }
+});
+
 // ==========================================
-// 🚨 ROTAS DO ADMINISTRADOR 🚨
+// 🚨 ROTAS DO ADMINISTRADOR
 // ==========================================
 
-// 1. Rota de Login exclusiva para o Administrador
 app.post("/api/admin/login", (req, res) => {
   const { email, senha } = req.body;
-
-  // Credenciais fixas de Admin
   const ADMIN_EMAIL = "admin@ingleja.com";
   const ADMIN_SENHA = "admin";
 
@@ -254,42 +308,72 @@ app.post("/api/admin/login", (req, res) => {
   }
 });
 
-// 2. Rota para o Admin carregar TODAS as lições
-app.get("/api/admin/licoes", (req, res) => {
+// Admin ver todos os níveis e questões direto do Banco
+app.get("/api/admin/licoes", async (req, res) => {
   try {
-    if (!fs.existsSync(LESSONS_PATH)) {
-      return res
-        .status(404)
-        .json({ erro: "Arquivo de lições não encontrado." });
+    const niveisRes = await pool.query("SELECT * FROM niveis_licoes");
+    const licoesCompletas = [];
+
+    for (let nivel of niveisRes.rows) {
+      const questoesRes = await pool.query("SELECT * FROM questoes WHERE nivel_id = $1", [nivel.id]);
+      licoesCompletas.push({
+        titulo: nivel.titulo,
+        slug: nivel.slug,
+        questoes: questoesRes.rows
+      });
     }
-    const content = fs.readFileSync(LESSONS_PATH, "utf8");
-    const db = JSON.parse(content);
-    res.json(db);
+
+    res.json({ niveis: licoesCompletas });
   } catch (err) {
-    console.error("❌ Erro ao carregar lições para o admin:", err);
+    console.error(err);
     res.status(500).json({ erro: "Erro ao carregar lições" });
   }
 });
 
-// 3. Rota para o Admin SALVAR as alterações (Substitui o JSON atual)
-app.put("/api/admin/licoes", (req, res) => {
+// Admin atualizar/inserir lições no Banco de Dados
+app.put("/api/admin/licoes", async (req, res) => {
+  const client = await pool.connect();
   try {
     const novosDados = req.body;
+    if (!novosDados || !novosDados.niveis) return res.status(400).json({ erro: "Formato de dados inválido." });
 
-    if (!novosDados || !novosDados.niveis) {
-      return res.status(400).json({ erro: "Formato de dados inválido." });
+    await client.query("BEGIN"); // Inicia Transação SQL
+
+    for (let nivel of novosDados.niveis) {
+      // Atualiza ou Insere o Nível
+      const nivelIns = await client.query(
+        `INSERT INTO niveis_licoes (slug, titulo) VALUES ($1, $2)
+         ON CONFLICT (slug) DO UPDATE SET titulo = EXCLUDED.titulo RETURNING id`,
+        [nivel.slug, nivel.titulo]
+      );
+      
+      const nivelId = nivelIns.rows[0].id;
+
+      // Trata as questões daquele nível
+      for (let q of nivel.questoes) {
+        await client.query(
+          `INSERT INTO questoes (nivel_id, tipo, pergunta_exibicao, dica, traducao, audio, img, resposta, opcoes, frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+           ON CONFLICT DO NOTHING`, // Evita duplicar se já existir
+          [
+            nivelId, q.tipo, q.pergunta_exibicao, q.dica, q.traducao, q.audio, q.img, q.resposta, 
+            JSON.stringify(q.opcoes || []), q.frase_parte_1, q.frase_parte_2, q.frase_exibicao, q.palavra_ingles
+          ]
+        );
+      }
     }
 
-    fs.writeFileSync(LESSONS_PATH, JSON.stringify(novosDados, null, 2));
-    console.log("✅ Lições atualizadas pelo Administrador!");
-
-    res.json({ sucesso: true, mensagem: "Lições salvas com sucesso!" });
+    await client.query("COMMIT"); // Confirma as alterações no banco
+    res.json({ sucesso: true, mensagem: "Lições salvas no Postgres com sucesso!" });
   } catch (err) {
-    console.error("❌ Erro ao salvar lições:", err);
+    await client.query("ROLLBACK"); // Cancela tudo se der erro no loop
+    console.error("❌ Erro ao salvar lições no Banco:", err);
     res.status(500).json({ erro: "Erro ao salvar as lições" });
+  } finally {
+    client.release();
   }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 InglEJA Online na porta: ${PORT}`);
+  console.log(`🚀 InglEJA Online integrado com Postgres na porta: ${PORT}`);
 });
