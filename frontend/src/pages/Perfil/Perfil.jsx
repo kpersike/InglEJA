@@ -109,7 +109,7 @@ function Perfil() {
     falarTextoDireto("Salvando alterações do perfil."); // 🌟 Feedback falado imediato
 
     try {
-      const resposta = await fetch("http://localhost:3000/api/atualizar-perfil", {
+      const resposta = await fetch("https://ingleja-backend.onrender.com/api/atualizar-perfil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -12,7 +12,7 @@ export default function AdminLicoes() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/admin/licoes")
+    fetch("https://ingleja-backend.onrender.com/api/admin/licoes")
       .then((res) => {
         if (!res.ok) throw new Error("Falha ao carregar");
         return res.json();
@@ -172,7 +172,7 @@ export default function AdminLicoes() {
 
   const handleSalvarAlteracoes = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/admin/licoes", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/licoes", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
@@ -192,7 +192,7 @@ export default function AdminLicoes() {
     const formData = new FormData();
     formData.append("imagem", file);
     try {
-      const response = await fetch("http://localhost:3000/api/admin/upload", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/upload", {
         method: "POST",
         body: formData,
       });

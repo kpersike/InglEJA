@@ -20,7 +20,7 @@ const Welcome = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/atualizar-nome", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/atualizar-nome", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
