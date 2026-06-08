@@ -5,7 +5,7 @@ import "driver.js/dist/driver.css";
 import Navbar from "../../components/Navbar/Navbar";
 import "./dashboard.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "https://ingleja-backend.onrender.com";
 
 function Dashboard() {
   const navigate = useNavigate();
