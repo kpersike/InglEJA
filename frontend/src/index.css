@@ -84,7 +84,7 @@
   }
 }
 
-html{
+html {
   height: auto;
 }
 
@@ -144,7 +144,8 @@ html{
   transform-origin: bottom center;
 }
 
-.anim-wave:hover, .circle-icon:hover .anim-wave {
+.anim-wave:hover,
+.circle-icon:hover .anim-wave {
   animation: aceno-suave 1.5s ease-in-out infinite;
 }
 
@@ -169,32 +170,49 @@ html{
   transform-origin: center;
 }
 
-.anim-palette:hover, .circle-icon:hover .anim-palette {
+.anim-palette:hover,
+.circle-icon:hover .anim-palette {
   animation: girar-paleta 1.5s ease-in-out infinite;
 }
 
 @keyframes girar-paleta {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-15deg) scale(1.15); }
-  50% { transform: rotate(10deg) scale(1.15); }
-  75% { transform: rotate(-5deg) scale(1.15); }
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-15deg) scale(1.15);
+  }
+  50% {
+    transform: rotate(10deg) scale(1.15);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.15);
+  }
 }
 
 .anim-jump {
   display: inline-block;
 }
 
-.anim-jump:hover, .circle-icon:hover .anim-jump {
+.anim-jump:hover,
+.circle-icon:hover .anim-jump {
   animation: pulinho 0.8s ease-in-out infinite;
 }
 
 @keyframes pulinho {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* Animação para a faca e garfo cruzarem e descruzarem continuamente */
-.anim-cross .fork, .anim-cross .knife {
+.anim-cross .fork,
+.anim-cross .knife {
   transform-origin: 50% 85%;
 }
 
@@ -207,13 +225,23 @@ html{
 }
 
 @keyframes cross-fork {
-  0%, 100% { transform: rotate(0deg) translateX(0); }
-  50% { transform: rotate(30deg) translateX(2px); }
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  50% {
+    transform: rotate(30deg) translateX(2px);
+  }
 }
 
 @keyframes cross-knife {
-  0%, 100% { transform: rotate(0deg) translateX(0); }
-  50% { transform: rotate(-30deg) translateX(-2px); }
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  50% {
+    transform: rotate(-30deg) translateX(-2px);
+  }
 }
 
 /* Animação suave de pulso para o ícone de Check (concluído) */
@@ -226,8 +254,12 @@ html{
 }
 
 @keyframes pulso-suave {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.2); }
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.2);
+  }
 }
 
 /* Animações do tema Música */
@@ -240,8 +272,13 @@ html{
 }
 
 @keyframes music-bounce {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.1) rotate(5deg); }
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
 }
 
 .m-note {
@@ -266,26 +303,61 @@ html{
 }
 
 @keyframes float-note-1 {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
-  20% { opacity: 1; transform: translate(-15px, -15px) scale(1) rotate(-15deg); }
-  80% { opacity: 0; transform: translate(-25px, -35px) scale(0.8) rotate(-25deg); }
-  100% { opacity: 0; transform: translate(-25px, -35px) scale(0.8) rotate(-25deg); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-15px, -15px) scale(1) rotate(-15deg);
+  }
+  80% {
+    opacity: 0;
+    transform: translate(-25px, -35px) scale(0.8) rotate(-25deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-25px, -35px) scale(0.8) rotate(-25deg);
+  }
 }
 
 @keyframes float-note-2 {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
-  20% { opacity: 1; transform: translate(15px, -10px) scale(1) rotate(15deg); }
-  80% { opacity: 0; transform: translate(30px, -25px) scale(0.8) rotate(30deg); }
-  100% { opacity: 0; transform: translate(30px, -25px) scale(0.8) rotate(30deg); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(15px, -10px) scale(1) rotate(15deg);
+  }
+  80% {
+    opacity: 0;
+    transform: translate(30px, -25px) scale(0.8) rotate(30deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(30px, -25px) scale(0.8) rotate(30deg);
+  }
 }
 
 @keyframes float-note-3 {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
-  20% { opacity: 1; transform: translate(-5px, -20px) scale(1) rotate(5deg); }
-  80% { opacity: 0; transform: translate(-10px, -45px) scale(0.8) rotate(10deg); }
-  100% { opacity: 0; transform: translate(-10px, -45px) scale(0.8) rotate(10deg); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-5px, -20px) scale(1) rotate(5deg);
+  }
+  80% {
+    opacity: 0;
+    transform: translate(-10px, -45px) scale(0.8) rotate(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-10px, -45px) scale(0.8) rotate(10deg);
+  }
 }
-
 
 /* =========================================
    BACKGROUND COM ONDAS SUTIS (MODO CLARO E ESCURO)

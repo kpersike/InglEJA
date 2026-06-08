@@ -25,7 +25,12 @@ function App() {
         if (parsed.temaPrincipal) {
           document.documentElement.classList.add(parsed.temaPrincipal);
         }
-      } catch (e) {}
+      } catch (erro) {
+        console.error(
+          "Aviso: Configurações anteriores não encontradas ou inválidas.",
+          erro,
+        );
+      }
     }
   }, []);
 
@@ -40,7 +45,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/exercicio/:slug" element={<Exercicio />} />
-
             {/* Rotas do Admin */}
             <Route path="/admin" element={<AdminLogin />} />
             <Route element={<AdminLayout />}>
