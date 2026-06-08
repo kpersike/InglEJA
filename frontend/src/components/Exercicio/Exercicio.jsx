@@ -457,7 +457,7 @@ function Exercicio() {
         const user = JSON.parse(userStr);
         const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
         
-        const response = await fetch("http://localhost:3000/api/salvar-progresso", {
+        const response = await fetch("https://ingleja-backend.onrender.com/api/salvar-progresso", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: user.email, slugFase: licao.slug, pontos: xpGanhos })

@@ -42,7 +42,7 @@ function Auth() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/cadastro", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome: "Aluno InglEJA", email, senha }),
@@ -74,7 +74,7 @@ function Auth() {
     if (e) e.preventDefault();
     const { email, senha } = formData;
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),
@@ -102,7 +102,7 @@ function Auth() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
-      const response = await fetch("http://localhost:3000/api/login-google", {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/login-google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -18,7 +18,7 @@ export default function AdminLicoes() {
   const audioInputRef = useRef(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/admin/licoes`)
+    fetch("https://ingleja-backend.onrender.com/api/admin/licoes")
       .then((res) => {
         if (!res.ok) throw new Error("Falha ao carregar");
         return res.json();
@@ -246,7 +246,7 @@ export default function AdminLicoes() {
 
   const handleSalvarAlteracoes = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/licoes`, {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/licoes", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
@@ -268,7 +268,7 @@ export default function AdminLicoes() {
     formData.append("arquivo", file);
 
     try {
-      const response = await fetch(`${API_URL}/api/admin/upload`, {
+      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/upload", {
         method: "POST",
         body: formData,
       });

@@ -1,0 +1,5 @@
+node_modules/
+.env
+data/
+migrar.js
+migrar_licoes.js
