@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -21,15 +23,13 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (data.sucesso) {
-        // Salva que o admin está logado
         localStorage.setItem("ingleja_admin_token", data.token);
-        // Redireciona para o painel de lições
         navigate("/admin/licoes");
       } else {
         setErro(data.erro || "Erro ao fazer login.");
       }
     } catch (err) {
-      console.error("Erro na requisição de login:", err); // <-- Correção aqui! Agora o 'err' está sendo usado.
+      console.error("Erro na requisição de login:", err);
       setErro("Erro de conexão com o servidor.");
     }
   };
@@ -88,7 +88,6 @@ export default function AdminLogin() {
             Acessar Painel
           </button>
         </form>
-        {/* --- NOVO BOTÃO DE VOLTAR --- */}
         <div className="mt-8 text-center">
           <button
             type="button"

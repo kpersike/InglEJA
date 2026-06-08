@@ -3,12 +3,13 @@
     "nome": "teste2",
     "email": "teste.2@gmail.com",
     "senha": "teste2",
-    "pontos": 1090,
+    "pontos": 1175,
     "progresso": {
       "saudacoes": true,
       "cores": true,
       "familia": true,
-      "comida": true
+      "comida": true,
+      "musica": true
     }
   },
   {
@@ -37,7 +38,7 @@
     "nome": "Kaik",
     "email": "kaik@gmail.com",
     "senha": "123",
-    "pontos": 5800,
+    "pontos": 5845,
     "progresso": {
       "saudacoes": true,
       "cores": true,
@@ -118,10 +119,10 @@
     "progresso": {}
   },
   {
-    "nome": "Super Matheus",
+    "nome": "Matheus",
     "email": "matheus.pent12@gmail.com",
     "senha": "GOOGLE_AUTH",
-    "pontos": 1640,
+    "pontos": 1720,
     "progresso": {
       "saudacoes": true,
       "cores": true,
@@ -180,5 +181,11 @@
     "progresso": {
       "saudacoes": true
     }
+  },
+  {
+    "nome": "Aluno InglEJA",
+    "email": "jamaica@gmailcom",
+    "senha": "123",
+    "pontos": 0
   }
 ]

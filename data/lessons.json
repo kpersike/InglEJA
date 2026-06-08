@@ -8,7 +8,7 @@
         {
           "id": 1,
           "tipo": "escolha_palavra",
-          "pergunta_exibicao": "Como se diz 'Oi'?",
+          "pergunta_exibicao": "Como se diz 'oi'?",
           "dica": "É a forma mais curta de cumprimentar.",
           "traducao": "Oi",
           "audio": "hi.mp3",
@@ -805,8 +805,22 @@
     {
       "id": 6,
       "slug": "novo-nivel-6",
-      "titulo": "Nível 6: testando",
-      "questoes": []
+      "titulo": "Nivel 6: Teste",
+      "questoes": [
+        {
+          "id": 1,
+          "tipo": "escolha_palavra",
+          "pergunta_exibicao": "questão 1",
+          "resposta": "Opção 1",
+          "opcoes": [
+            "Opção 1",
+            "Opção 2",
+            "Opção 3",
+            "Opção 4"
+          ],
+          "dica": "teste"
+        }
+      ]
     }
   ]
 }
