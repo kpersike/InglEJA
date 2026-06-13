@@ -28,6 +28,12 @@ function Exercicio() {
   const [tempoInicio] = useState(Date.now());
   const [tempoCalculado, setTempoCalculado] = useState("0:00");
 
+  // 🌟 ADICIONE ESTE ESTADO AQUI:
+  const [usuario, setUsuario] = useState(() => {
+    const dadosSalvos = localStorage.getItem("usuarioLogado");
+    return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", pontos: 0, avatar: null };
+  });
+
   const [historicoRespostas, setHistoricoRespostas] = useState({}); // { [index]: { opcao, texto, palavras } }
   // NOVO: Guarda quais questões da revisão já foram resolvidas com sucesso nesta rodada
   const [revisadasConcluidas, setRevisadasConcluidas] = useState([]);
@@ -371,7 +377,10 @@ function Exercicio() {
 
         // Atualiza a pontuação apenas na fase normal
         if (fase === "normal") {
-          // setPontuacao((prev) => prev + 10);
+          setUsuario((prev) => ({
+            ...prev,
+            pontos: (prev.pontos || 0) + 10
+          }));
         }
       } else {
         setStatusResposta("errada");
@@ -543,7 +552,7 @@ const finalizarLicao = async () => {
   if (fase === "chamada_erros") {
     return (
       <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
-        <Navbar />
+        <Navbar usuario={usuario} />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-[fadeIn_0.5s_ease-out]">
           <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
             <span className="material-symbols-outlined text-[48px]">
@@ -584,7 +593,7 @@ const finalizarLicao = async () => {
   // ==========================================
   return (
     <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
-      <Navbar />
+      <Navbar usuario={usuario} />
       {/* ESSA DIV PRECISA ENVOLVER TODO O RESTO DO COMPONENTE */}
       <div
         ref={cardExercicioRef}

@@ -247,7 +247,7 @@ function Perfil() {
 
 return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-nunito transition-colors duration-300 flex flex-col">
-      <Navbar />
+      <Navbar usuario={usuario}/>
       
       <main ref={mainCardRef} className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-10 flex flex-col pt-24 md:pt-32">
         
