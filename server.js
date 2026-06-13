@@ -212,7 +212,7 @@ app.get("/api/fase/:slug", async (req, res) => {
   }
 });
 
-// Validação de Respostas v2 (Diretamente contra o Banco de Dados)
+// Validação de Respostas v2 (CORRIGIDA)
 app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
     const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
@@ -233,13 +233,13 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
           `UPDATE usuarios 
            SET pontos = pontos + 10, nivel = nivel + 1 
            WHERE email = $1 
-           RETURNING id, nome, email, pontos, nivel`,
+           RETURNING id, nome, email, pontos, nivel, avatar`, // 🌟 Adicionado avatar aqui
           [usuarioEmail]
         );
 
         if (userUpdate.rows.length > 0) {
           usuario = userUpdate.rows[0];
-          
+
           // Salva que esta fase específica foi concluída
           await pool.query(
             "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -250,7 +250,7 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
       } else {
         // SE NÃO FOR A ÚLTIMA QUESTÃO: Apenas soma os 10 pontos normais (mantém o nível atual)
         const userUpdate = await pool.query(
-          "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos, nivel",
+          "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar", // 🌟 Adicionado avatar aqui
           [usuarioEmail]
         );
         if (userUpdate.rows.length > 0) {
@@ -264,10 +264,17 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
         const progressoObj = {};
         progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
 
-        // Retorna o usuário com os pontos atualizados E o novo nível para o Frontend
-        return res.json({ 
-          acertou, 
-          usuarioAtualizado: { ...usuario, progresso: progressoObj, avatar: null } 
+        // 🌟 RETORNO CORRIGIDO: Mantém a mesma estrutura usada nas rotas de Login e Google Auth
+        return res.json({
+          acertou,
+          usuarioAtualizado: {
+            nome: usuario.nome,
+            email: usuario.email,
+            pontos: usuario.pontos,
+            avatar: usuario.avatar, // 🌟 Agora retorna o avatar real em vez de null!
+            nivel: usuario.nivel,
+            progresso: progressoObj // O mapa lê este objeto para desbloquear as fases
+          }
         });
       }
     }

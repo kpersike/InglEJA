@@ -18,10 +18,30 @@ function Dashboard() {
     () => localStorage.getItem("fase_em_revisao") || null,
   );
 
-  const [usuario] = useState(() => {
+// 1. Altere o useState para permitir atualização (adicionando o setUsuario)
+  const [usuario, setUsuario] = useState(() => {
     const dadosSalvos = localStorage.getItem("usuarioLogado");
-    return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", nivel: 4 };
+    return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", nivel: 1 }; // Mudei o padrão para 1
   });
+
+  // 2. Adicione este useEffect para escutar quando o usuário volta para a tela
+  useEffect(() => {
+    const atualizarDadosUsuario = () => {
+      const dadosSalvos = localStorage.getItem("usuarioLogado");
+      if (dadosSalvos) {
+        const usuarioAtualizado = JSON.parse(dadosSalvos);
+        setUsuario(usuarioAtualizado);
+        console.log("Dashboard atualizada com o progresso real:", usuarioAtualizado);
+      }
+    };
+
+    // Executa imediatamente ao montar a tela
+    atualizarDadosUsuario();
+
+    // Opcional: Escuta mudanças caso você use abas diferentes
+    window.addEventListener("storage", atualizarDadosUsuario);
+    return () => window.removeEventListener("storage", atualizarDadosUsuario);
+  }, []); // Executa sempre que a Dashboard ganhar foco/for montada
 
   const [configuracoes, setConfiguracoes] = useState(() => {
     const configSalvas = localStorage.getItem("configuracoes_ingleja");
