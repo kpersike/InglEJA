@@ -28,6 +28,12 @@ function Exercicio() {
   const [tempoInicio] = useState(Date.now());
   const [tempoCalculado, setTempoCalculado] = useState("0:00");
 
+  // 🌟 ADICIONE ESTE ESTADO AQUI:
+  const [usuario, setUsuario] = useState(() => {
+    const dadosSalvos = localStorage.getItem("usuarioLogado");
+    return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", pontos: 0, avatar: null };
+  });
+
   const [historicoRespostas, setHistoricoRespostas] = useState({}); // { [index]: { opcao, texto, palavras } }
   // NOVO: Guarda quais questões da revisão já foram resolvidas com sucesso nesta rodada
   const [revisadasConcluidas, setRevisadasConcluidas] = useState([]);
@@ -371,7 +377,10 @@ function Exercicio() {
 
         // Atualiza a pontuação apenas na fase normal
         if (fase === "normal") {
-          setPontuacao((prev) => prev + 10);
+          setUsuario((prev) => ({
+            ...prev,
+            pontos: (prev.pontos || 0) + 10
+          }));
         }
       } else {
         setStatusResposta("errada");
@@ -442,7 +451,7 @@ function Exercicio() {
     }
   };
 
-  const finalizarLicao = async () => {
+const finalizarLicao = async () => {
     const audioWin = new Audio("/audios/sfx/vitoria.mp3");
     audioWin.play().catch(() => {});
     
@@ -457,19 +466,37 @@ function Exercicio() {
         const user = JSON.parse(userStr);
         const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
         
-        const response = await fetch("https://ingleja-backend.onrender.com/api/salvar-progresso", {
+        // Captura em segurança a última questão para satisfazer os parâmetros da rota v2
+        const ultimaQuestaoDaLicao = licao.questoes[licao.questoes.length - 1];
+
+        console.log("Enviando sinal de conclusão da lição para a rota correta (v2)...");
+
+        const response = await fetch("https://ingleja-backend.onrender.com/api/validar-resposta-v2", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email, slugFase: licao.slug, pontos: xpGanhos })
+          body: JSON.stringify({
+            usuarioEmail: user.email,
+            slugFase: licao.slug,
+            questaoId: ultimaQuestaoDaLicao?.id || 1,
+            respostaUsuario: ultimaQuestaoDaLicao?.resposta || "",
+            eUltimaQuestao: true,
+            pontosGanhos: xpGanhos // 🌟 ADICIONADO: Envia o cálculo dinâmico do frontend
+          })
         });
         
         if (response.ok) {
            const data = await response.json();
-           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+           if (data.usuarioAtualizado) {
+             // Atualiza o LocalStorage com o objeto completo (Nível 2 e progresso preenchido)
+             localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+             console.log("🚀 Banco de dados e LocalStorage sincronizados com sucesso!", data.usuarioAtualizado);
+           }
+        } else {
+           console.error("Servidor respondeu com erro ao finalizar:", response.status);
         }
       }
     } catch (e) {
-      console.error("Erro ao salvar progresso", e);
+      console.error("Erro de rede ao salvar progresso", e);
     }
     
     setFase("conquista");
@@ -525,7 +552,7 @@ function Exercicio() {
   if (fase === "chamada_erros") {
     return (
       <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
-        <Navbar />
+        <Navbar usuario={usuario} />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-[fadeIn_0.5s_ease-out]">
           <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
             <span className="material-symbols-outlined text-[48px]">
@@ -566,7 +593,7 @@ function Exercicio() {
   // ==========================================
   return (
     <div className="min-h-screen flex flex-col bg-waves transition-colors duration-300">
-      <Navbar />
+      <Navbar usuario={usuario} />
       {/* ESSA DIV PRECISA ENVOLVER TODO O RESTO DO COMPONENTE */}
       <div
         ref={cardExercicioRef}

@@ -11,6 +11,7 @@ const Welcome = () => {
 
   // 2. Função para salvar o nome e ir para o Dashboard
   const finalizarWelcome = async () => {
+    // 🌟 Pegamos o e-mail que foi salvo na hora do cadastro/login
     const emailUsuario = localStorage.getItem("emailUsuario");
     console.log("Tentando atualizar o email:", emailUsuario);
 
@@ -19,30 +20,41 @@ const Welcome = () => {
       return;
     }
 
+    // 🌟 Validação de segurança
+    if (!emailUsuario) {
+      alert("Erro de sessão: E-mail do usuário não encontrado. Por favor, faça o cadastro novamente.");
+      navigate("/");
+      return;
+    }
+
     try {
-      const response = await fetch("https://ingleja-backend.onrender.com/api/atualizar-nome", {
+      // 🌟 MUDAMOS PARA A ROTA QUE EXISTE NO SERVER.JS (/api/atualizar-perfil) E USAMOS "PUT"
+      const response = await fetch("https://ingleja-backend.onrender.com/api/atualizar-perfil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email: emailUsuario, 
-          novoNome: nomeDigitado 
+        body: JSON.stringify({
+          email: emailUsuario,
+          novoNome: nomeDigitado.trim(),
+          avatar: null // Como é o primeiro acesso, o avatar pode ir nulo (o banco aceita)
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // CRUCIAL: Atualiza o usuarioLogado para o Dashboard permitir a entrada
+      const data = await response.json();
+
+      // 🌟 Verificamos se a resposta foi positiva
+      if (response.ok && data.sucesso) {
+
+        // CRUCIAL: Atualiza o usuarioLogado com o objeto que a rota /api/atualizar-perfil retorna
         localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-        
-        // Agora sim, navegamos com tudo pronto!
+
+        // Agora sim, navegamos com tudo pronto e a Navbar vai carregar o nome perfeitamente!
         navigate("/dashboard");
       } else {
-        alert("Erro ao salvar o nome. Tente novamente.");
+        alert(data.erro || "Erro ao salvar o nome. Tente novamente.");
       }
     } catch (error) {
       console.error("Erro de conexão:", error);
-      alert("Erro ao falar com o servidor.");
+      alert("Erro de conexão com o servidor. Verifique sua internet.");
     }
   };
 

@@ -50,7 +50,7 @@ app.post("/api/cadastro", async (req, res) => {
 
     // Insere o novo usuário
     await pool.query(
-      "INSERT INTO usuarios (nome, email, senha, pontos) VALUES ($1, $2, $3, 0)",
+      "INSERT INTO usuarios (nome, email, senha, pontos, nivel) VALUES ($1, $2, $3, 0, 1)",
       [nome, email, senha]
     );
 
@@ -68,7 +68,7 @@ app.put("/api/atualizar-perfil", async (req, res) => {
 
     // COALESCE garante que se o novoNome ou avatar vierem vazios/undefined, o banco mantém o valor que já estava lá
     const resultado = await pool.query(
-      "UPDATE usuarios SET nome = COALESCE($1, nome), avatar = COALESCE($2, avatar) WHERE email = $3 RETURNING id, nome, email, pontos, avatar",
+      "UPDATE usuarios SET nome = COALESCE($1, nome), avatar = COALESCE($2, avatar) WHERE email = $3 RETURNING id, nome, email, pontos, avatar, nivel",
       [novoNome, avatar, email]
     );
 
@@ -85,6 +85,7 @@ app.put("/api/atualizar-perfil", async (req, res) => {
           email: resultado.rows[0].email,
           pontos: resultado.rows[0].pontos,
           avatar: resultado.rows[0].avatar, // Agora retorna o avatar real do banco
+          nivel: resultado.rows[0].nivel,
           progresso: progressoObj
         } 
       });
@@ -103,7 +104,7 @@ app.post("/api/login", async (req, res) => {
     
     // Agora selecionamos também a coluna avatar
     const userRes = await pool.query(
-      "SELECT id, nome, email, pontos, avatar FROM usuarios WHERE email = $1 AND senha = $2",
+      "SELECT id, nome, email, pontos, avatar, nivel FROM usuarios WHERE email = $1 AND senha = $2",
       [email, senha]
     );
 
@@ -122,6 +123,7 @@ app.post("/api/login", async (req, res) => {
           email: usuario.email,
           pontos: usuario.pontos,
           avatar: usuario.avatar, // Retorna o avatar do banco (ou null se não tiver)
+          nivel: usuario.nivel,
           progresso: progressoObj
         },
       });
@@ -139,13 +141,13 @@ app.post("/api/login-google", async (req, res) => {
   try {
     const { email, nome, foto } = req.body; // 'foto' vem da API do Google se for um novo cadastro
     
-    let userRes = await pool.query("SELECT id, nome, email, pontos, avatar FROM usuarios WHERE email = $1", [email]);
+    let userRes = await pool.query("SELECT id, nome, email, pontos, avatar, nivel FROM usuarios WHERE email = $1", [email]);
     let novoUsuario = false;
 
     if (userRes.rows.length === 0) {
       // Se for a primeira vez, salva a foto do Google como o avatar inicial do banco
       userRes = await pool.query(
-        "INSERT INTO usuarios (nome, email, senha, pontos, avatar) VALUES ($1, $2, 'GOOGLE_AUTH', 0, $3) RETURNING id, nome, email, pontos, avatar",
+        "INSERT INTO usuarios (nome, email, senha, pontos, avatar, nivel) VALUES ($1, $2, 'GOOGLE_AUTH', 0, $3, 1) RETURNING id, nome, email, pontos, avatar, nivel",
         [nome, email, foto || null]
       );
       novoUsuario = true;
@@ -166,6 +168,7 @@ app.post("/api/login-google", async (req, res) => {
         email: usuario.email,
         pontos: usuario.pontos,
         avatar: usuario.avatar, // Retorna o avatar salvo
+        nivel: usuario.nivel,
         progresso: progressoObj
       },
     });
@@ -209,53 +212,85 @@ app.get("/api/fase/:slug", async (req, res) => {
   }
 });
 
-// Validação de Respostas v2 (Diretamente contra o Banco de Dados)
 app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
-    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
+    // 🌟 CAPTURA A PROPRIEDADE pontosGanhos VINDA DO CORPO DA REQUISIÇÃO
+    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao, pontosGanhos } = req.body;
 
-    // Pega a resposta correta no Banco
-    const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
-    if (questaoRes.rows.length === 0) return res.status(404).json({ erro: "Questão não encontrada" });
+    let usuario;
+    let acertou = false;
 
-    const questao = questaoRes.rows[0];
-    const acertou = respostaUsuario?.toLowerCase().trim() === questao.resposta?.toLowerCase().trim();
+    if (eUltimaQuestao === true || eUltimaQuestao === "true") {
+      acertou = true;
 
-    if (acertou) {
-      // 1. Soma 10 pontos ao usuário
-      const userUpdate = await pool.query(
-        "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos",
-        [usuarioEmail]
+      // 🌟 VALIDAÇÃO DE SEGURANÇA: Garante um valor numérico se pontosGanhos falhar ou vier nulo
+      const pontosParaSomar = Number(pontosGanhos) || 40;
+
+      // 🌟 SQL ATUALIZADO: Agora usa $2 (pontosParaSomar) no lugar do "+ 10" estático
+      const usuarioRes = await pool.query(
+        "UPDATE usuarios SET pontos = pontos + $2, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
+        [usuarioEmail, pontosParaSomar]
+      );
+      usuario = usuarioRes.rows[0];
+
+      // Registra a fase concluída na tabela de progresso
+      await pool.query(
+        "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [usuario.id, slugFase]
       );
 
-      if (userUpdate.rows.length > 0) {
-        const usuario = userUpdate.rows[0];
+    } else {
+      // 🌟 SE FOR UMA QUESTÃO NORMAL NO MEIO DO EXERCÍCIO, MANTÉM A VALIDAÇÃO TRADICIONAL:
+      const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
+      if (questaoRes.rows.length === 0) {
+        return res.status(404).json({ erro: "Questão não encontrada" });
+      }
 
-        // 2. Se for a última questão da fase, salva no progresso_usuarios
-        if (eUltimaQuestao) {
-          await pool.query(
-            "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            [usuario.id, slugFase]
-          );
-          console.log(`✅ Fase ${slugFase} concluída para ${usuarioEmail}`);
-        }
+      const respostaCorreta = questaoRes.rows[0].resposta;
+      acertou = respostaUsuario.trim().toLowerCase() === respostaCorreta.trim().toLowerCase();
 
-        // Busca o progresso total para responder ao frontend
-        const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
-        const progressoObj = {};
-        progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
-
-        return res.json({ 
-          acertou, 
-          usuarioAtualizado: { ...usuario, progresso: progressoObj, avatar: null } 
-        });
+      if (acertou) {
+        const usuarioRes = await pool.query(
+          "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
+          [usuarioEmail]
+        );
+        usuario = usuarioRes.rows[0];
+      } else {
+        const usuarioRes = await pool.query(
+          "SELECT id, nome, email, pontos, nivel, avatar FROM usuarios WHERE email = $1",
+          [usuarioEmail]
+        );
+        usuario = usuarioRes.rows[0];
       }
     }
 
-    res.json({ acertou });
+    // 3. Busca todos os progressos do usuário para atualizar o mapa do frontend
+    const progressoRes = await pool.query(
+      "SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1",
+      [usuario.id]
+    );
+
+    const progressoObj = {};
+    progressoRes.rows.forEach(row => {
+      progressoObj[row.nivel_slug] = true;
+    });
+
+    // Retorna o objeto com nível incrementado e progresso preenchido!
+    return res.json({
+      acertou,
+      usuarioAtualizado: {
+        nome: usuario.nome,
+        email: usuario.email,
+        pontos: usuario.pontos,
+        avatar: usuario.avatar,
+        nivel: usuario.nivel,
+        progresso: progressoObj
+      }
+    });
+
   } catch (err) {
-    console.error("❌ ERRO NO SERVIDOR:", err);
-    res.status(500).json({ erro: "Erro interno" });
+    console.error("❌ Erro na rota validar-resposta-v2:", err.message);
+    return res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });
 
@@ -265,7 +300,7 @@ app.post("/api/salvar-progresso", async (req, res) => {
     const { email, slugFase, pontos } = req.body;
 
     const userUpdate = await pool.query(
-      "UPDATE usuarios SET pontos = pontos + $1 WHERE email = $2 RETURNING id, nome, email, pontos",
+      "UPDATE usuarios SET pontos = pontos + $1 WHERE email = $2 RETURNING id, nome, email, pontos, nivel",
       [pontos || 0, email]
     );
 
