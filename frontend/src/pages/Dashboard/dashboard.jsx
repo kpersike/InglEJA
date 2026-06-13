@@ -417,7 +417,8 @@ useEffect(() => {
     const feitas = missoesConcluidas || 0;
     const totais = totalMissoes || 0;
 
-    const introducao = `Módulo: Fundamentos de Inglês. Seu nível atual é Mestre de Inglês, Nível ${nivel}. Seu Progresso Geral é de ${porcentagem}%, ${feitas} de ${totais} missões concluídas.`;
+    const tituloUsuario = porcentagemProgresso === 100 ? "Mestre de Inglês" : "Explorador Aprendiz";
+    const introducao = `Módulo: Fundamentos de Inglês. Seu nível atual é ${tituloUsuario}, Nível ${nivel}. Seu Progresso Geral é de ${porcentagem}%, ${feitas} de ${totais} missões concluídas.`;
 
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();

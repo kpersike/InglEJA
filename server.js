@@ -214,23 +214,26 @@ app.get("/api/fase/:slug", async (req, res) => {
 
 app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
-    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
+    // 🌟 CAPTURA A PROPRIEDADE pontosGanhos VINDA DO CORPO DA REQUISIÇÃO
+    const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao, pontosGanhos } = req.body;
 
     let usuario;
     let acertou = false;
 
-    // 🌟 NOVO ACORDO: Se for o sinal de final de lição, o acerto é garantido!
     if (eUltimaQuestao === true || eUltimaQuestao === "true") {
-      acertou = true; // Força o acerto para rodar os updates abaixo
+      acertou = true;
 
-      // 1. Atualiza nível e pontos do usuário
+      // 🌟 VALIDAÇÃO DE SEGURANÇA: Garante um valor numérico se pontosGanhos falhar ou vier nulo
+      const pontosParaSomar = Number(pontosGanhos) || 40;
+
+      // 🌟 SQL ATUALIZADO: Agora usa $2 (pontosParaSomar) no lugar do "+ 10" estático
       const usuarioRes = await pool.query(
-        "UPDATE usuarios SET pontos = pontos + 10, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
-        [usuarioEmail]
+        "UPDATE usuarios SET pontos = pontos + $2, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
+        [usuarioEmail, pontosParaSomar]
       );
       usuario = usuarioRes.rows[0];
 
-      // 2. Registra a fase concluída na tabela de progresso
+      // Registra a fase concluída na tabela de progresso
       await pool.query(
         "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
         [usuario.id, slugFase]

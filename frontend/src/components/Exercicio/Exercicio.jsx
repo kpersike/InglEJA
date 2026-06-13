@@ -461,17 +461,17 @@ const finalizarLicao = async () => {
         const ultimaQuestaoDaLicao = licao.questoes[licao.questoes.length - 1];
 
         console.log("Enviando sinal de conclusão da lição para a rota correta (v2)...");
-        
-        // 🌟 CORREÇÃO: Mudado o endpoint para /api/validar-resposta-v2 e adicionado os parâmetros necessários
+
         const response = await fetch("https://ingleja-backend.onrender.com/api/validar-resposta-v2", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            usuarioEmail: user.email, 
-            slugFase: licao.slug, 
+          body: JSON.stringify({
+            usuarioEmail: user.email,
+            slugFase: licao.slug,
             questaoId: ultimaQuestaoDaLicao?.id || 1,
             respostaUsuario: ultimaQuestaoDaLicao?.resposta || "",
-            eUltimaQuestao: true // 🌟 AVISA O BACKEND PARA SUBIR O NÍVEL!
+            eUltimaQuestao: true,
+            pontosGanhos: xpGanhos // 🌟 ADICIONADO: Envia o cálculo dinâmico do frontend
           })
         });
         
