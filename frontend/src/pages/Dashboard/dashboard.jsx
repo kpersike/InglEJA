@@ -392,7 +392,7 @@ useEffect(() => {
   useEffect(() => {
     if (!configuracoes.acessibilidadeAtiva) return;
 
-    const nivel = usuario.nivel || 4;
+    const nivel = usuario.nivel || 0;
     const porcentagem = porcentagemProgresso || 0;
     const feitas = missoesConcluidas || 0;
     const totais = totalMissoes || 0;

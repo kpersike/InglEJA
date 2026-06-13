@@ -442,7 +442,7 @@ function Exercicio() {
     }
   };
 
-  const finalizarLicao = async () => {
+const finalizarLicao = async () => {
     const audioWin = new Audio("/audios/sfx/vitoria.mp3");
     audioWin.play().catch(() => {});
     
@@ -455,21 +455,31 @@ function Exercicio() {
       const userStr = localStorage.getItem("usuarioLogado");
       if (userStr) {
         const user = JSON.parse(userStr);
-        const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
         
-        const response = await fetch("https://ingleja-backend.onrender.com/api/salvar-progresso", {
+        // Chamada oficial para a nova rota que lida com o fim da fase e a subida de nível (+1)
+        const response = await fetch("https://ingleja-backend.onrender.com/api/validar-resposta-v2", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email, slugFase: licao.slug, pontos: xpGanhos })
+          body: JSON.stringify({ 
+            usuarioEmail: user.email, 
+            slugFase: licao.slug, 
+            questaoId: questao.id, // Envia a última questão do array
+            respostaUsuario: questao.resposta, // Simula o acerto na validação final
+            eUltimaQuestao: true // Ativa o gatilho de UPDATE do nível e pontos no backend
+          })
         });
         
         if (response.ok) {
            const data = await response.json();
-           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+           if (data.usuarioAtualizado) {
+             // Atualiza o LocalStorage com o novo nível retornado pelo PostgreSQL
+             localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
+             console.log("Nível e pontos atualizados com sucesso no LocalStorage!", data.usuarioAtualizado);
+           }
         }
       }
     } catch (e) {
-      console.error("Erro ao salvar progresso", e);
+      console.error("Erro ao salvar progresso e subir nível:", e);
     }
     
     setFase("conquista");
