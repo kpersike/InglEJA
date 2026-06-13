@@ -216,52 +216,52 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
     const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao } = req.body;
 
-    // 1. Busca a questão para validar a resposta
-    const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
-    if (questaoRes.rows.length === 0) {
-      return res.status(404).json({ erro: "Questão não encontrada" });
-    }
-
-    const respostaCorreta = questaoRes.rows[0].resposta;
-    const acertou = respostaUsuario.trim().toLowerCase() === respostaCorreta.trim().toLowerCase();
-
     let usuario;
+    let acertou = false;
 
-    if (acertou) {
-      // Se for a ÚLTIMA QUESTÃO da lição, sobe o nível e salva na tabela de progresso
-      if (eUltimaQuestao === true || eUltimaQuestao === "true") {
-        
-        // Atualiza nível e pontos
-        const usuarioRes = await pool.query(
-          "UPDATE usuarios SET pontos = pontos + 10, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
-          [usuarioEmail]
-        );
-        usuario = usuarioRes.rows[0];
+    // 🌟 NOVO ACORDO: Se for o sinal de final de lição, o acerto é garantido!
+    if (eUltimaQuestao === true || eUltimaQuestao === "true") {
+      acertou = true; // Força o acerto para rodar os updates abaixo
 
-        // Registra o progresso da fase concluída
-        await pool.query(
-          "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-          [usuario.id, slugFase]
-        );
+      // 1. Atualiza nível e pontos do usuário
+      const usuarioRes = await pool.query(
+        "UPDATE usuarios SET pontos = pontos + 10, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
+        [usuarioEmail]
+      );
+      usuario = usuarioRes.rows[0];
 
-      } else {
-        // Se for uma questão normal no meio do exercício, apenas soma os pontos
+      // 2. Registra a fase concluída na tabela de progresso
+      await pool.query(
+        "INSERT INTO progresso_usuarios (usuario_id, nivel_slug) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [usuario.id, slugFase]
+      );
+
+    } else {
+      // 🌟 SE FOR UMA QUESTÃO NORMAL NO MEIO DO EXERCÍCIO, MANTÉM A VALIDAÇÃO TRADICIONAL:
+      const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
+      if (questaoRes.rows.length === 0) {
+        return res.status(404).json({ erro: "Questão não encontrada" });
+      }
+
+      const respostaCorreta = questaoRes.rows[0].resposta;
+      acertou = respostaUsuario.trim().toLowerCase() === respostaCorreta.trim().toLowerCase();
+
+      if (acertou) {
         const usuarioRes = await pool.query(
           "UPDATE usuarios SET pontos = pontos + 10 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
           [usuarioEmail]
         );
         usuario = usuarioRes.rows[0];
+      } else {
+        const usuarioRes = await pool.query(
+          "SELECT id, nome, email, pontos, nivel, avatar FROM usuarios WHERE email = $1",
+          [usuarioEmail]
+        );
+        usuario = usuarioRes.rows[0];
       }
-    } else {
-      // Se errou a questão, apenas busca os dados atuais do usuário para retornar
-      const usuarioRes = await pool.query(
-        "SELECT id, nome, email, pontos, nivel, avatar FROM usuarios WHERE email = $1",
-        [usuarioEmail]
-      );
-      usuario = usuarioRes.rows[0];
     }
 
-    // 2. Busca TODOS os progressos do usuário para devolver o mapa atualizado ao Frontend
+    // 3. Busca todos os progressos do usuário para atualizar o mapa do frontend
     const progressoRes = await pool.query(
       "SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1",
       [usuario.id]
@@ -272,7 +272,7 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
       progressoObj[row.nivel_slug] = true;
     });
 
-    // 🌟 RESPOSTA UNIFICADA (Evita o travamento do fetch)
+    // Retorna o objeto com nível incrementado e progresso preenchido!
     return res.json({
       acertou,
       usuarioAtualizado: {
