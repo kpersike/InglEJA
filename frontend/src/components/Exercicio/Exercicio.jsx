@@ -371,7 +371,7 @@ function Exercicio() {
 
         // Atualiza a pontuação apenas na fase normal
         if (fase === "normal") {
-          console.log("Acertou! Pontuação será computada ao finalizar a lição.");
+          // setPontuacao((prev) => prev + 10);
         }
       } else {
         setStatusResposta("errada");
@@ -455,39 +455,39 @@ const finalizarLicao = async () => {
       const userStr = localStorage.getItem("usuarioLogado");
       if (userStr) {
         const user = JSON.parse(userStr);
+        const xpGanhos = 40 + (licao.questoes.length - errosCometidos.length) * 5;
         
-        // Captura de forma segura a última questão da lista para enviar ao backend
+        // Captura em segurança a última questão para satisfazer os parâmetros da rota v2
         const ultimaQuestaoDaLicao = licao.questoes[licao.questoes.length - 1];
-        
-        console.log("Enviando dados de conclusão para o servidor...", licao.slug);
 
+        console.log("Enviando sinal de conclusão da lição para a rota correta (v2)...");
+        
+        // 🌟 CORREÇÃO: Mudado o endpoint para /api/validar-resposta-v2 e adicionado os parâmetros necessários
         const response = await fetch("https://ingleja-backend.onrender.com/api/validar-resposta-v2", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             usuarioEmail: user.email, 
             slugFase: licao.slug, 
-            questaoId: ultimaQuestaoDaLicao?.id || 1, 
-            respostaUsuario: ultimaQuestaoDaLicao?.resposta || "", 
-            eUltimaQuestao: true 
+            questaoId: ultimaQuestaoDaLicao?.id || 1,
+            respostaUsuario: ultimaQuestaoDaLicao?.resposta || "",
+            eUltimaQuestao: true // 🌟 AVISA O BACKEND PARA SUBIR O NÍVEL!
           })
         });
         
         if (response.ok) {
            const data = await response.json();
            if (data.usuarioAtualizado) {
-             // Atualiza o LocalStorage imediatamente com o novo nível e progresso
+             // Atualiza o LocalStorage com o objeto completo (Nível 2 e progresso preenchido)
              localStorage.setItem("usuarioLogado", JSON.stringify(data.usuarioAtualizado));
-             console.log("🚀 Sucesso total! Banco e LocalStorage atualizados:", data.usuarioAtualizado);
+             console.log("🚀 Banco de dados e LocalStorage sincronizados com sucesso!", data.usuarioAtualizado);
            }
         } else {
-           console.error("❌ O servidor recusou a requisição. Status:", response.status);
-           const erroTexto = await response.text();
-           console.error("Detalhe do erro do servidor:", erroTexto);
+           console.error("Servidor respondeu com erro ao finalizar:", response.status);
         }
       }
     } catch (e) {
-      console.error("❌ Erro de rede ao tentar salvar progresso:", e);
+      console.error("Erro de rede ao salvar progresso", e);
     }
     
     setFase("conquista");
