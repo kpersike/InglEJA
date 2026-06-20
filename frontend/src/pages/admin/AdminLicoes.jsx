@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ingleja-backend.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function AdminLicoes() {
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+
+  const [salvando, setSalvando] = useState(false);
+  const [notificacao, setNotificacao] = useState(null);
+
+  // 🌟 NOVO ESTADO: Controla o Pop-up moderno de confirmação
+  const [modalConfirmacao, setModalConfirmacao] = useState(null);
 
   const [nivelSelecionado, setNivelSelecionado] = useState(null);
   const [questaoSelecionada, setQuestaoSelecionada] = useState(null);
@@ -18,7 +24,7 @@ export default function AdminLicoes() {
   const audioInputRef = useRef(null);
 
   useEffect(() => {
-    fetch("https://ingleja-backend.onrender.com/api/admin/licoes")
+    fetch(`${API_URL}/api/admin/licoes`)
       .then((res) => {
         if (!res.ok) throw new Error("Falha ao carregar");
         return res.json();
@@ -50,31 +56,37 @@ export default function AdminLicoes() {
     });
   };
 
+  // 🌟 SUBSTITUÍDO: Agora usa o Modal Moderno em vez do window.confirm
   const handleDeletarNivel = () => {
     if (!nivelSelecionado || !dados) return;
-    const confirmar = window.confirm(
-      `Tem certeza que deseja excluir o módulo "${nivelSelecionado.titulo}" e TODAS as suas questões?`,
-    );
-    if (!confirmar) return;
 
-    const niveisRestantes = dados.niveis.filter(
-      (n) => n.id !== nivelSelecionado.id,
-    );
-    setDados({ ...dados, niveis: niveisRestantes });
-    setNivelSelecionado(null);
-    setQuestaoSelecionada(null);
+    setModalConfirmacao({
+      titulo: "Excluir Módulo",
+      mensagem: `Tem certeza que deseja excluir o módulo "${nivelSelecionado.titulo}" e TODAS as suas questões?`,
+      onConfirm: () => {
+        const niveisRestantes = dados.niveis.filter(
+          (n) => n.slug !== nivelSelecionado.slug,
+        );
+        setDados({ ...dados, niveis: niveisRestantes });
+        setNivelSelecionado(null);
+        setQuestaoSelecionada(null);
+        setModalConfirmacao(null); // Fecha o modal
+      },
+      onCancel: () => setModalConfirmacao(null), // Fecha o modal
+    });
   };
 
   const handleAdicionarNivel = () => {
     if (!dados) return;
-    const novoId =
-      dados.niveis.length > 0
-        ? Math.max(...dados.niveis.map((n) => n.id)) + 1
-        : 1;
+
+    const proximoNumeroSequencial = dados.niveis.length + 1;
+    const novoIdTemp = Date.now();
+    const uniqueSlug = `nivel-${proximoNumeroSequencial}-${novoIdTemp}`;
+
     const novoNivel = {
-      id: novoId,
-      slug: `novo-nivel-${novoId}`,
-      titulo: `Novo Nível ${novoId}`,
+      id: novoIdTemp,
+      slug: uniqueSlug,
+      titulo: `Nível ${proximoNumeroSequencial}: Novo Assunto`,
       questoes: [],
     };
 
@@ -220,87 +232,177 @@ export default function AdminLicoes() {
     });
   };
 
+  // 🌟 SUBSTITUÍDO: Agora usa o Modal Moderno em vez do window.confirm
   const handleDeletarQuestao = (idQuestao) => {
-    const confirmar = window.confirm(
-      "Certeza que deseja excluir esta questão permanentemente?",
-    );
-    if (!confirmar) return;
-
-    const questoesRestantes = nivelSelecionado.questoes.filter(
-      (q) => q.id !== idQuestao,
-    );
-    const nivelAtualizado = {
-      ...nivelSelecionado,
-      questoes: questoesRestantes,
-    };
-
-    setNivelSelecionado(nivelAtualizado);
-    setQuestaoSelecionada(null);
-    setDados({
-      ...dados,
-      niveis: dados.niveis.map((n) =>
-        n.id === nivelAtualizado.id ? nivelAtualizado : n,
-      ),
+    setModalConfirmacao({
+      titulo: "Excluir Questão",
+      mensagem: "Tem certeza que deseja excluir esta questão permanentemente?",
+      onConfirm: () => {
+        const questoesRestantes = nivelSelecionado.questoes.filter(
+          (q) => q.id !== idQuestao,
+        );
+        const nivelAtualizado = {
+          ...nivelSelecionado,
+          questoes: questoesRestantes,
+        };
+        setNivelSelecionado(nivelAtualizado);
+        setQuestaoSelecionada(null);
+        setDados({
+          ...dados,
+          niveis: dados.niveis.map((n) =>
+            n.id === nivelAtualizado.id ? nivelAtualizado : n,
+          ),
+        });
+        setModalConfirmacao(null); // Fecha o modal
+      },
+      onCancel: () => setModalConfirmacao(null), // Fecha o modal
     });
   };
 
   const handleSalvarAlteracoes = async () => {
+    setSalvando(true);
     try {
-      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/licoes", {
+      const response = await fetch(`${API_URL}/api/admin/licoes`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
       });
       const result = await response.json();
-      if (result.sucesso) alert("✅ " + result.mensagem);
-      else alert("❌ Erro ao salvar: " + result.erro);
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erro de conexão ao tentar salvar as alterações.");
-    }
-  };
 
-  const handleUploadArquivo = async (e, campoArquivo) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("arquivo", file);
-
-    try {
-      const response = await fetch("https://ingleja-backend.onrender.com/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (data.sucesso) {
-        handleAlterarCampoQuestao(campoArquivo, data.filename);
+      if (response.ok && result.sucesso) {
+        setNotificacao({ tipo: "sucesso", texto: result.mensagem });
       } else {
-        alert("Erro no upload: " + data.erro);
+        setNotificacao({
+          tipo: "erro",
+          texto: result.erro || "Erro ao salvar.",
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Erro ao conectar com o servidor para upload.");
+      setNotificacao({
+        tipo: "erro",
+        texto: "Servidor indisponível no momento.",
+      });
+    } finally {
+      setSalvando(false);
+      setTimeout(() => setNotificacao(null), 4000);
     }
+  };
+
+  const handleUploadArquivo = (e, campoArquivo) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSalvando(true);
+    setNotificacao({ tipo: "sucesso", texto: "Carregando arquivo..." });
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/admin/upload-base64`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: file.name,
+            base64: reader.result,
+            tipo: campoArquivo,
+          }),
+        });
+        const data = await response.json();
+
+        if (response.ok && data.sucesso) {
+          handleAlterarCampoQuestao(campoArquivo, data.filename);
+          setNotificacao({
+            tipo: "sucesso",
+            texto: "Arquivo anexado com sucesso!",
+          });
+        } else {
+          setNotificacao({ tipo: "erro", texto: "Erro: " + data.erro });
+        }
+      } catch (err) {
+        console.error("Erro detalhado do upload:", err);
+        setNotificacao({ tipo: "erro", texto: "Falha ao enviar arquivo." });
+      } finally {
+        setSalvando(false);
+        setTimeout(() => setNotificacao(null), 3000);
+      }
+    };
+    reader.readAsDataURL(file);
     e.target.value = null;
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-full items-center justify-center font-bold text-gray-500 gap-2">
         <span className="material-symbols-outlined animate-spin">sync</span>{" "}
         Carregando painel...
       </div>
     );
-  if (erro)
+  }
+
+  if (erro) {
     return (
       <div className="p-8 font-bold text-red-500 bg-red-50 rounded-xl m-8">
         Erro: {erro}
       </div>
     );
+  }
 
   return (
-    <div className="p-6 md:p-8 w-full h-full flex flex-col overflow-hidden">
+    <div className="p-6 md:p-8 w-full h-full flex flex-col overflow-hidden relative">
+      {/* 🌟 OVERLAY DO MODAL MODERNO DE CONFIRMAÇÃO */}
+      {modalConfirmacao && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] p-6 md:p-8 max-w-sm w-full mx-4 transform transition-all animate-[fadeIn_0.2s_ease-out]">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4 border-4 border-white shadow-sm">
+                <span className="material-symbols-outlined text-[32px]">
+                  warning
+                </span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-gray-800 mb-2">
+                {modalConfirmacao.titulo}
+              </h3>
+              <p className="text-gray-500 font-medium mb-8">
+                {modalConfirmacao.mensagem}
+              </p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={modalConfirmacao.onCancel}
+                className="flex-1 py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={modalConfirmacao.onConfirm}
+                className="flex-1 py-3.5 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 active:scale-95 transition-all shadow-md shadow-red-500/30"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 TOAST NOTIFICATION MODERNO E ANIMADO */}
+      {notificacao && (
+        <div
+          className={`fixed top-8 right-8 md:right-10 flex items-center gap-4 px-6 py-4 rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] z-[100] transition-all duration-300 border border-white/20 backdrop-blur-md text-white font-extrabold tracking-wide ${
+            notificacao.tipo === "sucesso"
+              ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-green-500/40"
+              : "bg-gradient-to-r from-rose-500 to-red-500 shadow-red-500/40"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[28px] drop-shadow-sm">
+            {notificacao.tipo === "sucesso" ? "check_circle" : "error"}
+          </span>
+          <span className="drop-shadow-sm text-[15px]">
+            {notificacao.texto}
+          </span>
+        </div>
+      )}
+
       <header className="flex justify-between items-end mb-6 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -313,11 +415,17 @@ export default function AdminLicoes() {
         <div className="flex gap-4">
           <button
             onClick={handleSalvarAlteracoes}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer border-none"
+            disabled={salvando}
+            className={`text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm border-none ${salvando ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 active:scale-95 cursor-pointer"}`}
           >
-            <span className="material-symbols-outlined">save</span> Salvar
-            Alterações
+            <span
+              className={`material-symbols-outlined ${salvando ? "animate-spin" : ""}`}
+            >
+              {salvando ? "sync" : "save"}
+            </span>
+            {salvando ? "Salvando..." : "Salvar Alterações"}
           </button>
+
           <button
             onClick={handleAdicionarNivel}
             className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer border-none"
@@ -328,7 +436,6 @@ export default function AdminLicoes() {
       </header>
 
       <div className="flex gap-4 flex-1 min-h-0 w-full overflow-hidden">
-        {/* Painel Esquerdo: Módulos */}
         {mostrarModulos && (
           <div className="w-[280px] shrink-0 bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
@@ -351,10 +458,10 @@ export default function AdminLicoes() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropNivel(e, index)}
                   onClick={() => handleSelecionarNivel(nivel)}
-                  className={`p-4 rounded-xl border-2 cursor-grab transition-all ${nivelSelecionado?.id === nivel.id ? "border-primary-500 bg-primary-50 ring-4 ring-primary-50/50" : "border-transparent bg-gray-50 hover:bg-gray-100"}`}
+                  className={`p-4 rounded-xl border-2 cursor-grab transition-all ${nivelSelecionado?.slug === nivel.slug ? "border-primary-500 bg-primary-50 ring-4 ring-primary-50/50" : "border-transparent bg-gray-50 hover:bg-gray-100"}`}
                 >
                   <h3
-                    className={`font-bold ${nivelSelecionado?.id === nivel.id ? "text-primary-700" : "text-gray-800"}`}
+                    className={`font-bold ${nivelSelecionado?.slug === nivel.slug ? "text-primary-700" : "text-gray-800"}`}
                   >
                     {nivel.titulo}
                   </h3>
@@ -380,11 +487,9 @@ export default function AdminLicoes() {
           </div>
         )}
 
-        {/* Área Central Expandível */}
         <div className="flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden min-w-0">
           {nivelSelecionado ? (
             <div className="flex flex-col h-full overflow-hidden">
-              {/* Header do Nível */}
               <div className="p-4 px-6 border-b border-gray-100 flex-shrink-0 bg-white z-10">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-3 flex-1">
@@ -431,10 +536,8 @@ export default function AdminLicoes() {
                 </div>
               </div>
 
-              {/* Contêiner com Scroll Horizontal para as Três Colunas Internas */}
               <div className="flex-1 overflow-x-auto overflow-y-hidden bg-gray-50/30">
                 <div className="flex h-full min-w-[950px]">
-                  {/* LADO ESQUERDO: Lista de Questões (25%) */}
                   <div className="w-1/4 border-r border-gray-100 p-4 overflow-y-auto bg-gray-50/30">
                     <div className="space-y-3">
                       {nivelSelecionado.questoes.map((questao, index) => (
@@ -457,7 +560,7 @@ export default function AdminLicoes() {
                             </p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[10px] font-bold text-gray-400 capitalize border border-gray-200 px-2 py-0.5 rounded bg-white whitespace-nowrap">
-                                {questao.tipo.replace("_", " ")}
+                                {questao.tipo?.replace("_", " ")}
                               </span>
                             </div>
                           </div>
@@ -466,7 +569,6 @@ export default function AdminLicoes() {
                     </div>
                   </div>
 
-                  {/* MEIO: Formulário de Edição (40%) */}
                   <div className="w-[40%] p-6 overflow-y-auto bg-white">
                     {questaoSelecionada ? (
                       <div className="space-y-6 pb-12">
@@ -634,7 +736,6 @@ export default function AdminLicoes() {
                             </div>
                           )}
 
-                          {/* Uploaders */}
                           <div className="pt-4 border-t border-gray-100 grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <div className="flex flex-col w-full">
                               <label className="flex items-center gap-1 text-sm font-bold text-gray-700 mb-2">
@@ -719,7 +820,6 @@ export default function AdminLicoes() {
                             </div>
                           </div>
 
-                          {/* Opções */}
                           {questaoSelecionada.opcoes && (
                             <div className="pt-4 border-t border-gray-100">
                               <label className="block text-sm font-bold text-gray-700 mb-3">
@@ -774,7 +874,6 @@ export default function AdminLicoes() {
                     )}
                   </div>
 
-                  {/* LADO DIREITO: Live Preview Desktop (35%) */}
                   <div className="w-[35%] bg-slate-100 border-l border-gray-200 p-6 overflow-y-auto flex flex-col items-center justify-start">
                     <div className="w-full border-b border-gray-200 pb-4 mb-6 flex items-center justify-between">
                       <h3 className="text-lg font-bold text-gray-800">
@@ -783,13 +882,13 @@ export default function AdminLicoes() {
                       <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">
                           desktop_windows
-                        </span>
+                        </span>{" "}
                         Visão do Aluno
                       </span>
                     </div>
 
                     {questaoSelecionada ? (
-                      <div className="relative w-full max-w-[600px] h-[480px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200 flex flex-col overflow-hidden shrink-0">
+                      <div className="relative w-full max-w-[600px] h-[480px] bg-white rounded-xl shadow-md border border-gray-200 flex flex-col overflow-hidden shrink-0">
                         <div className="bg-gray-100 border-b border-gray-200 h-10 flex items-center px-4 gap-2 shrink-0">
                           <div className="w-3 h-3 rounded-full bg-red-400"></div>
                           <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
@@ -797,7 +896,7 @@ export default function AdminLicoes() {
                           <div className="mx-auto flex items-center gap-2 bg-white px-4 py-1 text-[11px] text-gray-400 rounded-md shadow-sm border border-gray-200 font-mono">
                             <span className="material-symbols-outlined text-[12px]">
                               lock
-                            </span>
+                            </span>{" "}
                             ingleja.com/aluno/licao
                           </div>
                         </div>
@@ -813,7 +912,7 @@ export default function AdminLicoes() {
                           </h2>
 
                           {questaoSelecionada.img && (
-                            <div className="w-full max-w-sm h-40 mb-8 rounded-2xl flex items-center justify-center bg-white border border-gray-100 p-2 shadow-sm">
+                            <div className="w-full max-w-sm h-40 mb-8 rounded-2xl flex items-center justify-center bg-white border p-2 shadow-sm">
                               <img
                                 src={`/images/${questaoSelecionada.img}`}
                                 alt="Preview"

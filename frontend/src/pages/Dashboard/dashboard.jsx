@@ -12,28 +12,45 @@ function Dashboard() {
   const dropdownContainerRef = useRef(null);
 
   const [menuAberto, setMenuAberto] = useState(null);
+  const [niveisDoBanco, setNiveisDoBanco] = useState([]);
 
   // Estado para controlar a revisão
   const [faseEmRevisao, setFaseEmRevisao] = useState(
     () => localStorage.getItem("fase_em_revisao") || null,
   );
 
-// 1. Altere o useState para permitir atualização (adicionando o setUsuario)
+  // 1. Altere o useState para permitir atualização (adicionando o setUsuario)
   const [usuario, setUsuario] = useState(() => {
     const dadosSalvos = localStorage.getItem("usuarioLogado");
     return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", nivel: 1 }; // Mudei o padrão para 1
   });
 
-  // 2. Adicione este useEffect para escutar quando o usuário volta para a tela
+  // 2. Adicione este useEffect para escutar quando o usuário volta para a tela e buscar dados dinâmicos do Neon
   useEffect(() => {
     const atualizarDadosUsuario = () => {
       const dadosSalvos = localStorage.getItem("usuarioLogado");
       if (dadosSalvos) {
         const usuarioAtualizado = JSON.parse(dadosSalvos);
         setUsuario(usuarioAtualizado);
-        console.log("Dashboard atualizada com o progresso real:", usuarioAtualizado);
+        console.log(
+          "Dashboard atualizada com o progresso real:",
+          usuarioAtualizado,
+        );
       }
     };
+
+    // Sincroniza a trilha viva de lições vindas da nuvem via Backend
+    fetch("/api/niveis")
+      .then((res) => {
+        if (!res.ok) throw new Error("Erro ao buscar níveis");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNiveisDoBanco(data);
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar níveis da nuvem:", err));
 
     // Executa imediatamente ao montar a tela
     atualizarDadosUsuario();
@@ -48,12 +65,21 @@ function Dashboard() {
     if (configSalvas) {
       const parsed = JSON.parse(configSalvas);
       if (parsed.layoutHorizontal === undefined) parsed.layoutHorizontal = true;
-      if (parsed.temaPrincipal === undefined) parsed.temaPrincipal = "theme-blue";
-      if (parsed.acessibilidadeAtiva === undefined) parsed.acessibilidadeAtiva = false;
+      if (parsed.temaPrincipal === undefined)
+        parsed.temaPrincipal = "theme-blue";
+      if (parsed.acessibilidadeAtiva === undefined)
+        parsed.acessibilidadeAtiva = false;
       if (parsed.vlibrasAtivo === undefined) parsed.vlibrasAtivo = false;
       return parsed;
     }
-    return { som: true, modoEscuro: false, layoutHorizontal: true, temaPrincipal: "theme-blue", acessibilidadeAtiva: false, vlibrasAtivo: false };
+    return {
+      som: true,
+      modoEscuro: false,
+      layoutHorizontal: true,
+      temaPrincipal: "theme-blue",
+      acessibilidadeAtiva: false,
+      vlibrasAtivo: false,
+    };
   });
 
   const [notificacoes, setNotificacoes] = useState(() => {
@@ -136,58 +162,70 @@ function Dashboard() {
     };
   }, []);
 
-  // Substituindo useState+useEffect por useMemo
+  // Substituindo a estrutura estática por uma união dos dados dinâmicos do Neon com os metadados decorativos
   const licoes = useMemo(() => {
     const progressoDoBanco = usuario.progresso || {};
-    const fasesBase = [
-      {
-        id: 1,
-        slug: "saudacoes",
-        titulo: "Saudações Básicas",
+
+    const dadosVisuaisFases = {
+      saudacoes: {
         iconeTema: "waving_hand",
         descricao:
           "Aprenda a iniciar conversas e cumprimentar pessoas no dia a dia.",
         tempo: "15 min",
       },
-      {
-        id: 2,
-        slug: "cores",
-        titulo: "Cores e Descrições",
+      cores: {
         iconeTema: "palette",
         descricao:
           "Explore o vocabulário visual e aprenda a descrever o mundo ao seu redor.",
         tempo: "20 min",
       },
-      {
-        id: 3,
-        slug: "familia",
-        titulo: "Membros da Família",
+      familia: {
         iconeTema: "family_restroom",
         descricao:
           "Saiba como apresentar seus parentes e falar sobre sua árvore genealógica.",
         tempo: "25 min",
       },
-      {
-        id: 4,
-        slug: "comida",
-        titulo: "Alimentos e Bebidas",
+      comida: {
         iconeTema: "restaurant",
         descricao:
           "Domine o vocabulário essencial para ir a restaurantes e fazer compras.",
         tempo: "30 min",
       },
-      {
-        id: 5,
-        slug: "musica",
-        titulo: "Ritmos e Cultura",
+      musica: {
         iconeTema: "music_note",
         descricao:
           "Conheça instrumentos musicais e expressões culturais em inglês.",
         tempo: "20 min",
       },
-    ];
+    };
 
-    return fasesBase.map((fase, index) => {
+    // Caso a requisição do banco ainda esteja processando, mantém as fases bases como fallback de segurança
+    const listaFasesTrilha =
+      niveisDoBanco.length > 0
+        ? niveisDoBanco
+        : Object.keys(dadosVisuaisFases).map((slug, idx) => ({
+            id: idx + 1,
+            slug,
+            titulo:
+              slug === "saudacoes"
+                ? "Saudações Básicas"
+                : slug === "cores"
+                  ? "Cores e Descrições"
+                  : slug === "familia"
+                    ? "Membros da Família"
+                    : slug === "comida"
+                      ? "Alimentos e Bebidas"
+                      : "Ritmos e Cultura",
+          }));
+
+    return listaFasesTrilha.map((fase, index) => {
+      const complementosVisuais = dadosVisuaisFases[fase.slug] || {
+        iconeTema: "menu_book", // Livro genérico para módulos criados de forma dinâmica pelo Admin
+        descricao:
+          "Aproveite novos conteúdos e exercícios estruturados pela administração.",
+        tempo: "20 min",
+      };
+
       const concluida = progressoDoBanco[fase.slug] === true;
       let status = "bloqueado";
 
@@ -197,20 +235,26 @@ function Dashboard() {
         status = "concluido";
       } else {
         const anteriorConcluida =
-          index === 0 || progressoDoBanco[fasesBase[index - 1].slug] === true;
+          index === 0 ||
+          progressoDoBanco[listaFasesTrilha[index - 1]?.slug] === true;
         if (anteriorConcluida) status = "atual";
       }
-      return { ...fase, status };
+      return {
+        id: fase.id,
+        slug: fase.slug,
+        titulo: fase.titulo,
+        ...complementosVisuais,
+        status,
+      };
     });
-  }, [usuario.progresso, faseEmRevisao]);
+  }, [niveisDoBanco, usuario.progresso, faseEmRevisao]);
 
   // A lição ativa prioriza a que está sendo revisada
-  const licaoAtual =
-    licoes.find((l) => l.status === "revisando") ||
+  const licaoAtual = licoes.find((l) => l.status === "revisando") ||
     licoes.find((l) => l.status === "atual") ||
-    licoes[licoes.length - 1];
+    licoes[licoes.length - 1] || { descricao: "", tempo: "" };
 
-  // Progresso conta as concluídas E as em revisão, para não frustrar o usuário
+  // Progresso conta as concluídas E as em revisão, para não frustrar o usuário (Cálculo Dinâmico Autônomo)
   const missoesConcluidas = licoes.filter(
     (l) => l.status === "concluido" || l.status === "revisando",
   ).length;
@@ -258,9 +302,17 @@ function Dashboard() {
     }
 
     // Aplica o Tema Principal
-    const todosTemas = ["theme-blue", "theme-green", "theme-purple", "theme-rose", "theme-orange"];
+    const todosTemas = [
+      "theme-blue",
+      "theme-green",
+      "theme-purple",
+      "theme-rose",
+      "theme-orange",
+    ];
     document.documentElement.classList.remove(...todosTemas);
-    document.documentElement.classList.add(configuracoes.temaPrincipal || "theme-blue");
+    document.documentElement.classList.add(
+      configuracoes.temaPrincipal || "theme-blue",
+    );
 
     localStorage.setItem(
       "configuracoes_ingleja",
@@ -277,9 +329,9 @@ function Dashboard() {
     const handleKeyDown = (e) => {
       if (e.key !== "Tab" || !menuRef.current) return;
 
-      // Busca todos os botões e links ativos na tela inteira do Dashboard
+      // Busca todos os botões e links activos na tela inteira do Dashboard
       const elementosFocaveis = menuRef.current.querySelectorAll(
-        'button:not([disabled]), a:not([disabled]), [tabindex="0"]'
+        'button:not([disabled]), a:not([disabled]), [tabindex="0"]',
       );
 
       if (elementosFocaveis.length === 0) return;
@@ -293,7 +345,7 @@ function Dashboard() {
           ultimoElemento.focus();
           e.preventDefault();
         }
-      } 
+      }
       // Se estiver avançando (Tab) no último elemento, volta para o primeiro
       else {
         if (document.activeElement === ultimoElemento) {
@@ -308,23 +360,25 @@ function Dashboard() {
   }, []);
 
   // Crie esta referência logo acima, junto com as outras (ex: menuRef, dropdownContainerRef)
-  const anteriorMenuAbertoRef = useRef(null);
 
-useEffect(() => {
-  if (menuAberto && dropdownContainerRef.current) {
-    // O setTimeout força o navegador a executar isso LOGO APÓS o menu aparecer na tela
-    const timer = setTimeout(() => {
-      if (dropdownContainerRef.current) {
-        const primeiroItemFocavel = dropdownContainerRef.current.querySelector('button, [tabindex="0"]');
-        if (primeiroItemFocavel) {
-          primeiroItemFocavel.focus();
+  useEffect(() => {
+    if (menuAberto && dropdownContainerRef.current) {
+      // O setTimeout força o navegador a executar isso LOGO APÓS o menu aparecer na tela
+      const timer = setTimeout(() => {
+        if (dropdownContainerRef.current) {
+          const primeiroItemFocavel =
+            dropdownContainerRef.current.querySelector(
+              'button, [tabindex="0"]',
+            );
+          if (primeiroItemFocavel) {
+            primeiroItemFocavel.focus();
+          }
         }
-      }
-    }, 0);
+      }, 0);
 
-    return () => clearTimeout(timer);
-  }
-}, [menuAberto]); // Simplificado para monitorar diretamente a abertura do menu
+      return () => clearTimeout(timer);
+    }
+  }, [menuAberto]); // Simplificado para monitorar diretamente a abertura do menu
 
   // Fecha o menu aberto ao pressionar a tecla 'Esc'
   useEffect(() => {
@@ -417,7 +471,8 @@ useEffect(() => {
     const feitas = missoesConcluidas || 0;
     const totais = totalMissoes || 0;
 
-    const tituloUsuario = porcentagemProgresso === 100 ? "Mestre de Inglês" : "Explorador Aprendiz";
+    const tituloUsuario =
+      porcentagemProgresso === 100 ? "Mestre de Inglês" : "Explorador Aprendiz";
     const introducao = `Módulo: Fundamentos de Inglês. Seu nível atual é ${tituloUsuario}, Nível ${nivel}. Seu Progresso Geral é de ${porcentagem}%, ${feitas} de ${totais} missões concluídas.`;
 
     if (window.speechSynthesis) {
@@ -429,15 +484,23 @@ useEffect(() => {
     }
 
     // O segredo: Monitoramos apenas a ativação da acessibilidade ou a mudança drástica do progresso
-  }, [configuracoes.acessibilidadeAtiva, porcentagemProgresso, usuario.nivel]);
+  }, [
+    configuracoes.acessibilidadeAtiva,
+    porcentagemProgresso,
+    usuario.nivel,
+    missoesConcluidas,
+    totalMissoes,
+  ]);
 
   // Assegura o estado correto do VLibras assim que o componente monta
   useEffect(() => {
     const widgetVLibras = document.querySelector("[vw]");
     if (widgetVLibras) {
-      widgetVLibras.style.display = configuracoes.vlibrasAtivo ? "block" : "none";
+      widgetVLibras.style.display = configuracoes.vlibrasAtivo
+        ? "block"
+        : "none";
     }
-  }, []); // Executa apenas uma vez no carregamento da tela
+  }, [configuracoes.vlibrasAtivo]); // Executa apenas uma vez no carregamento da tela
 
   const dispararNotificacao = (titulo, desc) => {
     const novaNotificacao = { id: Date.now(), titulo, desc };
@@ -461,7 +524,7 @@ useEffect(() => {
       // 1. Mantém seu efeito sonoro original do botão de som
       if (chave === "som" && novoEstado === true) {
         const audio = new Audio("/audios/sfx/acerto.mp3");
-        audio.play().catch(() => { });
+        audio.play().catch(() => {});
       }
 
       // 2. 🌟 CONTROLE COMPLEMENTAR DO VLIBRAS:
@@ -474,7 +537,10 @@ useEffect(() => {
       }
 
       // 3. 🌟 PERSISTÊNCIA: Grava as novas configurações de volta no LocalStorage
-      localStorage.setItem("configuracoes_ingleja", JSON.stringify(novasConfigs));
+      localStorage.setItem(
+        "configuracoes_ingleja",
+        JSON.stringify(novasConfigs),
+      );
 
       return novasConfigs;
     });
@@ -527,11 +593,12 @@ useEffect(() => {
   };
 
   const nomesDasLicoes = {
-    "waving_hand": "Saudações",
-    "restaurant": "Alimentação",
-    "palette": "Cores e Arte",
-    "family_restroom": "Família",
-    "music_note": "Música"
+    waving_hand: "Saudações",
+    restaurant: "Alimentação",
+    palette: "Cores e Arte",
+    family_restroom: "Família",
+    music_note: "Música",
+    menu_book: "Conteúdo Extra",
   };
 
   const statusTraduzido = {
@@ -542,7 +609,10 @@ useEffect(() => {
   };
 
   return (
-    <div ref={menuRef} className="min-h-screen bg-transparent transition-colors duration-300">
+    <div
+      ref={menuRef}
+      className="min-h-screen bg-transparent transition-colors duration-300"
+    >
       <Navbar usuario={usuario} />
 
       <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-10 flex flex-col">
@@ -577,8 +647,9 @@ useEffect(() => {
               aria-label="Configurações"
               aria-expanded={menuAberto === "config"}
               className={`w-11 h-11 rounded-full text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex justify-center items-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 ${menuAberto === "config" ? "bg-gray-100 dark:bg-gray-800 text-primary-500" : ""}`}
-              // onClick={() => toggleMenu("config")}
-              onClick={() => setMenuAberto(menuAberto === "config" ? null : "config")}
+              onClick={() =>
+                setMenuAberto(menuAberto === "config" ? null : "config")
+              }
             >
               <span
                 aria-hidden="true"
@@ -610,9 +681,15 @@ useEffect(() => {
               onClick={() => toggleMenu("perfil")}
             >
               {usuario.avatar ? (
-                <img src={usuario.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                <img
+                  src={usuario.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : usuario.nome ? (
+                usuario.nome.charAt(0).toUpperCase()
               ) : (
-                usuario.nome ? usuario.nome.charAt(0).toUpperCase() : "U"
+                "U"
               )}
             </button>
 
@@ -627,7 +704,7 @@ useEffect(() => {
                     tabIndex="0"
                     className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("som")}
-                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("som")} // Permite ativar com o Enter do teclado
+                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("som")}
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -647,7 +724,9 @@ useEffect(() => {
                     tabIndex="0"
                     className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("modoEscuro")}
-                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("modoEscuro")} // Permite ativar com o Enter do teclado
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && toggleConfig("modoEscuro")
+                    }
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -668,7 +747,9 @@ useEffect(() => {
                     tabIndex="0"
                     className="px-5 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("layoutHorizontal")}
-                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("layoutHorizontal")} // Permite ativar com o Enter do teclado
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && toggleConfig("layoutHorizontal")
+                    }
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px]">
@@ -686,10 +767,6 @@ useEffect(() => {
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
-                  {/* ========================================== */}
-                  {/* GRUPO PRINCIPAL DE ACESSIBILIDADE */}
-                  {/* ========================================== */}
-                  {/* Título do Grupo (Apenas leitura/divisão visual) */}
                   <li
                     className="px-5 pt-3 pb-1 flex items-center gap-3 text-xs font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase select-none border-t border-gray-100 dark:border-gray-800"
                     aria-hidden="true"
@@ -699,8 +776,6 @@ useEffect(() => {
                     </span>
                     Acessibilidade
                   </li>
-
-                  {/* SUBTÓPICO 1: LEITOR DE TELA */}
                   <li
                     tabIndex="0"
                     role="checkbox"
@@ -708,7 +783,9 @@ useEffect(() => {
                     aria-label="Acessibilidade: Ativar leitor de tela"
                     className="px-5 pl-9 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => toggleConfig("acessibilidadeAtiva")}
-                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("acessibilidadeAtiva")}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && toggleConfig("acessibilidadeAtiva")
+                    }
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px] text-gray-400">
@@ -724,16 +801,16 @@ useEffect(() => {
                       className="accent-blue-500 pointer-events-none"
                     />
                   </li>
-
-                  {/* SUBTÓPICO 2: VLIBRAS */}
                   <li
                     tabIndex="0"
                     role="checkbox"
-                    aria-checked={configuracoes.vlibrasAtivo} // 🌟 Novo estado que vamos mapear abaixo
+                    aria-checked={configuracoes.vlibrasAtivo}
                     aria-label="Acessibilidade: Exibir assistente de Libras"
                     className="px-5 pl-9 py-2.5 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700 border-b border-gray-100 dark:border-gray-800"
                     onClick={() => toggleConfig("vlibrasAtivo")}
-                    onKeyDown={(e) => e.key === "Enter" && toggleConfig("vlibrasAtivo")}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && toggleConfig("vlibrasAtivo")
+                    }
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-[20px] text-gray-400">
@@ -755,7 +832,10 @@ useEffect(() => {
 
             {menuAberto === "notificacoes" && (
               <div className="absolute top-14 right-0 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
-                <div ref={dropdownContainerRef} className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                <div
+                  ref={dropdownContainerRef}
+                  className="px-5 py-3 bg-gray-50 dark:bg-gray-900 text-sm font-bold text-gray-700 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center"
+                >
                   Notificações
                   {notificacoes.length > 0 && (
                     <button
@@ -793,7 +873,10 @@ useEffect(() => {
             )}
 
             {menuAberto === "perfil" && (
-              <div ref={dropdownContainerRef} className="absolute top-14 right-0 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors">
+              <div
+                ref={dropdownContainerRef}
+                className="absolute top-14 right-0 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden transition-colors"
+              >
                 <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 text-left">
                   <p className="text-sm font-bold text-gray-900 dark:text-white m-0">
                     {usuario.nome}
@@ -804,16 +887,15 @@ useEffect(() => {
                 </div>
                 <ul className="py-2 m-0 list-none">
                   <li className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 font-semibold flex flex-col gap-3 cursor-default transition-colors text-left border-b border-gray-100 dark:border-gray-700">
-
-                    {/* Título da seção - O leitor de tela ignora o ícone e foca no contexto */}
                     <div className="flex items-center gap-3">
-                      <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                      <span
+                        aria-hidden="true"
+                        className="material-symbols-outlined text-[20px]"
+                      >
                         palette
                       </span>
                       Cores do Tema
                     </div>
-
-                    {/* Container dos botões */}
                     <div className="flex items-center gap-2 mt-1">
                       {[
                         { classe: "theme-blue", corBotao: "bg-blue-500" },
@@ -822,25 +904,31 @@ useEffect(() => {
                         { classe: "theme-rose", corBotao: "bg-rose-500" },
                         { classe: "theme-orange", corBotao: "bg-orange-500" },
                       ].map((tema) => {
-                        // Verifica se este botão é o tema atualmente ativo
-                        const estaAtivo = configuracoes.temaPrincipal === tema.classe;
-
-                        // Monta o texto perfeito para o leitor falar
-                        const nomeTraduzido = nomesDosTemas[tema.classe] || "Tema";
-                        const textoAcessivel = estaAtivo ? `${nomeTraduzido}, selecionado` : nomeTraduzido;
+                        const estaAtivo =
+                          configuracoes.temaPrincipal === tema.classe;
+                        const nomeTraduzido =
+                          nomesDosTemas[tema.classe] || "Tema";
+                        const textoAcessivel = estaAtivo
+                          ? `${nomeTraduzido}, selecionado`
+                          : nomeTraduzido;
 
                         return (
                           <button
                             key={tema.classe}
                             type="button"
-                            // 🌟 Ditamos exatamente o que o motor de voz lerá em português
                             aria-label={textoAcessivel}
-                            onClick={() => setConfiguracoes({ ...configuracoes, temaPrincipal: tema.classe })}
-                            className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-gray-800 ${estaAtivo
+                            onClick={() =>
+                              setConfiguracoes({
+                                ...configuracoes,
+                                temaPrincipal: tema.classe,
+                              })
+                            }
+                            className={`w-6 h-6 rounded-full ${tema.corBotao} transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-gray-800 ${
+                              estaAtivo
                                 ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800"
                                 : ""
-                              }`}
-                            title={nomeTraduzido} // Mantém o tooltip visual em português ao passar o mouse
+                            }`}
+                            title={nomeTraduzido}
                           />
                         );
                       })}
@@ -849,11 +937,14 @@ useEffect(() => {
                   <li
                     aria-label="Personalizar perfil"
                     tabIndex="0"
-                    className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700 border-b border-gray-100 dark:border-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
+                    className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors text-left border-b border-gray-100 dark:border-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:bg-gray-50 dark:focus-visible:bg-gray-700"
                     onClick={() => navigate("/perfil")}
                     onKeyDown={(e) => e.key === "Enter" && navigate("/perfil")}
                   >
-                    <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                    <span
+                      aria-hidden="true"
+                      className="material-symbols-outlined text-[20px]"
+                    >
                       manage_accounts
                     </span>{" "}
                     Personalizar Perfil
@@ -865,7 +956,10 @@ useEffect(() => {
                     onClick={fazerLogout}
                     onKeyDown={(e) => e.key === "Enter" && fazerLogout()}
                   >
-                    <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+                    <span
+                      aria-hidden="true"
+                      className="material-symbols-outlined text-[20px]"
+                    >
                       logout
                     </span>{" "}
                     Sair
@@ -876,9 +970,9 @@ useEffect(() => {
           </div>
         </header>
 
-        {/* CARD DE PROGRESSO GERAL */}
+        {/* CARD DE PROGRESSO GERAL (MATEMÁTICA ATUALIZADA) */}
         <section
-          id="tour-progresso" // <--- ID ADICIONADO AQUI
+          id="tour-progresso"
           className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-8 mb-16 shadow-sm border border-gray-100 dark:border-gray-800 w-full transition-colors duration-300"
         >
           <div className="w-full">
@@ -907,11 +1001,8 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* TRILHA DINÂMICA */}
-        <div
-          id="tour-trilha" // <--- ID ADICIONADO AQUI
-          className="relative w-full mb-16 group"
-        >
+        {/* TRILHA DINÂMICA INTEGRADA COM BANCO NEON */}
+        <div id="tour-trilha" className="relative w-full mb-16 group">
           {configuracoes.layoutHorizontal && (
             <button
               type="button"
@@ -919,7 +1010,10 @@ useEffect(() => {
               className={`absolute -left-4 md:-left-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-110`}
               onClick={() => scrollTimeline("esquerda")}
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[28px]"
+              >
                 chevron_left
               </span>
             </button>
@@ -953,7 +1047,7 @@ useEffect(() => {
                     : {}
                 }
               >
-                {/* LINHA DE CONEXÃO (Pontilhada Refinada) */}
+                {/* LINHA DE CONEXÃO (Pontilhada Dinâmica) */}
                 {index !== licoes.length - 1 && (
                   <div
                     className={`absolute z-0 transition-all duration-700 ${
@@ -965,11 +1059,10 @@ useEffect(() => {
                       background:
                         licao.status === "concluido" ||
                         licao.status === "revisando"
-                          ? "linear-gradient(to right, #3b82f6 0%, #93c5fd 100%)" // Azul escuro para claro
+                          ? "linear-gradient(to right, #3b82f6 0%, #93c5fd 100%)"
                           : licao.status === "atual"
-                            ? "linear-gradient(to right, #3b82f6 0%, transparent 100%)" // Azul sumindo em direção à lição bloqueada
-                            : "#e5e7eb", // Cinza estático para lições totalmente futuras
-
+                            ? "linear-gradient(to right, #3b82f6 0%, transparent 100%)"
+                            : "#e5e7eb",
                       WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='12' height='4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='black'/%3E%3C/svg%3E")`,
                       WebkitMaskRepeat: configuracoes.layoutHorizontal
                         ? "repeat-x"
@@ -982,12 +1075,10 @@ useEffect(() => {
                   ></div>
                 )}
 
-                {/* CÍRCULO DA LIÇÃO (Estilo Soft/Neumórfico) */}
+                {/* CÍRCULO DA LIÇÃO */}
                 <button
                   type="button"
-                  // 🌟 AGORA SIM: Busca a tradução do assunto no dicionário de lições
                   aria-label={`Lição: ${nomesDasLicoes[licao.iconeTema] || "Geral"}. Status: ${statusTraduzido[licao.status] || licao.status}`}
-
                   tabIndex="0"
                   aria-disabled={licao.status === "bloqueado"}
                   onClick={(e) => {
@@ -1001,54 +1092,82 @@ useEffect(() => {
                     licao.status !== "bloqueado" && tocarSom("hover_mapa.mp3")
                   }
                   className={`
-    relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
-    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-105
-    ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed opacity-60"}
-    ${licao.status === "atual" || licao.status === "revisando"
-                      ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-primary-50 dark:border-gray-800"
-                      : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
+                    relative flex items-center justify-center rounded-full transition-all duration-500 z-10 group circle-icon
+                    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-105
+                    ${licao.status !== "bloqueado" ? "cursor-pointer hover:-translate-y-1" : "cursor-not-allowed opacity-60"}
+                    ${
+                      licao.status === "atual" || licao.status === "revisando"
+                        ? "w-[90px] h-[90px] bg-white dark:bg-gray-900 shadow-[0_0_0_10px_rgba(255,255,255,1),0_0_40px_15px_rgba(59,130,246,0.25)] dark:shadow-[0_0_0_10px_rgba(17,24,39,1),0_0_40px_15px_rgba(59,130,246,0.4)] border border-primary-50 dark:border-gray-800"
+                        : "w-[85px] h-[85px] bg-white dark:bg-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-gray-50 dark:border-gray-800 mt-[2.5px]"
                     }
-  `}
+                  `}
                 >
-                  {/* Conteúdo interno com aria-hidden="true" (SVGs e spans) continua igual */}
-                  {licao.iconeTema === "restaurant" && licao.status !== "concluido" && licao.status !== "bloqueado" ? (
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={`w-[1em] h-[1em] anim-cross transition-colors duration-300 ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}`}>
-                      <path className="fork" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.88 3.75 3.99V22h2.5v-9.01C11.34 12.88 13 11.12 13 9V2h-2v7z" />
-                      <path className="knife" d="M16 6v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" />
+                  {licao.iconeTema === "restaurant" &&
+                  licao.status !== "concluido" &&
+                  licao.status !== "bloqueado" ? (
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className={`w-[1em] h-[1em] anim-cross transition-colors duration-300 ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}`}
+                    >
+                      <path
+                        className="fork"
+                        d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.88 3.75 3.99V22h2.5v-9.01C11.34 12.88 13 11.12 13 9V2h-2v7z"
+                      />
+                      <path
+                        className="knife"
+                        d="M16 6v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"
+                      />
                     </svg>
                   ) : (
                     <span
                       aria-hidden="true"
                       className={`
-      material-symbols-outlined transition-colors duration-300
-      ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}
-      ${licao.status === "concluido" ? "text-primary-600 dark:text-primary-500 anim-check" : ""}
-      ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
-      ${licao.iconeTema === "waving_hand" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-wave" : ""}
-      ${licao.iconeTema === "palette" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-palette" : ""}
-      ${licao.iconeTema === "family_restroom" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-jump" : ""}
-      ${licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-music-main" : ""}
-    `}
+                        material-symbols-outlined transition-colors duration-300
+                        ${licao.status === "atual" || licao.status === "revisando" ? "text-[40px] text-primary-500 dark:text-primary-400" : "text-[36px]"}
+                        ${licao.status === "concluido" ? "text-primary-600 dark:text-primary-500 anim-check" : ""}
+                        ${licao.status === "bloqueado" ? "text-gray-400 dark:text-gray-500" : ""}
+                        ${licao.iconeTema === "waving_hand" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-wave" : ""}
+                        ${licao.iconeTema === "palette" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-palette" : ""}
+                        ${licao.iconeTema === "family_restroom" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-jump" : ""}
+                        ${licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" ? "anim-music-main" : ""}
+                      `}
                     >
-                      {licao.status === "concluido" ? "check" : licao.status === "bloqueado" ? "lock" : licao.iconeTema}
+                      {licao.status === "concluido"
+                        ? "check"
+                        : licao.status === "bloqueado"
+                          ? "lock"
+                          : licao.iconeTema}
                     </span>
                   )}
 
-                  {licao.iconeTema === "music_note" && licao.status !== "concluido" && licao.status !== "bloqueado" && (
-                    <div aria-hidden="true" className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[18px] m-note m-note-1">music_note</span>
-                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[22px] m-note m-note-2">music_note</span>
-                      <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[16px] m-note m-note-3">music_note</span>
-                    </div>
-                  )}
+                  {licao.iconeTema === "music_note" &&
+                    licao.status !== "concluido" &&
+                    licao.status !== "bloqueado" && (
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 pointer-events-none flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[18px] m-note m-note-1">
+                          music_note
+                        </span>
+                        <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[22px] m-note m-note-2">
+                          music_note
+                        </span>
+                        <span className="material-symbols-outlined absolute text-primary-500/70 dark:text-primary-400/70 text-[16px] m-note m-note-3">
+                          music_note
+                        </span>
+                      </div>
+                    )}
                 </button>
 
-                {/* TEXTOS DA LIÇÃO (Tipografia Refinada) */}
+                {/* TEXTOS DA LIÇÃO */}
                 <div
                   className={`
-                  mt-8 text-center flex flex-col items-center px-4 py-3 z-10 w-full
-                  ${!configuracoes.layoutHorizontal ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 dark:border-gray-800 mt-6" : ""}
-                `}
+                    mt-8 text-center flex flex-col items-center px-4 py-3 z-10 w-full
+                    ${!configuracoes.layoutHorizontal ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 dark:border-gray-800 mt-6" : ""}
+                  `}
                 >
                   <span
                     className={`text-[12px] font-bold mb-1.5 transition-colors uppercase tracking-widest ${
@@ -1118,7 +1237,10 @@ useEffect(() => {
               className={`absolute -right-4 md:-right-16 top-[85px] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex justify-center items-center text-gray-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 hover:border-primary-200 dark:hover:border-primary-900/50 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/50 focus-visible:scale-110`}
               onClick={() => scrollTimeline("direita")}
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[28px]"
+              >
                 chevron_right
               </span>
             </button>
@@ -1181,7 +1303,10 @@ useEffect(() => {
                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-[14px] border-none cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-500/50"
                   >
                     Continuar Revisão
-                    <span aria-hidden="true" className="material-symbols-outlined text-lg">
+                    <span
+                      aria-hidden="true"
+                      className="material-symbols-outlined text-lg"
+                    >
                       chevron_right
                     </span>
                   </button>

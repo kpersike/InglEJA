@@ -62,26 +62,6 @@ export default function AdminLayout() {
             </span>
             {sidebarAberta && <span>Lições</span>}
           </NavLink>
-
-          <NavLink
-            to="/admin/simulados"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${isActive ? "bg-orange-50 text-orange-600" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}`
-            }
-          >
-            <span className="material-symbols-outlined shrink-0">quiz</span>
-            {sidebarAberta && <span>Simulados</span>}
-          </NavLink>
-
-          <NavLink
-            to="/admin/alunos"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${isActive ? "bg-primary-50 text-primary-700" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}`
-            }
-          >
-            <span className="material-symbols-outlined shrink-0">group</span>
-            {sidebarAberta && <span>Alunos</span>}
-          </NavLink>
         </nav>
 
         <div className="p-4 border-t border-gray-100">
