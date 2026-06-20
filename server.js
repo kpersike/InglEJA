@@ -182,6 +182,20 @@ app.post("/api/login-google", async (req, res) => {
 // 📚 ROTAS DE LIÇÕES & PROGRESSO (Consumindo do Banco)
 // ==========================================
 
+// ==========================================
+// 📚 NOVA ROTA: Listar todas as lições para a Dashboard
+// ==========================================
+app.get("/api/licoes", async (req, res) => {
+  try {
+    // Busca o ID, título e slug de todas as lições ordenadas pelo ID sequencial
+    const resultado = await pool.query("SELECT id, titulo, slug FROM niveis_licoes ORDER BY id ASC");
+    res.json(resultado.rows);
+  } catch (err) {
+    console.error("❌ Erro ao listar lições:", err.message);
+    res.status(500).json({ erro: "Erro interno no servidor ao buscar lições." });
+  }
+});
+
 // Rota unificada para carregar fase filtrando loops e duplicados do banco relacionais
 app.get("/api/fase/:slug", async (req, res) => {
   const { slug } = req.params;

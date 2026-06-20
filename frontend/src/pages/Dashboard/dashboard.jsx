@@ -25,42 +25,41 @@ function Dashboard() {
     return dadosSalvos ? JSON.parse(dadosSalvos) : { nome: "Aluno", nivel: 1 }; // Mudei o padrão para 1
   });
 
-  // 2. Adicione este useEffect para escutar quando o usuário volta para a tela e buscar dados dinâmicos do Neon
-  useEffect(() => {
-    const atualizarDadosUsuario = () => {
-      const dadosSalvos = localStorage.getItem("usuarioLogado");
-      if (dadosSalvos) {
-        const usuarioAtualizado = JSON.parse(dadosSalvos);
-        setUsuario(usuarioAtualizado);
-        console.log(
-          "Dashboard atualizada com o progresso real:",
-          usuarioAtualizado,
-        );
+// 2. Adicione este useEffect para escutar quando o usuário volta para a tela e buscar dados dinâmicos do Neon
+useEffect(() => {
+  const atualizarDadosUsuario = () => {
+    const dadosSalvos = localStorage.getItem("usuarioLogado");
+    if (dadosSalvos) {
+      const usuarioAtualizado = JSON.parse(dadosSalvos);
+      setUsuario(usuarioAtualizado);
+      console.log(
+        "Dashboard updated com o progresso real:",
+        usuarioAtualizado,
+      );
+    }
+  };
+
+  // 🌟 Sincroniza apontando para a nova rota GET que criamos no Postgres
+  fetch("https://ingleja-backend.onrender.com/api/licoes")
+    .then((res) => {
+      if (!res.ok) throw new Error("Erro ao buscar níveis");
+      return res.json();
+    })
+    .then((data) => {
+      // Como a rota retorna diretamente o array rows da query:
+      if (Array.isArray(data)) {
+        setNiveisDoBanco(data);
       }
-    };
+    })
+    .catch((err) => console.error("Erro ao carregar níveis da nuvem:", err));
 
-    // 🌟 Sincroniza apontando para a rota de lições existente no Render
-    fetch("https://ingleja-backend.onrender.com/api/admin/licoes")
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao buscar níveis");
-        return res.json();
-      })
-      .then((data) => {
-        // 🌟 Como a rota /api/admin/licoes retorna um objeto { niveis: [...] },
-        // verificamos se data.niveis existe e é um array antes de salvar
-        if (data && Array.isArray(data.niveis)) {
-          setNiveisDoBanco(data.niveis);
-        }
-      })
-      .catch((err) => console.error("Erro ao carregar níveis da nuvem:", err));
+  // Executa imediatamente ao montar a tela
+  atualizarDadosUsuario();
 
-    // Executa imediatamente ao montar a tela
-    atualizarDadosUsuario();
-
-    // Opcional: Escuta mudanças caso você use abas diferentes
-    window.addEventListener("storage", atualizarDadosUsuario);
-    return () => window.removeEventListener("storage", atualizarDadosUsuario);
-  }, []); // Executa sempre que a Dashboard ganhar foco/for montada
+  // Opcional: Escuta mudanças caso você use abas diferentes
+  window.addEventListener("storage", atualizarDadosUsuario);
+  return () => window.removeEventListener("storage", atualizarDadosUsuario);
+}, []); // Executa sempre que a Dashboard ganhar foco/for montada
 
   const [configuracoes, setConfiguracoes] = useState(() => {
     const configSalvas = localStorage.getItem("configuracoes_ingleja");
