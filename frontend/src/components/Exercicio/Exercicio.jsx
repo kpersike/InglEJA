@@ -42,33 +42,30 @@ function Exercicio() {
 
   const cardExercicioRef = useRef(null);
 
-  // ==========================================
-  // EFEITO 1: BUSCAR DADOS DO BACKEND (CORRIGIDO E SIMPLIFICADO)
+// ==========================================
+  // EFEITO 1: BUSCAR DADOS DO BACKEND (ATUALIZADO PARA POSTGRES)
   // ==========================================
   useEffect(() => {
-    // Micro-atraso para evitar o erro do ESLint
     const timerLoading = setTimeout(() => setLoadingDados(true), 0);
 
-    // Como o server.js já envia a resposta correta, consumimos apenas uma rota limpa
     fetch(`https://ingleja-backend.onrender.com/api/fase/${slug}`)
       .then((res) => {
         if (!res.ok) throw new Error("Fase não encontrada");
         return res.json();
       })
       .then((faseData) => {
-        // Define a lição diretamente com os dados estruturados do backend
         setLicao(faseData);
 
-        // Define dinamicamente o número do próximo nível com base no ID sequencial da lição atual
-        setNumeroProximoNivel((faseData.id || 1) + 1);
-
-        // Mantém como null ou limpo, já que o controle de fluxo será feito pelo ID/slug seguinte
+        // 🌟 Correção de segurança: Define o próximo ID baseado no ID atual, 
+        // mas garante que o controle principal no fim do fluxo use caminhos dinâmicos
+        setNumeroProximoNivel(faseData.id ? Number(faseData.id) + 1 : 2);
         setDadosProximaLicao(null);
 
         setLoadingDados(false);
       })
       .catch((err) => {
         console.error("Erro ao carregar dados da lição:", err);
+        setLicao(null); // Evita lixo de estado anterior
         setLoadingDados(false);
       })
       .finally(() => clearTimeout(timerLoading));

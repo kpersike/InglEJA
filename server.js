@@ -228,43 +228,48 @@ app.get("/api/fase/:slug", async (req, res) => {
       questoes: []
     };
 
-    // Usaremos um dicionário (Map) indexado pelo ID da questão para eliminar qualquer
-    // multiplicação de linhas gerada pelo comportamento do LEFT JOIN
+    // Mapa de controle indexado pelo CONTEÚDO da questão para remover duplicatas físicas reais
     const questoesMap = {};
 
     resultado.rows.forEach(linha => {
-      if (linha.questao_id && !questoesMap[linha.questao_id]) {
+      if (linha.questao_id) {
         
-        // Garante a integridade e parsing correto do array de opções
-        let opcoesTratadas = linha.opcoes;
-        if (typeof linha.opcoes === 'string') {
-          try { 
-            opcoesTratadas = JSON.parse(linha.opcoes); 
-          } catch (e) { 
-            opcoesTratadas = []; 
-          }
-        }
+        // 🌟 CHAVE ÚNICA COM BASE NO CONTEÚDO (Evita IDs diferentes para perguntas idênticas)
+        const chaveUnicaConteudo = `${linha.tipo}_${linha.pergunta_exibicao}`;
 
-        // Adiciona a questão no mapa usando o ID como chave única estrita
-        questoesMap[linha.questao_id] = {
-          id: linha.questao_id,
-          tipo: linha.tipo,
-          pergunta_exibicao: linha.pergunta_exibicao,
-          dica: linha.dica,
-          traducao: linha.traducao,
-          audio: linha.audio,
-          img: linha.img,
-          resposta: linha.resposta,
-          opcoes: opcoesTratadas,
-          frase_parte_1: linha.frase_parte_1,
-          frase_parte_2: linha.frase_parte_2,
-          frase_exibicao: linha.frase_exibicao,
-          palavra_ingles: linha.palavra_ingles
-        };
+        if (!questoesMap[chaveUnicaConteudo]) {
+          
+          // Garante a integridade e parsing correto do array de opções
+          let opcoesTratadas = linha.opcoes;
+          if (typeof linha.opcoes === 'string') {
+            try { 
+              opcoesTratadas = JSON.parse(linha.opcoes); 
+            } catch (e) { 
+              opcoesTratadas = []; 
+            }
+          }
+
+          // Adiciona no mapa usando a chave textual.
+          questoesMap[chaveUnicaConteudo] = {
+            id: linha.questao_id,
+            tipo: linha.tipo,
+            pergunta_exibicao: linha.pergunta_exibicao,
+            dica: linha.dica,
+            traducao: linha.traducao,
+            audio: linha.audio,
+            img: linha.img, // 🌟 CORRIGIDO: de inlineha.img para linha.img
+            resposta: linha.resposta,
+            opcoes: opcoesTratadas,
+            frase_parte_1: linha.frase_parte_1,
+            frase_parte_2: linha.frase_parte_2,
+            frase_exibicao: linha.frase_exibicao,
+            palavra_ingles: linha.palavra_ingles
+          };
+        }
       }
     });
 
-    // Transforma o mapa de questões de volta em um array limpo
+    // Transforma o mapa de questões de conteúdo único de volta em um array limpo
     licaoFormatada.questoes = Object.values(questoesMap);
 
     res.json(licaoFormatada);
