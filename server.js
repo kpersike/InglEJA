@@ -182,39 +182,78 @@ app.post("/api/login-google", async (req, res) => {
 // 📚 ROTAS DE LIÇÕES & PROGRESSO (Consumindo do Banco)
 // ==========================================
 
-// Rota para pegar todos os dados de uma FASE específica pelo SLUG
+// Rota unificada para carregar fase filtrando loops e duplicados do banco relacionais
 app.get("/api/fase/:slug", async (req, res) => {
+  const { slug } = req.params;
+
   try {
-    const { slug } = req.params;
+    // Consulta otimizada unindo níveis e questões correspondentes utilizando o POOL correto
+    const query = `
+      SELECT 
+        l.id AS licao_id, l.titulo AS licao_titulo, l.slug AS licao_slug,
+        q.id AS questao_id, q.tipo, q.pergunta_exibicao, q.dica, q.traducao, 
+        q.audio, q.img, q.resposta, q.opcoes, q.frase_parte_1, q.frase_parte_2, 
+        q.frase_exibicao, q.palavra_ingles
+      FROM niveis_licoes l
+      LEFT JOIN questoes q ON l.id = q.nivel_id
+      WHERE l.slug = $1
+    `;
+    
+    const resultado = await pool.query(query, [slug]);
 
-    // Busca o nível pelo slug
-    const nivelRes = await pool.query("SELECT id, titulo, slug FROM niveis_licoes WHERE slug = $1", [slug]);
-    if (nivelRes.rows.length === 0) return res.status(404).json({ erro: "Fase não encontrada" });
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ erro: "Fase não encontrada" });
+    }
 
-    const nivel = nivelRes.rows[0];
+    // Estrutura o objeto pai baseado na primeira linha retornada
+    const licaoFormatada = {
+      id: resultado.rows[0].licao_id,
+      titulo: resultado.rows[0].licao_titulo,
+      slug: resultado.rows[0].licao_slug,
+      questoes: []
+    };
 
-    // Busca as questões atreladas a esse nível (Sem expor o campo 'resposta')
-    const questoesRes = await pool.query(
-      `SELECT id, tipo, pergunta_exibicao, dica, traducao, audio, img, opcoes, 
-              frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles 
-       FROM questoes WHERE nivel_id = $1`,
-      [nivel.id]
-    );
+    // Filtro contra linhas repetidas oriundas do JOIN
+    const questoesAdicionadas = new Set();
 
-    res.json({
-      titulo: nivel.titulo,
-      slug: nivel.slug,
-      questoes: questoesRes.rows,
+    resultado.rows.forEach(linha => {
+      if (linha.questao_id && !questoesAdicionadas.has(linha.questao_id)) {
+        questoesAdicionadas.add(linha.questao_id);
+
+        // Garante integridade do array de opções
+        let opcoesTratadas = linha.opcoes;
+        if (typeof linha.opcoes === 'string') {
+          try { opcoesTratadas = JSON.parse(linha.opcoes); } catch (e) { opcoesTratadas = []; }
+        }
+
+        licaoFormatada.questoes.push({
+          id: linha.questao_id,
+          tipo: linha.tipo,
+          pergunta_exibicao: linha.pergunta_exibicao,
+          dica: linha.dica,
+          traducao: linha.traducao,
+          audio: linha.audio,
+          img: linha.img,
+          resposta: linha.resposta, // O Exercicio.jsx precisa comparar a resposta localmente!
+          opcoes: opcoesTratadas,
+          frase_parte_1: linha.frase_parte_1,
+          frase_parte_2: linha.frase_parte_2,
+          frase_exibicao: linha.frase_exibicao,
+          palavra_ingles: linha.palavra_ingles
+        });
+      }
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: "Erro ao carregar a fase" });
+
+    res.json(licaoFormatada);
+
+  } catch (erro) {
+    console.error("Erro ao buscar fase no banco:", erro);
+    res.status(500).json({ erro: "Erro interno do servidor" });
   }
 });
 
 app.post("/api/validar-resposta-v2", async (req, res) => {
   try {
-    // 🌟 CAPTURA A PROPRIEDADE pontosGanhos VINDA DO CORPO DA REQUISIÇÃO
     const { usuarioEmail, slugFase, questaoId, respostaUsuario, eUltimaQuestao, pontosGanhos } = req.body;
 
     let usuario;
@@ -222,11 +261,8 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
 
     if (eUltimaQuestao === true || eUltimaQuestao === "true") {
       acertou = true;
-
-      // 🌟 VALIDAÇÃO DE SEGURANÇA: Garante um valor numérico se pontosGanhos falhar ou vier nulo
       const pontosParaSomar = Number(pontosGanhos) || 40;
 
-      // 🌟 SQL ATUALIZADO: Agora usa $2 (pontosParaSomar) no lugar do "+ 10" estático
       const usuarioRes = await pool.query(
         "UPDATE usuarios SET pontos = pontos + $2, nivel = nivel + 1 WHERE email = $1 RETURNING id, nome, email, pontos, nivel, avatar",
         [usuarioEmail, pontosParaSomar]
@@ -240,7 +276,6 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
       );
 
     } else {
-      // 🌟 SE FOR UMA QUESTÃO NORMAL NO MEIO DO EXERCÍCIO, MANTÉM A VALIDAÇÃO TRADICIONAL:
       const questaoRes = await pool.query("SELECT resposta FROM questoes WHERE id = $1", [questaoId]);
       if (questaoRes.rows.length === 0) {
         return res.status(404).json({ erro: "Questão não encontrada" });
@@ -264,7 +299,7 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
       }
     }
 
-    // 3. Busca todos os progressos do usuário para atualizar o mapa do frontend
+    // Busca todos os progressos do usuário para atualizar o mapa do frontend
     const progressoRes = await pool.query(
       "SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1",
       [usuario.id]
@@ -275,7 +310,6 @@ app.post("/api/validar-resposta-v2", async (req, res) => {
       progressoObj[row.nivel_slug] = true;
     });
 
-    // Retorna o objeto com nível incrementado e progresso preenchido!
     return res.json({
       acertou,
       usuarioAtualizado: {
@@ -313,7 +347,7 @@ app.post("/api/salvar-progresso", async (req, res) => {
 
       const progressoRes = await pool.query("SELECT nivel_slug FROM progresso_usuarios WHERE usuario_id = $1", [usuario.id]);
       const progressoObj = {};
-      progressoRes.rows.forEach(p => progressoObj[p.nivel_slug] = true);
+      progressoRes.rows.forEach(p => p.nivel_slug = true);
 
       return res.json({ 
         sucesso: true, 
@@ -323,7 +357,7 @@ app.post("/api/salvar-progresso", async (req, res) => {
     res.status(404).json({ erro: "Usuário não encontrado" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ erro: "Erro interno no servidor" });
+    res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
 
@@ -340,28 +374,6 @@ app.post("/api/admin/login", (req, res) => {
     res.json({ sucesso: true, token: "admin_token_autorizado" });
   } else {
     res.status(401).json({ erro: "Acesso negado. Credenciais inválidas." });
-  }
-});
-
-// Admin ver todos os níveis e questões direto do Banco
-app.get("/api/admin/licoes", async (req, res) => {
-  try {
-    const niveisRes = await pool.query("SELECT * FROM niveis_licoes");
-    const licoesCompletas = [];
-
-    for (let nivel of niveisRes.rows) {
-      const questoesRes = await pool.query("SELECT * FROM questoes WHERE nivel_id = $1", [nivel.id]);
-      licoesCompletas.push({
-        titulo: nivel.titulo,
-        slug: nivel.slug,
-        questoes: questoesRes.rows
-      });
-    }
-
-    res.json({ niveis: licoesCompletas });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: "Erro ao carregar lições" });
   }
 });
 
@@ -386,13 +398,17 @@ app.put("/api/admin/licoes", async (req, res) => {
 
       // Trata as questões daquele nível
       for (let q of nivel.questoes) {
+        // Para colunas do tipo JSON/JSONB no Postgres, passamos o próprio array/objeto se o driver suportar,
+        // ou convertemos para string se a coluna for do tipo TEXT. Aqui passamos o array diretamente:
+        const opcoesParam = Array.isArray(q.opcoes) ? q.opcoes : [];
+
         await client.query(
           `INSERT INTO questoes (nivel_id, tipo, pergunta_exibicao, dica, traducao, audio, img, resposta, opcoes, frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-           ON CONFLICT DO NOTHING`, // Evita duplicar se já existir
+           ON CONFLICT DO NOTHING`, 
           [
             nivelId, q.tipo, q.pergunta_exibicao, q.dica, q.traducao, q.audio, q.img, q.resposta, 
-            JSON.stringify(q.opcoes || []), q.frase_parte_1, q.frase_parte_2, q.frase_exibicao, q.palavra_ingles
+            opcoesParam, q.frase_parte_1, q.frase_parte_2, q.frase_exibicao, q.palavra_ingles
           ]
         );
       }

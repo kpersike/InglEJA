@@ -39,15 +39,17 @@ function Dashboard() {
       }
     };
 
-    // Sincroniza a trilha viva de lições vindas da nuvem via Backend
-    fetch("/api/niveis")
+    // 🌟 Sincroniza apontando para a rota de lições existente no Render
+    fetch("https://ingleja-backend.onrender.com/api/admin/licoes")
       .then((res) => {
         if (!res.ok) throw new Error("Erro ao buscar níveis");
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data)) {
-          setNiveisDoBanco(data);
+        // 🌟 Como a rota /api/admin/licoes retorna um objeto { niveis: [...] },
+        // verificamos se data.niveis existe e é um array antes de salvar
+        if (data && Array.isArray(data.niveis)) {
+          setNiveisDoBanco(data.niveis);
         }
       })
       .catch((err) => console.error("Erro ao carregar níveis da nuvem:", err));
