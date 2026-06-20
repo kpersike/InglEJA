@@ -196,12 +196,13 @@ app.get("/api/licoes", async (req, res) => {
   }
 });
 
-// Rota unificada para carregar fase filtrando loops e duplicados do banco relacionais
+// ==========================================
+// Rota unificada para carregar fase filtrando loops e duplicados (CORRIGIDA)
+// ==========================================
 app.get("/api/fase/:slug", async (req, res) => {
   const { slug } = req.params;
 
   try {
-    // Consulta otimizada unindo níveis e questões correspondentes utilizando o POOL correto
     const query = `
       SELECT 
         l.id AS licao_id, l.titulo AS licao_titulo, l.slug AS licao_slug,
@@ -219,7 +220,7 @@ app.get("/api/fase/:slug", async (req, res) => {
       return res.status(404).json({ erro: "Fase não encontrada" });
     }
 
-    // Estrutura o objeto pai baseado na primeira linha retornada
+    // Objeto pai baseado nos dados da lição
     const licaoFormatada = {
       id: resultado.rows[0].licao_id,
       titulo: resultado.rows[0].licao_titulo,
@@ -227,20 +228,25 @@ app.get("/api/fase/:slug", async (req, res) => {
       questoes: []
     };
 
-    // Filtro contra linhas repetidas oriundas do JOIN
-    const questoesAdicionadas = new Set();
+    // Usaremos um dicionário (Map) indexado pelo ID da questão para eliminar qualquer
+    // multiplicação de linhas gerada pelo comportamento do LEFT JOIN
+    const questoesMap = {};
 
     resultado.rows.forEach(linha => {
-      if (linha.questao_id && !questoesAdicionadas.has(linha.questao_id)) {
-        questoesAdicionadas.add(linha.questao_id);
-
-        // Garante integridade do array de opções
+      if (linha.questao_id && !questoesMap[linha.questao_id]) {
+        
+        // Garante a integridade e parsing correto do array de opções
         let opcoesTratadas = linha.opcoes;
         if (typeof linha.opcoes === 'string') {
-          try { opcoesTratadas = JSON.parse(linha.opcoes); } catch (e) { opcoesTratadas = []; }
+          try { 
+            opcoesTratadas = JSON.parse(linha.opcoes); 
+          } catch (e) { 
+            opcoesTratadas = []; 
+          }
         }
 
-        licaoFormatada.questoes.push({
+        // Adiciona a questão no mapa usando o ID como chave única estrita
+        questoesMap[linha.questao_id] = {
           id: linha.questao_id,
           tipo: linha.tipo,
           pergunta_exibicao: linha.pergunta_exibicao,
@@ -248,15 +254,18 @@ app.get("/api/fase/:slug", async (req, res) => {
           traducao: linha.traducao,
           audio: linha.audio,
           img: linha.img,
-          resposta: linha.resposta, // O Exercicio.jsx precisa comparar a resposta localmente!
+          resposta: linha.resposta,
           opcoes: opcoesTratadas,
           frase_parte_1: linha.frase_parte_1,
           frase_parte_2: linha.frase_parte_2,
           frase_exibicao: linha.frase_exibicao,
           palavra_ingles: linha.palavra_ingles
-        });
+        };
       }
     });
+
+    // Transforma o mapa de questões de volta em um array limpo
+    licaoFormatada.questoes = Object.values(questoesMap);
 
     res.json(licaoFormatada);
 
