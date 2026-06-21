@@ -453,6 +453,52 @@ app.put("/api/admin/licoes", async (req, res) => {
   }
 });
 
+// ==========================================
+// 🚨 ROTAS DO ADMINISTRADOR
+// ==========================================
+
+app.post("/api/admin/login", (req, res) => {
+  // ... seu código de login atual continua igual ...
+});
+
+// 🌟 NOVA ROTA ADICIONADA: GET para listar lições e questões estruturadas no painel do Admin
+app.get("/api/admin/licoes", async (req, res) => {
+  try {
+    // 1. Busca todos os módulos/níveis ordenados
+    const niveisRes = await pool.query("SELECT * FROM niveis_licoes ORDER BY id ASC");
+    
+    // 2. Busca todas as questões associadas a esses níveis
+    const questoesRes = await pool.query("SELECT * FROM questoes ORDER BY id ASC");
+
+    // 3. Estrutura os dados exatamente no formato aninhado que o seu AdminLicoes.jsx precisa
+    const niveisEstruturados = niveisRes.rows.map(nivel => {
+      return {
+        id: nivel.id,
+        slug: nivel.slug,
+        titulo: nivel.titulo,
+        // Filtra as questões que pertencem a este nível (usando o nivel_id do banco)
+        questoes: questoesRes.rows
+          .filter(q => q.nivel_id === nivel.id)
+          .map(q => {
+            // Garante que as opções/alternativas sejam enviadas como Array (caso estejam como string JSON)
+            let opcoesTratadas = q.opcoes;
+            if (typeof q.opcoes === "string") {
+              try { opcoesTratadas = JSON.parse(q.opcoes); } catch (e) { opcoesTratadas = []; }
+            }
+            return { ...q, opcoes: opcoesTratadas };
+          })
+      };
+    });
+
+    // Envia o objeto que seu frontend espera (ex: data.niveis)
+    res.json({ niveis: niveisEstruturados });
+
+  } catch (err) {
+    console.error("❌ Erro ao buscar lições para o painel do admin:", err);
+    res.status(500).json({ erro: "Erro interno ao carregar dados do admin." });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 InglEJA Online integrado com Postgres na porta: ${PORT}`);
 });
