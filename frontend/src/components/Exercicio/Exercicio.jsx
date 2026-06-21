@@ -42,31 +42,30 @@ function Exercicio() {
 
   const cardExercicioRef = useRef(null);
 
-  // ==========================================
-  // EFEITO 1: BUSCAR DADOS DO BACKEND
+// ==========================================
+  // EFEITO 1: BUSCAR DADOS DO BACKEND (ATUALIZADO PARA POSTGRES)
   // ==========================================
   useEffect(() => {
-    // 🌟 CORREÇÃO 1: Micro-atraso para evitar o erro do ESLint
     const timerLoading = setTimeout(() => setLoadingDados(true), 0);
 
-    Promise.all([
-      fetch(`http://localhost:3000/api/fase/${slug}`).then((res) => {
+    fetch(`https://ingleja-backend.onrender.com/api/fase/${slug}`)
+      .then((res) => {
         if (!res.ok) throw new Error("Fase não encontrada");
         return res.json();
-      }),
-      fetch(`http://localhost:3000/api/niveis`).then((res) => res.json()),
-    ])
-      .then(([faseData, niveisData]) => {
+      })
+      .then((faseData) => {
         setLicao(faseData);
-        const currentIndex = niveisData.findIndex((n) => n.slug === slug);
-        if (currentIndex !== -1 && currentIndex < niveisData.length - 1) {
-          setDadosProximaLicao(niveisData[currentIndex + 1]);
-          setNumeroProximoNivel(currentIndex + 2);
-        }
+
+        // 🌟 Correção de segurança: Define o próximo ID baseado no ID atual, 
+        // mas garante que o controle principal no fim do fluxo use caminhos dinâmicos
+        setNumeroProximoNivel(faseData.id ? Number(faseData.id) + 1 : 2);
+        setDadosProximaLicao(null);
+
         setLoadingDados(false);
       })
       .catch((err) => {
         console.error("Erro ao carregar dados da lição:", err);
+        setLicao(null); // Evita lixo de estado anterior
         setLoadingDados(false);
       })
       .finally(() => clearTimeout(timerLoading));
@@ -450,7 +449,7 @@ function Exercicio() {
         const ultimaQuestaoDaLicao = licao.questoes[licao.questoes.length - 1];
 
         const response = await fetch(
-          "http://localhost:3000/api/validar-resposta-v2",
+          "https://ingleja-backend.onrender.com/api/validar-resposta-v2",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
