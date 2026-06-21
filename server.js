@@ -405,75 +405,6 @@ app.post("/api/admin/login", (req, res) => {
   }
 });
 
-// Admin atualizar/inserir lições no Banco de Dados (CORRIGIDO)
-app.put("/api/admin/licoes", async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const novosDados = req.body;
-    if (!novosDados || !novosDados.niveis) {
-      return res.status(400).json({ erro: "Formato de dados inválido." });
-    }
-
-    await client.query("BEGIN"); // Inicia Transação SQL
-
-    for (let nivel of novosDados.niveis) {
-      
-      // 1. Atualiza ou Insere o Nível/Módulo
-      const nivelIns = await client.query(
-        `INSERT INTO niveis_licoes (slug, titulo) VALUES ($1, $2)
-         ON CONFLICT (slug) DO UPDATE SET titulo = EXCLUDED.titulo RETURNING id`,
-        [nivel.slug, nivel.titulo]
-      );
-      
-      const nivelId = nivelIns.rows[0].id;
-
-      // 2. 🔥 LIMPA AS QUESTÕES ANTIGAS DESTE NÍVEL ANTES DE INSERIR AS ATUALIZADAS
-      // Isso evita erros de chaves duplicadas e garante que exclusões/edições funcionem perfeitamente
-      await client.query("DELETE FROM questoes WHERE nivel_id = $1", [nivelId]);
-
-      // 3. Insere o bloco de questões atualizado vindo do frontend
-      for (let q of nivel.questoes) {
-        
-        // Garante que as opções sejam um array válido ou fallback para array vazio
-        const opcionesParam = Array.isArray(q.opcoes) ? q.opcoes : [];
-
-        await client.query(
-          `INSERT INTO questoes 
-           (nivel_id, tipo, pergunta_exibicao, dica, traducao, audio, img, resposta, opcoes, frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`, 
-          [
-            nivelId,
-            q.tipo || 'Escolha Palavra',
-            q.pergunta_exibicao || '',
-            q.dica || null,
-            q.traducao || null,
-            q.audio || null,
-            q.img || null,
-            q.resposta || '',
-            // Se sua coluna for do tipo TEXT, use: JSON.stringify(opcionesParam)
-            // Se for JSON/JSONB, mande o próprio array: opcionesParam
-            Array.isArray(opcionesParam) ? JSON.stringify(opcionesParam) : opcionesParam, 
-            q.frase_parte_1 || null,
-            q.frase_parte_2 || null,
-            q.frase_exibicao || null,
-            q.palavra_ingles || null
-          ]
-        );
-      }
-    }
-
-    await client.query("COMMIT"); // Confirma todas as alterações com segurança
-    res.json({ sucesso: true, mensagem: "Lições salvas no Postgres com sucesso!" });
-
-  } catch (err) {
-    await client.query("ROLLBACK"); // Cancela tudo se der erro em qualquer inserção
-    console.error("❌ Erro ao salvar lições no Banco:", err);
-    res.status(500).json({ erro: "Erro ao salvar as lições no servidor." });
-  } finally {
-    client.release();
-  }
-});
-
 // Admin atualizar/inserir/DELETAR lições no Banco de Dados
 app.put("/api/admin/licoes", async (req, res) => {
   const client = await pool.connect();
@@ -510,13 +441,13 @@ app.put("/api/admin/licoes", async (req, res) => {
 
     // 2. AGORA RODA O LOOP PARA ATUALIZAR OU INSERIR O QUE SOBROU
     for (let nivel of novosDados.niveis) {
-
+      
       const nivelIns = await client.query(
         `INSERT INTO niveis_licoes (slug, titulo) VALUES ($1, $2)
          ON CONFLICT (slug) DO UPDATE SET titulo = EXCLUDED.titulo RETURNING id`,
         [nivel.slug, nivel.titulo]
       );
-
+      
       const nivelId = nivelIns.rows[0].id;
 
       // Limpa as questões antigas deste nível específico para reinserir com as edições
@@ -529,7 +460,7 @@ app.put("/api/admin/licoes", async (req, res) => {
         await client.query(
           `INSERT INTO questoes 
            (nivel_id, tipo, pergunta_exibicao, dica, traducao, audio, img, resposta, opcoes, frase_parte_1, frase_parte_2, frase_exibicao, palavra_ingles)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`, 
           [
             nivelId,
             q.tipo || 'Escolha Palavra',
@@ -539,7 +470,7 @@ app.put("/api/admin/licoes", async (req, res) => {
             q.audio || null,
             q.img || null,
             q.resposta || '',
-            Array.isArray(opcionesParam) ? JSON.stringify(opcionesParam) : opcionesParam,
+            Array.isArray(opcionesParam) ? JSON.stringify(opcionesParam) : opcionesParam, 
             q.frase_parte_1 || null,
             q.frase_parte_2 || null,
             q.frase_exibicao || null,
@@ -558,6 +489,60 @@ app.put("/api/admin/licoes", async (req, res) => {
     res.status(500).json({ erro: "Erro ao processar as alterações." });
   } finally {
     client.release();
+  }
+});
+
+// 🚨 ROTA GET DO ADMINISTRADOR (CORRIGIDA CONTRA DUPLICATAS)
+app.get("/api/admin/licoes", async (req, res) => {
+  try {
+    // 1. Puxa todos os níveis ordenados pelo ID correto
+    const niveisRes = await pool.query("SELECT id, slug, titulo FROM niveis_licoes ORDER BY id ASC");
+    
+    // 2. Puxa todas as questões do banco
+    const questoesRes = await pool.query("SELECT * FROM questoes");
+
+    // 3. Agrupa e separa as questões por nível de forma estrita no JavaScript
+    const niveisEstruturados = niveisRes.rows.map(nivel => {
+      
+      // Filtra apenas as questões que pertencem estritamente a este nível_id
+      const questoesDoNivel = questoesRes.rows.filter(q => Number(q.nivel_id) === Number(nivel.id));
+
+      // Mapa para eliminar qualquer duplicidade física de conteúdo dentro do próprio nível
+      const mapaQuestoesUnicas = {};
+      
+      questoesDoNivel.forEach(q => {
+        // Cria uma chave única baseada no tipo e na pergunta para evitar clones visuais
+        const chaveUnica = `${q.tipo}_${q.pergunta_exibicao}`.trim().toLowerCase();
+        
+        if (!mapaQuestoesUnicas[chaveUnica]) {
+          // Trata o array de opções (se veio como string do banco, faz o parse)
+          let opcoesTratadas = q.opcoes;
+          if (typeof q.opcoes === "string") {
+            try { opcoesTratadas = JSON.parse(q.opcoes); } catch (e) { opcoesTratadas = []; }
+          }
+          
+          mapaQuestoesUnicas[chaveUnica] = {
+            ...q,
+            opcoes: opcoesTratadas
+          };
+        }
+      });
+
+      // Retorna o nível estruturado com seu array de questões limpo e real
+      return {
+        id: nivel.id,
+        slug: nivel.slug,
+        titulo: nivel.titulo,
+        questoes: Object.values(mapaQuestoesUnicas) // Transforma o mapa limpo de volta em Array
+      };
+    });
+
+    // Devolve o JSON limpo para o Frontend
+    res.json({ niveis: niveisEstruturados });
+
+  } catch (err) {
+    console.error("❌ Erro ao processar lições do admin:", err);
+    res.status(500).json({ erro: "Erro interno ao carregar dados estruturados." });
   }
 });
 
