@@ -453,49 +453,57 @@ app.put("/api/admin/licoes", async (req, res) => {
   }
 });
 
-// ==========================================
-// 🚨 ROTAS DO ADMINISTRADOR
-// ==========================================
-
-app.post("/api/admin/login", (req, res) => {
-  // ... seu código de login atual continua igual ...
-});
-
-// 🌟 NOVA ROTA ADICIONADA: GET para listar lições e questões estruturadas no painel do Admin
+// 🚨 ROTA GET DO ADMINISTRADOR (CORRIGIDA CONTRA DUPLICATAS)
 app.get("/api/admin/licoes", async (req, res) => {
   try {
-    // 1. Busca todos os módulos/níveis ordenados
-    const niveisRes = await pool.query("SELECT * FROM niveis_licoes ORDER BY id ASC");
+    // 1. Puxa todos os níveis ordenados pelo ID correto
+    const niveisRes = await pool.query("SELECT id, slug, titulo FROM niveis_licoes ORDER BY id ASC");
     
-    // 2. Busca todas as questões associadas a esses níveis
-    const questoesRes = await pool.query("SELECT * FROM questoes ORDER BY id ASC");
+    // 2. Puxa todas as questões do banco
+    const questoesRes = await pool.query("SELECT * FROM questoes");
 
-    // 3. Estrutura os dados exatamente no formato aninhado que o seu AdminLicoes.jsx precisa
+    // 3. Agrupa e separa as questões por nível de forma estrita no JavaScript
     const niveisEstruturados = niveisRes.rows.map(nivel => {
+      
+      // Filtra apenas as questões que pertencem estritamente a este nível_id
+      const questoesDoNivel = questoesRes.rows.filter(q => Number(q.nivel_id) === Number(nivel.id));
+
+      // Mapa para eliminar qualquer duplicidade física de conteúdo dentro do próprio nível
+      const mapaQuestoesUnicas = {};
+      
+      questoesDoNivel.forEach(q => {
+        // Cria uma chave única baseada no tipo e na pergunta para evitar clones visuais
+        const chaveUnica = `${q.tipo}_${q.pergunta_exibicao}`.trim().toLowerCase();
+        
+        if (!mapaQuestoesUnicas[chaveUnica]) {
+          // Trata o array de opções (se veio como string do banco, faz o parse)
+          let opcoesTratadas = q.opcoes;
+          if (typeof q.opcoes === "string") {
+            try { opcoesTratadas = JSON.parse(q.opcoes); } catch (e) { opcoesTratadas = []; }
+          }
+          
+          mapaQuestoesUnicas[chaveUnica] = {
+            ...q,
+            opcoes: opcoesTratadas
+          };
+        }
+      });
+
+      // Retorna o nível estruturado com seu array de questões limpo e real
       return {
         id: nivel.id,
         slug: nivel.slug,
         titulo: nivel.titulo,
-        // Filtra as questões que pertencem a este nível (usando o nivel_id do banco)
-        questoes: questoesRes.rows
-          .filter(q => q.nivel_id === nivel.id)
-          .map(q => {
-            // Garante que as opções/alternativas sejam enviadas como Array (caso estejam como string JSON)
-            let opcoesTratadas = q.opcoes;
-            if (typeof q.opcoes === "string") {
-              try { opcoesTratadas = JSON.parse(q.opcoes); } catch (e) { opcoesTratadas = []; }
-            }
-            return { ...q, opcoes: opcoesTratadas };
-          })
+        questoes: Object.values(mapaQuestoesUnicas) // Transforma o mapa limpo de volta em Array
       };
     });
 
-    // Envia o objeto que seu frontend espera (ex: data.niveis)
+    // Devolve o JSON limpo para o Frontend
     res.json({ niveis: niveisEstruturados });
 
   } catch (err) {
-    console.error("❌ Erro ao buscar lições para o painel do admin:", err);
-    res.status(500).json({ erro: "Erro interno ao carregar dados do admin." });
+    console.error("❌ Erro ao processar lições do admin:", err);
+    res.status(500).json({ erro: "Erro interno ao carregar dados estruturados." });
   }
 });
 
