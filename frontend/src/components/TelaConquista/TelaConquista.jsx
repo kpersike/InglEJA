@@ -30,6 +30,39 @@ const TelaConquista = ({
     }));
   });
 
+  // 🔥 VERSÃO BLINDADA CONTRA ABORTOS DO NAVEGADOR
+  useEffect(() => {
+    const audio = new Audio("/audios/victory.mp3");
+    audio.volume = 0.2;
+
+    let podeTocar = true;
+
+    // Só tenta dar o play quando o navegador confirmar que baixou o suficiente para rodar sem travar
+    audio.oncanplaythrough = () => {
+      if (podeTocar) {
+        audio.play().catch((erro) => {
+          // Ignora erros comuns de autoplay/aborto que não quebram a aplicação
+          if (erro.name !== "AbortError") {
+            console.log("⚠️ Erro ao reproduzir áudio:", erro);
+          }
+        });
+      }
+    };
+
+    // Carrega explicitamente o recurso de mídia
+    audio.load();
+
+    // Limpeza segura
+    return () => {
+      podeTocar = false;
+      // Só pausa se o áudio já tiver metadados válidos carregados para evitar novas exceções
+      if (audio.readyState >= 2) {
+        audio.pause();
+      }
+      audio.oncanplaythrough = null;
+    };
+  }, []);
+
   // Desliga os confetes após 6 segundos
   useEffect(() => {
     const timer = setTimeout(() => setMostrarConfetes(false), 6000);

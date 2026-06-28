@@ -5,10 +5,11 @@ const Navbar = ({ usuario }) => {
     <nav className="w-full bg-white dark:bg-gray-900 flex items-center justify-between py-4 px-8 md:px-16 sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
       {/* Lado Esquerdo: Logo (Original mantido) */}
       <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-primary-500 rounded-full"></div>
-        <span className="font-extrabold text-xl text-gray-900 dark:text-white tracking-tight transition-colors">
-          InglEJA
-        </span>
+        <img
+          src="/images/logotipo_2.png"
+          alt="Logo InglEJA"
+          className="w-40 h-auto object-contain"
+        />
       </div>
 
       {/* Lado Direito: Status e Perfil (Limpo e Refinado) */}
