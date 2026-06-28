@@ -39,7 +39,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="flex flex-col items-center text-center mb-8">
           <img
-            src="images/logotipo_1.png"
+            src="/images/logotipo_1.png"
             alt="Logo InglEJA"
             className="w-44 h-44 object-contain"
           />

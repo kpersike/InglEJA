@@ -132,7 +132,7 @@ function Auth() {
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-6">
             <img
-              src="images/logotipo_1.png"
+              src="/images/logotipo_1.png"
               alt="Logo InglEJA"
               className="w-52 h-52 object-contain"
             />

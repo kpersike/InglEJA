@@ -6,7 +6,7 @@ const Navbar = ({ usuario }) => {
       {/* Lado Esquerdo: Logo (Original mantido) */}
       <div className="flex items-center gap-3">
         <img
-          src="images/logotipo_2.png"
+          src="/images/logotipo_2.png"
           alt="Logo InglEJA"
           className="w-40 h-auto object-contain"
         />
