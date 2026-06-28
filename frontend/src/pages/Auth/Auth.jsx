@@ -225,6 +225,7 @@ function Auth() {
               }
               theme="filled_blue"
               shape="pill"
+              width="300"
             />
           </div>
         </div>
