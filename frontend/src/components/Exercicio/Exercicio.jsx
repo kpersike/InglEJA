@@ -190,14 +190,19 @@ function Exercicio() {
       fase === "revisao" ? errosCometidos.length : licao.questoes.length;
     const enunciado = questaoSegura.pergunta_exibicao || "";
 
-    let instrucaoTipo = "Selecione a palavra correspondente.";
-    if (questaoSegura.tipo === "ordenar_frase") {
-      instrucaoTipo =
-        "Arraste ou toque nas palavras para formar a frase correta.";
-    } else if (!questaoSegura.opcoes || questaoSegura.opcoes.length === 0) {
-      instrucaoTipo = "Digite a palavra correta em inglês.";
-    } else if (questaoSegura.subtitulo) {
-      instrucaoTipo = questaoSegura.subtitulo;
+    // Dentro do useEffect do EFEITO 5 (Acessibilidade - Leitura Inicial)
+    let instrucaoTipo = questaoSegura.subtitulo || "Selecione a palavra correspondente.";
+
+    if (!questaoSegura.subtitulo) {
+      if (questaoSegura.tipo === "ordenar_frase") {
+        instrucaoTipo = "Arraste ou toque nas palavras para formar a frase.";
+      } else if (questaoSegura.tipo === "preencher_lacuna") {
+        instrucaoTipo = isInputText ? "Digite a palavra correta em inglês para preencher a lacuna." : "Selecione a palavra correta para preencher a lacuna.";
+      } else if (questaoSegura.tipo === "escolha_imagem") {
+        instrucaoTipo = "Selecione a imagem correspondente à tradução.";
+      } else if (isInputText) {
+        instrucaoTipo = "Digite a palavra correta em inglês.";
+      }
     }
 
     const textoIntroducao = `Questão ${numeroQuestao} de ${totalQuestoes}. Pergunta: ${enunciado}. Instrução: ${instrucaoTipo}. Use a tecla Tab para navegar pelas opções.`;
@@ -608,12 +613,24 @@ function Exercicio() {
                   {questaoSegura.pergunta_exibicao}
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 font-medium text-sm md:text-base">
-                  {questaoSegura.tipo === "ordenar_frase"
-                    ? "Arraste ou toque nas palavras para formar a frase"
-                    : isInputText
-                      ? "Digite a palavra correta em inglês."
-                      : questaoSegura.subtitulo ||
-                        "Selecione a palavra correspondente"}
+                  {questaoSegura.subtitulo || (() => {
+                    switch (questaoSegura.tipo) {
+                      case "ordenar_frase":
+                        return "Arraste ou toque nas palavras para formar a frase";
+                      case "preencher_lacuna":
+                        return isInputText
+                          ? "Digite a palavra correta em inglês para preencher a lacuna."
+                          : "Selecione a palavra correta para preencher a lacuna.";
+                      case "escolha_imagem":
+                        return "Selecione a imagem correspondente à tradução";
+                      case "escolha_palavra":
+                        return isInputText
+                          ? "Digite a tradução correta em inglês."
+                          : "Selecione a palavra correspondente";
+                      default:
+                        return "Responda à questão abaixo";
+                    }
+                  })()}
                 </p>
 
                 {questaoSegura.tipo === "preencher_lacuna" && (
