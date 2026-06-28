@@ -131,10 +131,15 @@ function Auth() {
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8 md:p-10 relative">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-primary-600 rounded-full"></div>
+            <img
+              src="images/logotipo_1.png"
+              alt="Logo InglEJA"
+              className="w-52 h-52 object-contain"
+            />
+            {/* <div className="w-10 h-10 bg-primary-600 rounded-full"></div>
             <span className="font-black text-3xl text-gray-900 dark:text-white tracking-tighter">
               InglEJA
-            </span>
+            </span> */}
           </div>
           <h2 className="text-2xl font-bold dark:text-white">
             {isLogin ? "Entrar" : "Crie sua conta"}

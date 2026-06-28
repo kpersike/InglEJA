@@ -37,10 +37,12 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 mb-2">
-            InglEJA
-          </h1>
+        <div className="flex flex-col items-center text-center mb-8">
+          <img
+            src="images/logotipo_1.png"
+            alt="Logo InglEJA"
+            className="w-44 h-44 object-contain"
+          />
           <h2 className="text-gray-500 dark:text-gray-400 font-medium tracking-widest uppercase text-sm">
             Painel do Administrador
           </h2>
